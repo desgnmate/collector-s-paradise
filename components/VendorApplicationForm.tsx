@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react';
 import { submitVendorApplication } from '@/app/actions/vendors';
+import Image from 'next/image';
 
 const VENDOR_CATEGORIES = [
   'Pokémon TCG',
@@ -22,6 +23,20 @@ export default function VendorApplicationForm() {
   });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [logoName, setLogoName] = useState<string | null>(null);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoName(file.name);
+      const url = URL.createObjectURL(file);
+      setLogoPreview(url);
+    } else {
+      setLogoName(null);
+      setLogoPreview(null);
+    }
+  };
 
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
@@ -43,7 +58,7 @@ export default function VendorApplicationForm() {
   }
 
   return (
-    <form action={formAction} className="vendor-apply-form" encType="multipart/form-data">
+    <form action={formAction} className="vendor-apply-form">
       {state.message && !state.success && (
         <div className="vendor-form-alert vendor-form-alert-error">
           {state.message}
@@ -70,14 +85,69 @@ export default function VendorApplicationForm() {
 
           <div className="vendor-form-group">
             <label htmlFor="logo">Business Logo / Avatar *</label>
-            <input
-              id="logo"
-              name="logo"
-              type="file"
-              accept="image/*"
-              required
-              style={{ padding: '9px 12px' }}
-            />
+            <div 
+              className={`upload-zone ${logoPreview ? 'upload-zone-active' : ''}`}
+            >
+              <input
+                id="logo"
+                name="logo"
+                type="file"
+                accept="image/*"
+                required
+                onChange={handleLogoChange}
+                className="sr-only"
+              />
+              
+              {logoPreview ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '3px solid var(--color-dark)' }}>
+                    <Image src={logoPreview} alt="Logo preview" fill style={{ objectFit: 'cover' }} />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                    <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--color-dark)', textTransform: 'uppercase' }}>{logoName}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => { setLogoPreview(null); setLogoName(null); }}
+                      style={{ 
+                        background: 'var(--color-red)', 
+                        color: 'white', 
+                        border: '2px solid var(--color-dark)', 
+                        padding: '4px 12px', 
+                        borderRadius: '4px',
+                        fontSize: '0.7rem',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.5px'
+                      }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <span style={{ fontSize: '0.75rem', color: '#666', marginTop: '0.5rem' }}>Click to change image</span>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ 
+                    width: '64px', 
+                    height: '64px', 
+                    background: 'var(--color-yellow)', 
+                    borderRadius: '50%', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    border: '3px solid var(--color-dark)'
+                  }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--color-dark)' }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" x2="12" y1="3" y2="15" />
+                    </svg>
+                  </div>
+                  <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-dark)', textTransform: 'uppercase' }}>Click to upload logo</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#666' }}>Maximum file size: 5MB (PNG, JPG)</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="vendor-form-group">

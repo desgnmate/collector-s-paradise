@@ -13,9 +13,10 @@ const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 type EventCalendarProps = {
   events: Event[];
+  onDateSelect?: (date: string | null) => void;
 };
 
-export default function EventCalendar({ events }: EventCalendarProps) {
+export default function EventCalendar({ events, onDateSelect }: EventCalendarProps) {
   const today = new Date();
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
@@ -133,7 +134,11 @@ export default function EventCalendar({ events }: EventCalendarProps) {
             <button
               key={dateStr}
               className={`calendar-cell ${hasEvents ? 'has-events' : ''} ${isSelected ? 'selected' : ''} ${isTodayCell ? 'is-today' : ''}`}
-              onClick={() => hasEvents ? setSelectedDate(isSelected ? null : dateStr) : undefined}
+              onClick={() => {
+                const newDate = isSelected ? null : dateStr;
+                setSelectedDate(newDate);
+                if (onDateSelect) onDateSelect(newDate);
+              }}
               disabled={!hasEvents}
               aria-label={`${MONTH_NAMES[currentMonth]} ${day}${hasEvents ? ' — has events' : ''}`}
             >

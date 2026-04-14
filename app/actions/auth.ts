@@ -100,8 +100,12 @@ export async function signUp(prevState: ActionState, formData: FormData): Promis
       });
       
     if (profileError) {
-      console.error('Error creating profile after signup:', profileError);
-      // We don't fail here as the user is already created
+      console.error('Error creating profile after signup:', JSON.stringify(profileError, null, 2));
+      
+      // Check for missing columns in profiles table
+      if (profileError.code === '42703') {
+        return { message: 'Account created, but profile setup failed due to a database schema mismatch. Please contact support.' };
+      }
     }
   }
 
@@ -121,6 +125,9 @@ export async function signOut() {
 export async function updateProfile(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
   
+  // Handle avatar file upload separately
+  const avatarFile = formData.get('avatar') as File | null;
+  
   const validatedFields = profileSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
@@ -132,15 +139,56 @@ export async function updateProfile(prevState: ActionState, formData: FormData):
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { message: 'Not authenticated' };
 
+  let avatarUrl = undefined;
+
+  // 1. Process avatar upload if a new file is provided
+  if (avatarFile && avatarFile.size > 0) {
+    console.log("Storage Diagnostic - Project URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+    // Basic validation
+    if (avatarFile.size > 5 * 1024 * 1024) return { message: 'Avatar image must be less than 5MB' };
+    if (!avatarFile.type.startsWith('image/')) return { message: 'File must be an image' };
+
+    const fileExt = avatarFile.name.split('.').pop();
+    const filePath = `${user.id}/avatar-${Date.now()}.${fileExt}`;
+    const arrayBuffer = await avatarFile.arrayBuffer();
+
+    const { error: uploadError } = await supabase.storage
+      .from('avatars')
+      .upload(filePath, arrayBuffer, {
+        contentType: avatarFile.type,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      console.error('Avatar upload error:', uploadError);
+      return { message: `Upload failed: ${uploadError.message}. Please ensure you have run the profile_updates.sql migration.` };
+    }
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('avatars')
+      .getPublicUrl(filePath);
+
+    avatarUrl = publicUrl;
+  }
+
+  // 2. Build update payload
+  const updateData: any = {
+    full_name: validatedFields.data.fullName,
+    phone: validatedFields.data.phone,
+  };
+
+  if (avatarUrl) {
+    updateData.avatar_url = avatarUrl;
+  }
+
+  // 3. Update profiles table
   const { error } = await supabase
     .from('profiles')
-    .update({
-      full_name: validatedFields.data.fullName,
-      phone: validatedFields.data.phone,
-    })
+    .update(updateData)
     .eq('id', user.id);
 
   if (error) {
+    console.error('Profile update database error:', error);
     return { message: error.message };
   }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -13,12 +13,13 @@ export default function Navbar() {
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [isSolid, setIsSolid] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [initials, setInitials] = useState('');
   
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -43,7 +44,17 @@ export default function Navbar() {
     });
 
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
+      const scrollPos = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const totalHeight = document.documentElement.scrollHeight;
+      
+      // Transparent in the first 100px (Hero) or last 500px (Footer)
+      const isTop = scrollPos <= 80;
+      const isBottom = scrollPos + windowHeight >= totalHeight - 500;
+      
+      setScrolled(scrollPos > 50);
+      setIsSolid(!isTop && !isBottom);
+      
       setLoginDropdownOpen(false);
       setProfileDropdownOpen(false);
     };
@@ -64,13 +75,14 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('click', handleClickOutside);
+    handleScroll(); // Initialize on mount
     
     return () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, [supabase, pathname]);
 
   const getInitials = (name: string) => {
     return name
@@ -105,7 +117,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}>
+    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''} ${isSolid ? 'navbar-solid' : ''}`}>
       <div className="navbar-inner">
         {/* Left: Logo */}
         <Link href="/" className="navbar-logo-link">
@@ -136,7 +148,7 @@ export default function Navbar() {
               
               <div className={`navbar-login-dropdown ${profileDropdownOpen ? 'open' : ''}`}>
                 <div className="navbar-login-dropdown-inner">
-                  <div className="login-dropdown-item" style={{ borderBottom: '2px solid var(--color-dark)', padding: '1rem 1.5rem', background: '#f9f9f9' }}>
+                  <div className="login-dropdown-header" style={{ borderBottom: '2px solid var(--color-dark)', padding: '1.25rem 2rem', background: '#f9f9f9', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <span className="login-item-title" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0' }}>Logged in as</span>
                     <span className="login-item-desc" style={{ fontWeight: 700, color: 'var(--color-dark)', fontSize: '0.9rem' }}>{user.email}</span>
                   </div>
@@ -202,40 +214,42 @@ export default function Navbar() {
           )}
 
           {/* Hamburger Menu (Icon only) */}
-          <button
-            className={`navbar-menu-icon ${menuOpen ? 'active' : ''}`}
-            onClick={toggleMenu}
-            aria-label="Toggle menu"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-        </div>
+          <div className="navbar-menu-wrapper" style={{ position: 'relative' }}>
+            <button
+              className={`navbar-menu-icon ${menuOpen ? 'active' : ''}`}
+              onClick={toggleMenu}
+              aria-label="Toggle menu"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
 
-        {/* Mobile dropdown menu */}
-        <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
-          <div className="navbar-dropdown-inner">
-            <a href="/#about" onClick={(e) => handleSectionLink(e, 'about')}>
-              <span className="menu-item-text">About</span>
-            </a>
-            <a href="/#experience" onClick={(e) => handleSectionLink(e, 'experience')}>
-              <span className="menu-item-text">Experience</span>
-            </a>
-            <Link href="/events" onClick={() => setMenuOpen(false)}>
-              <span className="menu-item-text">Events</span>
-            </Link>
-            <Link href="/vendors" onClick={() => setMenuOpen(false)}>
-              <span className="menu-item-text">Vendors</span>
-            </Link>
-            <Link href="/events" onClick={() => setMenuOpen(false)}>
-              <span className="menu-item-text">Tickets</span>
-            </Link>
-          </div>
+            {/* Dropdown menu (Positioned below MENU button) */}
+            <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
+              <div className="navbar-dropdown-inner">
+                <a href="/#about" onClick={(e) => handleSectionLink(e, 'about')}>
+                  <span className="menu-item-text">About</span>
+                </a>
+                <a href="/#experience" onClick={(e) => handleSectionLink(e, 'experience')}>
+                  <span className="menu-item-text">Experience</span>
+                </a>
+                <Link href="/events" onClick={() => setMenuOpen(false)}>
+                  <span className="menu-item-text">Events</span>
+                </Link>
+                <Link href="/vendors" onClick={() => setMenuOpen(false)}>
+                  <span className="menu-item-text">Vendors</span>
+                </Link>
+                <Link href="/events" onClick={() => setMenuOpen(false)}>
+                  <span className="menu-item-text">Tickets</span>
+                </Link>
+            </div>
         </div>
       </div>
-    </nav>
+      </div>
+    </div>
+  </nav>
   );
 }

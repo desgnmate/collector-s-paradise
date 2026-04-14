@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import EventCalendar from './EventCalendar';
 import type { Event } from '@/app/actions/events';
@@ -9,6 +9,22 @@ const Highlights = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'card' | 'calendar'>('card');
   const [eventType, setEventType] = useState<'upcoming' | 'past'>('upcoming');
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(true);
+
+  const handleScroll = () => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 2); // Use a small threshold for better reliability
+      setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 2);
+    }
+  };
+
+  useEffect(() => {
+    handleScroll();
+    window.addEventListener('resize', handleScroll);
+    return () => window.removeEventListener('resize', handleScroll);
+  }, []);
 
   const scrollLeft = () => {
     if (scrollRef.current) {
@@ -97,33 +113,45 @@ const Highlights = () => {
     }
   ];
 
+  const [isCalendarDateSelected, setIsCalendarDateSelected] = useState(false);
+
   return (
     <section id="highlights" className="highlights-section">
       <div className="container">
         
-        <div className="highlights-header" data-aos="fade-up">
-          <span className="eyebrow-badge">PREVIOUS &amp; UPCOMING EVENTS</span>
-          <h2 className="section-title">EVENT HIGHLIGHTS</h2>
-          <p className="section-subtitle">
-            Discover everything happening at the event, from trading zones to exclusive finds.
-          </p>
-        </div>
-          
-        <div className="highlights-controls-wrapper">
-          <div className="highlights-toggle-container">
-            <button 
-              className={`toggle-btn ${eventType === 'upcoming' ? 'active' : ''}`}
-              onClick={() => setEventType('upcoming')}
-            >
-              Upcoming Events
-            </button>
-            <button 
-              className={`toggle-btn ${eventType === 'past' ? 'active' : ''}`}
-              onClick={() => setEventType('past')}
-            >
-              Past Events
-            </button>
+        {!isCalendarDateSelected && (
+          <div className="highlights-header" data-aos="fade-up">
+            <span className="eyebrow-badge">PREVIOUS &amp; UPCOMING EVENTS</span>
+            <h2 className="section-title">EVENT HIGHLIGHTS</h2>
+            <p className="section-subtitle">
+              Discover everything happening at the event, from trading zones to exclusive finds.
+            </p>
           </div>
+        )}
+          
+        <div 
+          className="highlights-controls-wrapper"
+          style={{ 
+            justifyContent: viewMode === 'calendar' ? 'flex-end' : 'space-between',
+            marginTop: isCalendarDateSelected ? '0' : 'var(--space-xl)'
+          }}
+        >
+          {viewMode === 'card' && (
+            <div className="highlights-toggle-container">
+              <button 
+                className={`toggle-btn ${eventType === 'upcoming' ? 'active' : ''}`}
+                onClick={() => setEventType('upcoming')}
+              >
+                Upcoming Events
+              </button>
+              <button 
+                className={`toggle-btn ${eventType === 'past' ? 'active' : ''}`}
+                onClick={() => setEventType('past')}
+              >
+                Past Events
+              </button>
+            </div>
+          )}
 
           <div className="view-toggle-container">
             <button 
@@ -145,13 +173,15 @@ const Highlights = () => {
 
         {viewMode === 'card' ? (
           <div className="highlights-carousel-wrapper">
-            <button className="highlights-carousel-arrow arrow-prev" aria-label="Previous" onClick={scrollLeft}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 18l-6-6 6-6"/>
-              </svg>
-            </button>
+            {canScrollLeft && (
+              <button className="highlights-carousel-arrow arrow-prev" aria-label="Previous" onClick={scrollLeft}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+            )}
 
-            <div className="highlights-grid" ref={scrollRef}>
+            <div className="highlights-grid" ref={scrollRef} onScroll={handleScroll}>
               {events.map((event, index) => {
                 // Ensure date string looks clean like "Aug 12"
                 const dateObj = new Date(event.event_date);
@@ -169,6 +199,7 @@ const Highlights = () => {
                         src={event.cover_image_url || "/images/placeholder.jpg"} 
                         alt={event.title} 
                         fill 
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                         style={{ objectFit: 'cover' }}
                       />
                       <div className="highlight-date-tag">{displayDate}</div>
@@ -183,15 +214,20 @@ const Highlights = () => {
               })}
             </div>
 
-            <button className="highlights-carousel-arrow arrow-next" aria-label="Next" onClick={scrollRight}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 18l6-6-6-6"/>
-              </svg>
-            </button>
+            {canScrollRight && (
+              <button className="highlights-carousel-arrow arrow-next" aria-label="Next" onClick={scrollRight}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            )}
           </div>
         ) : (
           <div className="highlights-calendar-view" data-aos="fade-up">
-            <EventCalendar events={events} />
+            <EventCalendar 
+              events={events} 
+              onDateSelect={(date) => setIsCalendarDateSelected(!!date)}
+            />
           </div>
         )}
 

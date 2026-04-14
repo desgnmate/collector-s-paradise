@@ -11,6 +11,15 @@ interface ProfileProps {
 
 export default function ProfileClient({ user, profile }: ProfileProps) {
   const [activeTab, setActiveTab] = useState<'info' | 'security'>('info');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(profile?.avatar_url || null);
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setAvatarPreview(url);
+    }
+  };
 
   const [profileState, profileAction, isProfilePending] = useActionState(updateProfile, {
     message: '',
@@ -64,6 +73,41 @@ export default function ProfileClient({ user, profile }: ProfileProps) {
                   {profileState.message}
                 </div>
               )}
+
+              {/* Avatar Upload Section */}
+              <div className="auth-group" style={{ marginBottom: '2.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <label style={{ width: '100%', marginBottom: '1rem' }}>Profile Picture</label>
+                <div className="profile-avatar-container">
+                  <div className="profile-avatar-wrapper">
+                    {avatarPreview ? (
+                      <img 
+                        src={avatarPreview} 
+                        alt="Avatar Preview" 
+                        className="profile-avatar-img"
+                      />
+                    ) : (
+                      <div className="profile-avatar-placeholder">
+                        {profile?.full_name?.charAt(0) || user.email?.charAt(0) || '?'}
+                      </div>
+                    )}
+                    <label htmlFor="avatar" className="profile-avatar-edit-overlay">
+                      <span className="edit-icon">📸</span>
+                      <span className="edit-text">EDIT</span>
+                    </label>
+                  </div>
+                  <input
+                    id="avatar"
+                    name="avatar"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarChange}
+                    className="sr-only"
+                  />
+                  <p style={{ fontSize: '0.75rem', color: '#888', marginTop: '10px', textAlign: 'center' }}>
+                    Click photo to upload. Max 5MB (JPG, PNG, WebP)
+                  </p>
+                </div>
+              </div>
 
               <div className="auth-group">
                 <label>Email Address (Public)</label>

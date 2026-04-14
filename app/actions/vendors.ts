@@ -15,6 +15,7 @@ export type Vendor = {
   phone: string | null;
   description: string | null;
   categories: string[];
+  logo_url: string | null;
   application_status: 'pending' | 'approved' | 'rejected' | 'waitlisted';
   booth_assignment: string | null;
   event_id: string | null;
@@ -122,9 +123,12 @@ export async function submitVendorApplication(
   const fileExt = logo.name.split('.').pop();
   const filePath = `${authData.user.id}/logo-${Date.now()}.${fileExt}`;
 
+  const arrayBuffer = await logo.arrayBuffer();
+
   const { error: uploadError } = await supabase.storage
     .from('vendor_logos')
-    .upload(filePath, logo, {
+    .upload(filePath, arrayBuffer, {
+      contentType: logo.type,
       cacheControl: '3600',
       upsert: false,
     });
@@ -151,7 +155,15 @@ export async function submitVendorApplication(
   });
 
   if (dbError) {
-    console.error('Error submitting vendor application:', dbError);
+    console.error('Error submitting vendor application:', JSON.stringify(dbError, null, 2));
+    
+    // Check for "column does not exist" error (Postgres error code 42703)
+    if (dbError.code === '42703') {
+      return { 
+        message: 'Database schema mismatch: One or more required columns are missing from the vendors table. Please run the provided SQL migration in lib/supabase/vendor_auth_update.sql in your Supabase SQL Editor.' 
+      };
+    }
+    
     return { message: 'Something went wrong while saving your application. Please contact support.' };
   }
 
@@ -168,14 +180,28 @@ export async function getApprovedVendors(): Promise<Partial<Vendor>[]> {
 
   const { data, error } = await supabase
     .from('vendors')
-    .select('id, business_name, description, categories, booth_assignment, logo_url')
+    .select('id, business_name, contact_name, description, categories, booth_assignment, logo_url')
     .eq('application_status', 'approved')
     .order('business_name', { ascending: true });
 
   if (error) {
-    console.error('Error fetching vendors:', error);
+    console.error('Error fetching vendors from Supabase:', JSON.stringify(error, null, 2));
+    
+    // Fallback: If logo_url is the problem, try fetching without it
+    if (error.code === '42703') {
+      console.warn('DATABASE ALERT: logo_url or other required columns are missing. Attempting fallback fetch.');
+      const { data: fallbackData, error: fallbackError } = await supabase
+        .from('vendors')
+        .select('id, business_name, contact_name, description, categories, booth_assignment')
+        .eq('application_status', 'approved')
+        .order('business_name', { ascending: true });
+      
+      if (!fallbackError) return fallbackData as Partial<Vendor>[];
+    }
+    
     return [];
   }
 
-  return data as unknown as Vendor[];
+  console.log(`Successfully fetched ${data?.length || 0} approved vendors`);
+  return data as Partial<Vendor>[];
 }
