@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Hero() {
   const scrollTo = (id: string) => {
@@ -19,7 +20,7 @@ export default function Hero() {
           playsInline
           className="hero-video"
         >
-          <source src="/brand-final-hero.mp4" type="video/mp4" />
+          <source src="/hero-section-video.mp4" type="video/mp4" />
         </video>
       </div>
 
@@ -35,9 +36,9 @@ export default function Hero() {
           with the community.
         </p>
         <div className="hero-buttons">
-          <button className="btn btn-hero-ticket" onClick={() => scrollTo('join')}>
+          <Link href="/events" className="btn btn-hero-ticket">
             Buy Tickets
-          </button>
+          </Link>
         </div>
       </div>
 

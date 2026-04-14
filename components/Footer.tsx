@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 export default function Footer() {
   const scrollTo = (id: string) => {
@@ -16,7 +17,7 @@ export default function Footer() {
           <p className="footer-eyebrow">JOIN THE COMMUNITY</p>
           <h2 className="footer-cta-title">BE PART OF THE<br />EXPERIENCE</h2>
           <p className="footer-cta-subtitle">Connect with collectors, share the passion,<br />and be part of something bigger.</p>
-          <button className="btn btn-yellow footer-cta-btn" onClick={() => scrollTo('highlights')}>Buy Tickets</button>
+          <Link href="/events" className="btn btn-yellow footer-cta-btn">Buy Tickets</Link>
 
           {/* Floating Polaroids */}
           <div className="polaroid-cards-wrapper">
@@ -47,8 +48,8 @@ export default function Footer() {
           />
 
           <div className="footer-nav">
-            <a href="#highlights">EVENTS</a>
-            <a href="#vendors">VENDORS</a>
+            <Link href="/events">EVENTS</Link>
+            <Link href="/vendors/apply">VENDOR APPLICATION</Link>
             <a href="#about">ABOUT</a>
             <a href="#contact">CONTACT</a>
           </div>

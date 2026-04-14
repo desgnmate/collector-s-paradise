@@ -26,17 +26,18 @@ const Brands = () => {
         </h2>
       </div>
 
-      <div className="brands-grid">
-        {brandLogos.map((svg, index) => (
-          <div 
-            key={index} 
-            className="brand-item" 
-            data-aos="zoom-in" 
-            data-aos-delay={index * 50}
-          >
-            {svg}
-          </div>
-        ))}
+      <div className="brands-marquee-wrapper">
+        <div className="brands-marquee-content">
+          {/* Double the logos for seamless loop */}
+          {[...brandLogos, ...brandLogos].map((svg, index) => (
+            <div 
+              key={index} 
+              className="brand-item" 
+            >
+              {svg}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

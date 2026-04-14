@@ -3633,13 +3633,13 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
-      "bytes": 5924,
+    ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
+      "bytes": 7828,
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
-      "bytes": 7828,
+    ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
+      "bytes": 5924,
       "imports": [],
       "format": "cjs"
     },
@@ -3672,14 +3672,14 @@
           "original": "/Users/jhunlytapaya/Downloads/Client 2026/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "/Users/jhunlytapaya/Downloads/Client 2026/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "/Users/jhunlytapaya/Downloads/Client 2026/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "/Users/jhunlytapaya/Downloads/Client 2026/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js"
         }
       ],
       "format": "cjs"
@@ -4511,7 +4511,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/_0.exzjt._.js": {
-      "bytes": 27066,
+      "bytes": 27065,
       "imports": [],
       "format": "cjs"
     },
@@ -7451,11 +7451,11 @@
         ".open-next/server-functions/default/.next/server/app/page_client-reference-manifest.js": {
           "bytesInOutput": 11635
         },
-        ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
-          "bytesInOutput": 5688
-        },
         ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
           "bytesInOutput": 7479
+        },
+        ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
+          "bytesInOutput": 5688
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
           "bytesInOutput": 13801
@@ -7599,7 +7599,7 @@
           "bytesInOutput": 21118
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_0.exzjt._.js": {
-          "bytesInOutput": 27812
+          "bytesInOutput": 27811
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_page_actions_09-gtaw.js": {
           "bytesInOutput": 249
@@ -7782,7 +7782,7 @@
           "bytesInOutput": 57400
         }
       },
-      "bytes": 3117653
+      "bytes": 3117652
     }
   }
 }

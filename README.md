@@ -1,36 +1,70 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Collector's Paradise — Pokémon TCG Events
 
-## Getting Started
+> Melbourne's premier Pokémon trading card event. Where collectors meet, trade, and connect.
 
-First, run the development server:
+Collector's Paradise is a high-performance, modern web application for an exclusive Melbourne-based Pokémon TCG community event. The platform showcases event highlights, featured vendors, and provides an immersive experience for enthusiasts to buy, sell, and trade.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Key Features
+
+- **Immersive 3D Experience**: Smooth scrolling and interactive elements.
+- **Vendor Showcase**: Discover the best in the TCG community.
+- **Dynamic Highlights**: Stay updated on the latest event cards and deals.
+- **Community Focused**: Integrated support and interactive "Pokeball" chat widget.
+- **Fully Responsive**: Optimized for high-end desktops down to mobile devices.
+
+## 🛠️ Technology Stack
+
+- **Frontend**: [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/)
+- **Styling**: Vanilla CSS (Custom Token System)
+- **Smooth Scroll**: [Lenis](https://github.com/darkroomengineering/lenis)
+- **Deployment**: [Cloudflare Pages](https://pages.cloudflare.com/) via [OpenNext](https://opennext.js.org/)
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+
+## 📦 Getting Started
+
+### Prerequisites
+
+- Node.js 20+
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone [repository-url]
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🏗️ Project Structure
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `app/`: Next.js App Router pages and global styles.
+- `components/`: Modular React components.
+- `public/`: Static assets (images, videos, fonts).
+- `docs/`: Detailed technical documentation.
 
-## Learn More
+## 🚢 Deployment
 
-To learn more about Next.js, take a look at the following resources:
+The project is deployed to Cloudflare Pages.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+# Build the project
+npm run build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Deploy via Wrangler
+npx wrangler pages deploy .open-next/assets
+```
 
-## Deploy on Vercel
+For more details, see [docs/DEPLOYMENT.md](file:///Volumes/External/Desgnmate/Collectors%20Paradise/CP%20Landing%20page/collectors-paradise-web/docs/DEPLOYMENT.md).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+© 2026 Collector's Paradise. Designed with passion by DesgnMate.

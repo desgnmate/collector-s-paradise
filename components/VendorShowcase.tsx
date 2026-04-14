@@ -1,5 +1,6 @@
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const VendorShowcase = () => {
   return (
@@ -43,7 +44,7 @@ const VendorShowcase = () => {
                   className="reveal-img"
                 />
               </div>
-              <button className="vendor-card-btn">VIEW VENDOR LIST</button>
+              <Link href="/vendors" className="vendor-card-btn">VIEW VENDOR LIST</Link>
             </div>
           </div>
 
@@ -74,7 +75,7 @@ const VendorShowcase = () => {
                   className="reveal-img"
                 />
               </div>
-              <button className="vendor-card-btn">JOIN AS VENDOR</button>
+              <Link href="/vendors/apply" className="vendor-card-btn">JOIN AS VENDOR</Link>
             </div>
           </div>
 
