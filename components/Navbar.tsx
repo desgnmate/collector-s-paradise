@@ -1,48 +1,94 @@
-'use client';
-
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import type { User } from '@supabase/supabase-js';
+import { signOut } from '@/app/actions/auth';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [initials, setInitials] = useState('');
+  
   const pathname = usePathname();
   const isHomePage = pathname === '/';
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      if (user?.user_metadata?.full_name) {
+        setInitials(getInitials(user.user_metadata.full_name));
+      } else if (user?.email) {
+        setInitials(user.email.charAt(0).toUpperCase());
+      }
+    };
+
+    fetchUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user?.user_metadata?.full_name) {
+        setInitials(getInitials(session.user.user_metadata.full_name));
+      } else if (session?.user?.email) {
+        setInitials(session.user.email.charAt(0).toUpperCase());
+      }
+    });
+
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
       setLoginDropdownOpen(false);
+      setProfileDropdownOpen(false);
     };
     
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
-      if (!target.closest('.navbar-login-wrapper') && !target.closest('.navbar-menu-icon') && !target.closest('.navbar-dropdown')) {
+      if (
+        !target.closest('.navbar-login-wrapper') && 
+        !target.closest('.navbar-menu-icon') && 
+        !target.closest('.navbar-dropdown') &&
+        !target.closest('.navbar-profile-wrapper')
+      ) {
         setLoginDropdownOpen(false);
         setMenuOpen(false);
+        setProfileDropdownOpen(false);
       }
     };
 
     window.addEventListener('scroll', handleScroll);
     document.addEventListener('click', handleClickOutside);
+    
     return () => {
       window.removeEventListener('scroll', handleScroll);
       document.removeEventListener('click', handleClickOutside);
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
+
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
+  };
 
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
-    if (!menuOpen) setLoginDropdownOpen(false);
+    if (!menuOpen) {
+      setLoginDropdownOpen(false);
+      setProfileDropdownOpen(false);
+    }
   };
 
   /**
    * Handles navigation to homepage sections.
-   * If already on homepage, scrolls smoothly to the section.
-   * If on another page, navigates to /#section (browser handles the hash scroll).
    */
   const handleSectionLink = (e: React.MouseEvent, sectionId: string) => {
     setMenuOpen(false);
@@ -54,7 +100,6 @@ export default function Navbar() {
         el.scrollIntoView({ behavior: 'smooth' });
       }
     }
-    // If NOT on homepage, let the default <a href="/#section"> behavior navigate there
   };
 
   return (
@@ -74,33 +119,85 @@ export default function Navbar() {
 
         {/* Right: Actions Group */}
         <div className="navbar-actions">
-          {/* LOGIN / SIGN-UP Dropdown */}
-          <div className="navbar-login-wrapper">
-            <button 
-              className="navbar-join-pill"
-              onClick={() => {
-                setLoginDropdownOpen(!loginDropdownOpen);
-                if (!loginDropdownOpen) setMenuOpen(false);
-              }}
-            >
-              LOGIN / SIGN-UP
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '6px', transition: 'transform 0.2s', transform: loginDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                <polyline points="6 9 12 15 18 9"></polyline>
-              </svg>
-            </button>
-            <div className={`navbar-login-dropdown ${loginDropdownOpen ? 'open' : ''}`}>
-              <div className="navbar-login-dropdown-inner">
-                <Link href="/vendors/apply" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
-                  <span className="login-item-title">Login/Signup as Vendor</span>
-                  <span className="login-item-desc">Secure a booth & sell your collection</span>
-                </Link>
-                <Link href="/events" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
-                  <span className="login-item-title">Login/Signup as Buyer</span>
-                  <span className="login-item-desc">Get tickets & track your orders</span>
-                </Link>
+          {user ? (
+            /* AUTHENTICATED: Profile Icon Dropdown */
+            <div className="navbar-profile-wrapper" style={{ position: 'relative' }}>
+              <button 
+                className="navbar-profile-btn"
+                onClick={() => {
+                  setProfileDropdownOpen(!profileDropdownOpen);
+                  if (!profileDropdownOpen) setMenuOpen(false);
+                }}
+              >
+                {initials}
+              </button>
+              
+              <div className={`navbar-login-dropdown ${profileDropdownOpen ? 'open' : ''}`}>
+                <div className="navbar-login-dropdown-inner">
+                  <div className="login-dropdown-item" style={{ borderBottom: '2px solid var(--color-dark)', padding: '1rem 1.5rem', background: '#f9f9f9' }}>
+                    <span className="login-item-title" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0' }}>Logged in as</span>
+                    <span className="login-item-desc" style={{ fontWeight: 700, color: 'var(--color-dark)', fontSize: '0.9rem' }}>{user.email}</span>
+                  </div>
+                  <Link href="/profile" className="login-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
+                    <span className="login-item-title">My Profile</span>
+                    <span className="login-item-desc">Personal info & security</span>
+                  </Link>
+                  <Link href="/events" className="login-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
+                    <span className="login-item-title">My Tickets</span>
+                    <span className="login-item-desc">Track orders & passes</span>
+                  </Link>
+                  <form action={signOut} className="login-dropdown-item" style={{ padding: 0 }}>
+                    <button 
+                      type="submit" 
+                      className="login-dropdown-item" 
+                      style={{ 
+                        width: '100%', 
+                        textAlign: 'left', 
+                        border: 'none', 
+                        background: 'none', 
+                        cursor: 'pointer',
+                        color: 'var(--color-red)'
+                      }}
+                    >
+                      <span className="login-item-title" style={{ color: 'inherit' }}>Logout</span>
+                    </button>
+                  </form>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            /* GUEST: LOGIN / SIGN-UP Dropdown */
+            <div className="navbar-login-wrapper">
+              <button 
+                className="navbar-join-pill"
+                onClick={() => {
+                  setLoginDropdownOpen(!loginDropdownOpen);
+                  if (!loginDropdownOpen) setMenuOpen(false);
+                }}
+              >
+                LOGIN / SIGN-UP
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '6px', transition: 'transform 0.2s', transform: loginDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+              <div className={`navbar-login-dropdown ${loginDropdownOpen ? 'open' : ''}`}>
+                <div className="navbar-login-dropdown-inner">
+                  <Link href="/login" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
+                    <span className="login-item-title">Login to Account</span>
+                    <span className="login-item-desc">Access your collector portal</span>
+                  </Link>
+                  <Link href="/signup" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
+                    <span className="login-item-title">Sign Up as Buyer</span>
+                    <span className="login-item-desc">Get tickets & track your orders</span>
+                  </Link>
+                  <Link href="/vendors/apply" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
+                    <span className="login-item-title">Apply as Vendor</span>
+                    <span className="login-item-desc">Secure a booth & sell your collection</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Hamburger Menu (Icon only) */}
           <button
