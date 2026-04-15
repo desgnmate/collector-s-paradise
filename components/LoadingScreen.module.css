@@ -1,0 +1,151 @@
+/* ============================================================
+   LoadingScreen — Floating Cards Background
+   ============================================================ */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: #2E2E2E;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.75rem;
+  overflow: hidden;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.overlay.exiting {
+  opacity: 0;
+  transform: scale(1.03);
+  pointer-events: none;
+}
+
+/* ── Floating card background ─────────────────────────────── */
+.cardsBg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.floatCard {
+  position: absolute;
+  width: 60px;
+  height: 84px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+  overflow: hidden;
+  will-change: transform;
+  animation: floatDrift var(--duration) linear infinite;
+  animation-delay: var(--delay);
+  top: var(--top);
+  left: var(--left);
+  transform: rotate(var(--tilt));
+  opacity: 0;
+}
+
+/* Shimmer on each card */
+.floatCard::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 10px;
+  background: linear-gradient(
+    115deg,
+    transparent 25%,
+    rgba(244, 197, 66, 0.4) 40%,
+    rgba(92, 143, 201, 0.5) 55%,
+    rgba(255, 255, 255, 0.5) 65%,
+    transparent 78%
+  );
+  background-size: 200% 200%;
+  animation: shimmer 2.5s ease-in-out infinite;
+  animation-delay: var(--shimmer-delay);
+}
+
+@keyframes floatDrift {
+  0%   { transform: translateY(0px) rotate(var(--tilt)); opacity: 0; }
+  8%   { opacity: var(--opacity); }
+  92%  { opacity: var(--opacity); }
+  100% { transform: translateY(var(--drift)) rotate(calc(var(--tilt) + var(--spin))); opacity: 0; }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ── Center content ───────────────────────────────────────── */
+.center {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  animation: centerReveal 0.7s ease forwards;
+  animation-delay: 0.3s;
+  opacity: 0;
+}
+
+@keyframes centerReveal {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Logo ─────────────────────────────────────────────────── */
+.logoWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 4px 24px rgba(244, 197, 66, 0.25));
+}
+
+/* ── Progress Bar ─────────────────────────────────────────── */
+.progressWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  width: clamp(200px, 35vw, 280px);
+}
+
+.progressLabel {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+}
+
+.progressTrack {
+  width: 100%;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50px;
+  overflow: hidden;
+  outline: none;
+}
+
+.progressFill {
+  height: 100%;
+  background: #F4C542;
+  border-radius: 50px;
+  transition: width 0.3s ease;
+  min-width: 4px;
+  box-shadow: 0 0 10px rgba(244, 197, 66, 0.7);
+  outline: none;
+}
+
+/* ── Reduced Motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .floatCard { animation: none; opacity: 0.15; }
+  .floatCard::after { animation: none; }
+  .center { animation: none; opacity: 1; }
+  .overlay.exiting { opacity: 0; transform: none; transition: opacity 0.2s ease; }
+}

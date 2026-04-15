@@ -22,24 +22,17 @@ export default function Navbar() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user?.user_metadata?.full_name) {
-        setInitials(getInitials(user.user_metadata.full_name));
-      } else if (user?.email) {
-        setInitials(user.email.charAt(0).toUpperCase());
-      }
-    };
-
-    fetchUser();
-
+    // Use onAuthStateChange exclusively — avoids racing getUser() against
+    // the auth state listener which both try to acquire the navigator lock.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user?.user_metadata?.full_name) {
-        setInitials(getInitials(session.user.user_metadata.full_name));
-      } else if (session?.user?.email) {
-        setInitials(session.user.email.charAt(0).toUpperCase());
+      const u = session?.user ?? null;
+      setUser(u);
+      if (u?.user_metadata?.full_name) {
+        setInitials(getInitials(u.user_metadata.full_name));
+      } else if (u?.email) {
+        setInitials(u.email.charAt(0).toUpperCase());
+      } else {
+        setInitials('');
       }
     });
 

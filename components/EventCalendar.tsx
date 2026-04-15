@@ -144,7 +144,7 @@ export default function EventCalendar({ events, onDateSelect }: EventCalendarPro
             >
               <span className="calendar-cell-day">{day}</span>
               {hasEvents && (
-                <span className="calendar-cell-dot" />
+                <span className="calendar-cell-dot">EVENT</span>
               )}
             </button>
           );

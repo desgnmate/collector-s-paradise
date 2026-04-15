@@ -133,7 +133,6 @@ const Highlights = () => {
           className="highlights-controls-wrapper"
           style={{ 
             justifyContent: viewMode === 'calendar' ? 'flex-end' : 'space-between',
-            marginTop: isCalendarDateSelected ? '0' : 'var(--space-xl)'
           }}
         >
           {viewMode === 'card' && (
@@ -207,7 +206,7 @@ const Highlights = () => {
                     <div className="highlight-content">
                       <h3 className="highlight-title">{event.title}</h3>
                       <p className="highlight-desc">{event.description}</p>
-                      <button className="btn-highlight">GET YOUR TICKETS</button>
+                      <button className="btn-highlight">BOOK NOW</button>
                     </div>
                   </div>
                 );

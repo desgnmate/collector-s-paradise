@@ -7,7 +7,7 @@ import ProfileClient from './ProfileClient';
 
 export default async function ProfilePage() {
   const supabase = await createSupabaseServerClient();
-  
+
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
@@ -20,17 +20,23 @@ export default async function ProfilePage() {
     .eq('id', user.id)
     .single();
 
+  // Fetch events the user has registered for
+  const { data: registrations } = await supabase
+    .from('event_registrations')
+    .select('event_id, created_at, events(id, title, description, cover_image_url, event_date, start_time, end_time, venue, venue_address, status, ticket_price)')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  const registeredEvents = registrations
+    ?.map((r: any) => ({ ...r.events, registered_at: r.created_at }))
+    .filter(Boolean) ?? [];
+
   return (
     <main>
       <Navbar />
-      <section className="profile-section">
+      <section className="profile-v2-section">
         <div className="container">
-          <div className="auth-header" style={{ textAlign: 'left', marginBottom: '3rem' }}>
-            <h1 className="auth-title">My Profile</h1>
-            <p className="auth-subtitle">Manage your personal information and security settings</p>
-          </div>
-
-          <ProfileClient user={user} profile={profile} />
+          <ProfileClient user={user} profile={profile} registeredEvents={registeredEvents} />
         </div>
       </section>
       <Footer />

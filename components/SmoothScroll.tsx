@@ -2,12 +2,15 @@
 
 import { useEffect, ReactNode } from 'react';
 import Lenis from 'lenis';
+import { useScrollReveal } from '@/hooks/useScrollReveal';
 
 interface SmoothScrollProps {
   children: ReactNode;
 }
 
 export default function SmoothScroll({ children }: SmoothScrollProps) {
+  useScrollReveal();
+
   useEffect(() => {
     // Initialize Lenis
     const lenis = new Lenis({
