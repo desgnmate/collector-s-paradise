@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 
 const tags = [
   {
@@ -47,6 +46,8 @@ const slides = [
 
 const Experience = () => {
   const [current, setCurrent] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const next = useCallback(() => setCurrent(c => (c + 1) % slides.length), []);
   const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), []);
@@ -57,8 +58,38 @@ const Experience = () => {
     return () => clearInterval(id);
   }, [next]);
 
+  // Lazy-load the background video when the section enters viewport
+  useEffect(() => {
+    const section = sectionRef.current;
+    const video = videoRef.current;
+    if (!section || !video) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.src = '/videos/cp-bg.mp4';
+          video.load();
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' } // Start loading 200px before entering viewport
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <section id="experience" className="experience-section">
+    <section id="experience" className="experience-section" ref={sectionRef}>
+      <video 
+        ref={videoRef}
+        autoPlay 
+        muted 
+        loop 
+        playsInline 
+        preload="none"
+        className="experience-video-bg"
+      />
       <div className="experience-card-container" data-aos="fade-up">
 
         {/* Left Side: Content */}
@@ -88,14 +119,7 @@ const Experience = () => {
                 key={slide.src}
                 className={`exp-carousel-slide ${i === current ? 'active' : ''}`}
               >
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                  style={{ objectFit: 'cover', objectPosition: 'center' }}
-                  priority={i === 0}
-                />
+                <img src={slide.src} alt={slide.alt} loading="lazy" style={{ objectFit: 'cover', objectPosition: 'center' }} />
               </div>
             ))}
           </div>

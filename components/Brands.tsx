@@ -20,7 +20,6 @@ const Brands = () => {
   return (
     <section id="brands" className="brands-section">
       <div className="brands-header" data-aos="fade-up">
-        <span className="eyebrow-badge">SPONSORS &amp; PARTNERS</span>
         <h2 className="section-title">
           BRANDS WE&apos;VE <br className="brands-mobile-break" /> WORKED WITH
         </h2>

@@ -64,6 +64,45 @@ export async function login(prevState: ActionState, formData: FormData): Promise
   redirect('/');
 }
 
+/** Admin sign in — same auth but redirects to /admin dashboard */
+export async function adminLogin(prevState: ActionState, formData: FormData): Promise<ActionState> {
+  const supabase = await createSupabaseServerClient();
+  
+  const validatedFields = loginSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: validatedFields.data.email,
+    password: validatedFields.data.password,
+  });
+
+  if (error) {
+    return { message: error.message };
+  }
+
+  // Check if user is an admin
+  if (data.user) {
+    const { data: adminRecord } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('user_id', data.user.id)
+      .maybeSingle();
+
+    if (!adminRecord) {
+      await supabase.auth.signOut();
+      return { message: 'You do not have admin access. Contact the site administrator.' };
+    }
+  }
+
+  revalidatePath('/', 'layout');
+  redirect('/admin');
+}
+
 /** Sign up as a Buyer/Collector */
 export async function signUp(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
@@ -121,6 +160,14 @@ export async function signOut() {
   redirect('/');
 }
 
+/** Admin sign out — signs out and redirects to admin login */
+export async function adminSignOut() {
+  const supabase = await createSupabaseServerClient();
+  await supabase.auth.signOut();
+  revalidatePath('/', 'layout');
+  redirect('/admin-login');
+}
+
 /** Update personal information */
 export async function updateProfile(prevState: ActionState, formData: FormData): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
@@ -143,7 +190,6 @@ export async function updateProfile(prevState: ActionState, formData: FormData):
 
   // 1. Process avatar upload if a new file is provided
   if (avatarFile && avatarFile.size > 0) {
-    console.log("Storage Diagnostic - Project URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
     // Basic validation
     if (avatarFile.size > 5 * 1024 * 1024) return { message: 'Avatar image must be less than 5MB' };
     if (!avatarFile.type.startsWith('image/')) return { message: 'File must be an image' };

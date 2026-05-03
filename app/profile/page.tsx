@@ -1,6 +1,13 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+
+export const metadata: Metadata = {
+  title: 'My Profile',
+  description: "Manage your Collector's Paradise profile, view your tickets, and update your account settings.",
+  robots: { index: false, follow: false },
+};
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import ProfileClient from './ProfileClient';
@@ -20,6 +27,13 @@ export default async function ProfilePage() {
     .eq('id', user.id)
     .single();
 
+  // Merge user_metadata as fallback for profile fields not yet saved to the DB
+  const mergedProfile = {
+    ...profile,
+    full_name: profile?.full_name || user.user_metadata?.full_name || null,
+    shop_name: profile?.shop_name || null,
+  };
+
   // Fetch events the user has registered for
   const { data: registrations } = await supabase
     .from('event_registrations')
@@ -36,7 +50,7 @@ export default async function ProfilePage() {
       <Navbar />
       <section className="profile-v2-section">
         <div className="container">
-          <ProfileClient user={user} profile={profile} registeredEvents={registeredEvents} />
+          <ProfileClient user={user} profile={mergedProfile} registeredEvents={registeredEvents} />
         </div>
       </section>
       <Footer />

@@ -2,6 +2,7 @@
 
 import React, { useActionState, useState } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { updateProfile, updatePassword, signOut } from '@/app/actions/auth';
 import type { User } from '@supabase/supabase-js';
 
@@ -13,12 +14,13 @@ interface ProfileProps {
 
 export default function ProfileClient({ user, profile, registeredEvents = [] }: ProfileProps) {
   const [activeTab, setActiveTab] = useState<'orders' | 'info' | 'security'>('orders');
+  const router = useRouter();
 
   const [profileState, profileAction, isProfilePending] = useActionState(updateProfile, { message: '' });
   const [passwordState, passwordAction, isPasswordPending] = useActionState(updatePassword, { message: '' });
 
-  const displayName = profile?.full_name || user.email?.split('@')[0] || 'User';
-  const shopName = profile?.shop_name || `${displayName.split(' ')[0].toUpperCase()}'S CARD SHOP`;
+  const displayName = profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+  const shopName = profile?.shop_name || (displayName !== user.email?.split('@')[0] ? `${displayName.split(' ')[0].toUpperCase()}'S CARD SHOP` : 'MY CARD SHOP');
 
   return (
     <div className="profile-v2-wrapper">
@@ -200,61 +202,6 @@ export default function ProfileClient({ user, profile, registeredEvents = [] }: 
 
             <div className="security-divider" />
 
-            {/* Collector Preferences */}
-            <div className="security-section-block">
-              <div className="security-block-header">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                <div>
-                  <h3 className="security-block-title">Collector Preferences</h3>
-                  <p className="security-block-desc">Tell vendors and the community what you're into</p>
-                </div>
-              </div>
-              <div className="security-toggles">
-                <div className="security-toggle-row">
-                  <div className="security-toggle-info">
-                    <span className="security-toggle-label">Pokémon TCG</span>
-                    <span className="security-toggle-hint">Cards, booster packs, sealed product</span>
-                  </div>
-                  <label className="security-switch">
-                    <input type="checkbox" defaultChecked />
-                    <span className="security-switch-track" />
-                  </label>
-                </div>
-                <div className="security-toggle-row">
-                  <div className="security-toggle-info">
-                    <span className="security-toggle-label">Graded Slabs</span>
-                    <span className="security-toggle-hint">PSA, BGS, CGC graded cards</span>
-                  </div>
-                  <label className="security-switch">
-                    <input type="checkbox" defaultChecked />
-                    <span className="security-switch-track" />
-                  </label>
-                </div>
-                <div className="security-toggle-row">
-                  <div className="security-toggle-info">
-                    <span className="security-toggle-label">Vintage & Rare Finds</span>
-                    <span className="security-toggle-hint">Base set, first editions, promos</span>
-                  </div>
-                  <label className="security-switch">
-                    <input type="checkbox" />
-                    <span className="security-switch-track" />
-                  </label>
-                </div>
-                <div className="security-toggle-row">
-                  <div className="security-toggle-info">
-                    <span className="security-toggle-label">Merchandise & Accessories</span>
-                    <span className="security-toggle-hint">Sleeves, binders, display cases</span>
-                  </div>
-                  <label className="security-switch">
-                    <input type="checkbox" />
-                    <span className="security-switch-track" />
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <div className="security-divider" />
-
             {/* Account Type */}
             <div className="security-section-block">
               <div className="security-block-header">
@@ -278,10 +225,18 @@ export default function ProfileClient({ user, profile, registeredEvents = [] }: 
                 <div className="security-toggle-row">
                   <div className="security-toggle-info">
                     <span className="security-toggle-label">Vendor / Seller</span>
-                    <span className="security-toggle-hint">Interested in booking a booth</span>
+                    <span className="security-toggle-hint">Interested in booking a booth — tap to apply</span>
                   </div>
                   <label className="security-switch">
-                    <input type="checkbox" />
+                    <input
+                      type="checkbox"
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          e.target.checked = false;
+                          router.push('/vendors/apply');
+                        }
+                      }}
+                    />
                     <span className="security-switch-track" />
                   </label>
                 </div>

@@ -2,7 +2,6 @@
 
 import { useActionState, useState } from 'react';
 import { submitVendorApplication } from '@/app/actions/vendors';
-import Image from 'next/image';
 
 const VENDOR_CATEGORIES = [
   'Pokémon TCG',
@@ -23,6 +22,8 @@ export default function VendorApplicationForm() {
   });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [showPassword, setShowPassword] = useState(false);
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
 
@@ -77,6 +78,7 @@ export default function VendorApplicationForm() {
               type="text"
               placeholder="e.g. Rare Card Co."
               required
+              defaultValue={state.fields?.business_name || ''}
             />
             {state.errors?.business_name && (
               <span className="vendor-form-error">{state.errors.business_name[0]}</span>
@@ -85,8 +87,10 @@ export default function VendorApplicationForm() {
 
           <div className="vendor-form-group">
             <label htmlFor="logo">Business Logo / Avatar *</label>
-            <div 
+            <label 
+              htmlFor="logo"
               className={`upload-zone ${logoPreview ? 'upload-zone-active' : ''}`}
+              style={{ cursor: 'pointer', display: 'block' }}
             >
               <input
                 id="logo"
@@ -101,13 +105,13 @@ export default function VendorApplicationForm() {
               {logoPreview ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '3px solid var(--color-dark)' }}>
-                    <Image src={logoPreview} alt="Logo preview" fill style={{ objectFit: 'cover' }} />
+                    <img src={logoPreview || ''} alt="Logo preview" loading="lazy" style={{ objectFit: 'cover' }} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--color-dark)', textTransform: 'uppercase' }}>{logoName}</span>
                     <button 
                       type="button" 
-                      onClick={() => { setLogoPreview(null); setLogoName(null); }}
+                      onClick={(e) => { e.preventDefault(); setLogoPreview(null); setLogoName(null); }}
                       style={{ 
                         background: 'var(--color-red)', 
                         color: 'white', 
@@ -147,7 +151,7 @@ export default function VendorApplicationForm() {
                   <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#666' }}>Maximum file size: 5MB (PNG, JPG)</span>
                 </div>
               )}
-            </div>
+            </label>
           </div>
 
           <div className="vendor-form-group">
@@ -158,6 +162,7 @@ export default function VendorApplicationForm() {
               type="text"
               placeholder="Your full name"
               required
+              defaultValue={state.fields?.contact_name || ''}
             />
             {state.errors?.contact_name && (
               <span className="vendor-form-error">{state.errors.contact_name[0]}</span>
@@ -172,6 +177,7 @@ export default function VendorApplicationForm() {
               type="email"
               placeholder="you@example.com"
               required
+              defaultValue={state.fields?.email || ''}
             />
             {state.errors?.email && (
               <span className="vendor-form-error">{state.errors.email[0]}</span>
@@ -188,6 +194,8 @@ export default function VendorApplicationForm() {
                 placeholder="Create a secure password"
                 required
                 minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 style={{ width: '100%', paddingRight: '40px' }}
               />
               <button
@@ -230,10 +238,12 @@ export default function VendorApplicationForm() {
                 placeholder="Confirm your password"
                 required
                 minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 style={{ width: '100%', paddingRight: '40px' }}
               />
             </div>
-            {state.errors?.confirm_password && (
+            {state.errors?.confirm_password && password !== confirmPassword && (
               <span className="vendor-form-error">{state.errors.confirm_password[0]}</span>
             )}
           </div>
@@ -245,6 +255,7 @@ export default function VendorApplicationForm() {
               name="phone"
               type="tel"
               placeholder="+61 400 000 000"
+              defaultValue={state.fields?.phone || ''}
             />
           </div>
         </div>
@@ -293,6 +304,7 @@ export default function VendorApplicationForm() {
             rows={5}
             placeholder="We specialize in graded vintage Pokémon cards and sealed booster boxes. We've been selling at collector events for 3 years..."
             required
+            defaultValue={state.fields?.description || ''}
           />
           {state.errors?.description && (
             <span className="vendor-form-error">{state.errors.description[0]}</span>

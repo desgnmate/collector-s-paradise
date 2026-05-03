@@ -21,6 +21,7 @@ export type Event = {
   tickets_sold: number;
   ticket_price: number;
   cover_image_url: string | null;
+  booking_link: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -38,6 +39,7 @@ const createEventSchema = z.object({
   venue_address: z.string().optional(),
   capacity: z.coerce.number().min(1, 'Capacity must be at least 1'),
   ticket_price: z.coerce.number().min(0, 'Price cannot be negative'),
+  booking_link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
 });
 
 // ============================================
@@ -112,17 +114,30 @@ type ActionState = {
   success?: boolean;
 };
 
+async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: 'unauthorized' as const };
+
+  const { data: adminRecord } = await supabase
+    .from('admin_users')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!adminRecord) return { error: 'not_admin' as const };
+  return { user, adminRecord };
+}
+
 /** Create a new event (admin only) */
 export async function createEvent(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const auth = await requireAdmin(supabase);
 
-  // Verify admin
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { message: 'Unauthorized' };
+  if ('error' in auth) {
+    return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
   }
 
   const validatedFields = createEventSchema.safeParse({
@@ -135,6 +150,7 @@ export async function createEvent(
     venue_address: formData.get('venue_address'),
     capacity: formData.get('capacity'),
     ticket_price: formData.get('ticket_price'),
+    booking_link: formData.get('booking_link'),
   });
 
   if (!validatedFields.success) {
@@ -163,10 +179,10 @@ export async function updateEvent(
   formData: FormData
 ): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const auth = await requireAdmin(supabase);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { message: 'Unauthorized' };
+  if ('error' in auth) {
+    return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
   }
 
   const validatedFields = createEventSchema.safeParse({
@@ -179,6 +195,7 @@ export async function updateEvent(
     venue_address: formData.get('venue_address'),
     capacity: formData.get('capacity'),
     ticket_price: formData.get('ticket_price'),
+    booking_link: formData.get('booking_link'),
   });
 
   if (!validatedFields.success) {
@@ -206,10 +223,10 @@ export async function updateEvent(
 /** Delete an event (admin only) */
 export async function deleteEvent(eventId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const auth = await requireAdmin(supabase);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return { message: 'Unauthorized' };
+  if ('error' in auth) {
+    return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
   }
 
   const { error } = await supabase.from('events').delete().eq('id', eventId);
@@ -227,9 +244,9 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
 /** Fetch all events for admin (including past/cancelled) */
 export async function getAdminEvents(): Promise<Event[]> {
   const supabase = await createSupabaseServerClient();
+  const auth = await requireAdmin(supabase);
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
+  if ('error' in auth) return [];
 
   const { data, error } = await supabase
     .from('events')

@@ -2,32 +2,53 @@
 
 import { useEffect } from 'react';
 
-/**
- * Observes all elements with [data-aos] and adds the `.aos-animate` class
- * when they enter the viewport. Supports data-aos-delay (ms).
- */
 export function useScrollReveal() {
   useEffect(() => {
-    const elements = document.querySelectorAll<HTMLElement>('[data-aos]');
+    const animate = (el: HTMLElement) => {
+      const delay = parseInt(el.dataset.aosDelay || '0', 10);
+      setTimeout(() => el.classList.add('aos-animate'), delay);
+    };
 
+    // Immediately reveal anything already in view on mount
+    const revealVisible = () => {
+      document.querySelectorAll<HTMLElement>('[data-aos]:not(.aos-animate)').forEach((el) => {
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight + 50) {
+          animate(el);
+        }
+      });
+    };
+
+    // Observer for elements that scroll into view later
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
-            const el = entry.target as HTMLElement;
-            const delay = parseInt(el.dataset.aosDelay || '0', 10);
-            setTimeout(() => {
-              el.classList.add('aos-animate');
-            }, delay);
-            observer.unobserve(el); // animate once
+            animate(entry.target as HTMLElement);
+            observer.unobserve(entry.target);
           }
         });
       },
-      { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+      { threshold: 0, rootMargin: '0px 0px 0px 0px' }
     );
 
-    elements.forEach((el) => observer.observe(el));
+    const observe = () => {
+      revealVisible();
+      document.querySelectorAll<HTMLElement>('[data-aos]:not(.aos-animate)').forEach((el) => {
+        observer.observe(el);
+      });
+    };
 
-    return () => observer.disconnect();
+    // Run after a short delay to let the page render
+    const t = setTimeout(observe, 100);
+
+    // Also re-run on scroll for any missed elements
+    window.addEventListener('scroll', revealVisible, { passive: true });
+
+    return () => {
+      clearTimeout(t);
+      observer.disconnect();
+      window.removeEventListener('scroll', revealVisible);
+    };
   }, []);
 }

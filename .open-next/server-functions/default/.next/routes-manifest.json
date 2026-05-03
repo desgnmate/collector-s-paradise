@@ -23,6 +23,22 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/collections/[id]",
+      "regex": "^/collections/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/collections/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/collections/[id]/edit",
+      "regex": "^/collections/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/collections/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
       "page": "/events/[id]",
       "regex": "^/events/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -51,16 +67,52 @@
       "namedRegex": "^/_not\\-found(?:/)?$"
     },
     {
+      "page": "/about",
+      "regex": "^/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/about(?:/)?$"
+    },
+    {
       "page": "/admin",
       "regex": "^/admin(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/about",
+      "regex": "^/admin/about(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/about(?:/)?$"
+    },
+    {
       "page": "/admin/events",
       "regex": "^/admin/events(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/events(?:/)?$"
+    },
+    {
+      "page": "/admin/vendors",
+      "regex": "^/admin/vendors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/vendors(?:/)?$"
+    },
+    {
+      "page": "/admin-login",
+      "regex": "^/admin\\-login(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin\\-login(?:/)?$"
+    },
+    {
+      "page": "/collections",
+      "regex": "^/collections(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/collections(?:/)?$"
+    },
+    {
+      "page": "/collections/new",
+      "regex": "^/collections/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/collections/new(?:/)?$"
     },
     {
       "page": "/events",
@@ -81,16 +133,46 @@
       "namedRegex": "^/login(?:/)?$"
     },
     {
+      "page": "/manifest.webmanifest",
+      "regex": "^/manifest\\.webmanifest(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/manifest\\.webmanifest(?:/)?$"
+    },
+    {
+      "page": "/privacy",
+      "regex": "^/privacy(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/privacy(?:/)?$"
+    },
+    {
       "page": "/profile",
       "regex": "^/profile(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/profile(?:/)?$"
     },
     {
+      "page": "/robots.txt",
+      "regex": "^/robots\\.txt(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/robots\\.txt(?:/)?$"
+    },
+    {
       "page": "/signup",
       "regex": "^/signup(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/signup(?:/)?$"
+    },
+    {
+      "page": "/sitemap.xml",
+      "regex": "^/sitemap\\.xml(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sitemap\\.xml(?:/)?$"
+    },
+    {
+      "page": "/terms",
+      "regex": "^/terms(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/terms(?:/)?$"
     },
     {
       "page": "/vendors",

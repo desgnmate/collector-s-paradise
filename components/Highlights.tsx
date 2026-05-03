@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import Image from 'next/image';
 import EventCalendar from './EventCalendar';
 import type { Event } from '@/app/actions/events';
 
@@ -28,15 +27,34 @@ const Highlights = () => {
 
   const scrollLeft = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+      const card = scrollRef.current.querySelector('.highlight-card') as HTMLElement;
+      // Use the actual card width + the gap between cards (48px / 3rem)
+      const amount = card ? card.offsetWidth + 48 : scrollRef.current.clientWidth;
+      scrollRef.current.scrollTo({
+        left: scrollRef.current.scrollLeft - amount,
+        behavior: 'smooth'
+      });
     }
   };
 
   const scrollRight = () => {
     if (scrollRef.current) {
-      scrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+      const card = scrollRef.current.querySelector('.highlight-card') as HTMLElement;
+      const amount = card ? card.offsetWidth + 48 : scrollRef.current.clientWidth;
+      scrollRef.current.scrollTo({
+        left: scrollRef.current.scrollLeft + amount,
+        behavior: 'smooth'
+      });
     }
   };
+
+  // Reset scroll and update arrows when event type changes
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = 0;
+      handleScroll();
+    }
+  }, [eventType]);
 
   // Convert mocked data to the Event type so EventCalendar can parse them correctly mapping to this month
   const currentYear = new Date().getFullYear();
@@ -56,6 +74,7 @@ const Highlights = () => {
       tickets_sold: 450,
       ticket_price: 25,
       cover_image_url: "/images/4th-card-1.png",
+      booking_link: null,
       status: "upcoming",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -72,8 +91,27 @@ const Highlights = () => {
       capacity: 800,
       tickets_sold: 790,
       ticket_price: 30,
-      cover_image_url: "/images/4th-card-2.jpg",
+      cover_image_url: "/images/live-deals.png",
+      booking_link: null,
       status: "upcoming",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'mock-past-1',
+      title: "Perth Summer Slam",
+      description: "A look back at the incredible Summer Slam event in Perth. Over 1,000 collectors joined us for a huge weekend of deals and trades.",
+      event_date: `${currentYear}-01-15`,
+      start_time: "10:00",
+      end_time: "18:00",
+      venue: "Perth Convention Centre",
+      venue_address: null,
+      capacity: 1200,
+      tickets_sold: 1200,
+      ticket_price: 20,
+      cover_image_url: "/images/event-experience.png",
+      booking_link: null,
+      status: "completed",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     },
@@ -89,7 +127,8 @@ const Highlights = () => {
       capacity: 1000,
       tickets_sold: 999,
       ticket_price: 35,
-      cover_image_url: "/images/4th-card-3.jpg",
+      cover_image_url: "/images/meet-fans.png",
+      booking_link: null,
       status: "upcoming",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
@@ -106,12 +145,33 @@ const Highlights = () => {
       capacity: 600,
       tickets_sold: 120,
       ticket_price: 20,
-      cover_image_url: "/images/4th-card-4.jpg",
+      cover_image_url: "/images/event-experience.png",
+      booking_link: null,
       status: "upcoming",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    },
+    {
+      id: 'mock-past-2',
+      title: "Adelaide Card Expo",
+      description: "Relive the highlights from the Adelaide expo. Rare Charizards and pristine graded slabs were the talk of the town.",
+      event_date: `${currentYear}-02-10`,
+      start_time: "09:00",
+      end_time: "17:00",
+      venue: "Adelaide Showgrounds",
+      venue_address: null,
+      capacity: 500,
+      tickets_sold: 495,
+      ticket_price: 15,
+      cover_image_url: "/images/meet-fans.png",
+      booking_link: null,
+      status: "completed",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
   ];
+
+  const filteredEvents = events.filter(e => e.status === eventType);
 
   const [isCalendarDateSelected, setIsCalendarDateSelected] = useState(false);
 
@@ -180,37 +240,39 @@ const Highlights = () => {
               </button>
             )}
 
-            <div className="highlights-grid" ref={scrollRef} onScroll={handleScroll}>
-              {events.map((event, index) => {
-                // Ensure date string looks clean like "Aug 12"
-                const dateObj = new Date(event.event_date);
-                const displayDate = dateObj.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
-                
-                return (
-                  <div 
-                    className="highlight-card" 
-                    key={event.id}
-                    data-aos="fade-up"
-                    data-aos-delay={index * 100}
-                  >
-                    <div className="highlight-image-wrapper">
-                      <Image 
-                        src={event.cover_image_url || "/images/placeholder.jpg"} 
-                        alt={event.title} 
-                        fill 
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                        style={{ objectFit: 'cover' }}
-                      />
-                      <div className="highlight-date-tag">{displayDate}</div>
+            <div 
+              className="highlights-grid" 
+              ref={scrollRef} 
+              onScroll={handleScroll}
+            >
+              {filteredEvents.length > 0 ? (
+                filteredEvents.map((event, index) => {
+                  // Ensure date string looks clean like "Aug 12"
+                  const dateObj = new Date(event.event_date);
+                  const displayDate = dateObj.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
+                  
+                  return (
+                    <div 
+                      className="highlight-card" 
+                      key={event.id}
+                    >
+                      <div className="highlight-image-wrapper">
+                        <img src={event.cover_image_url || ''} alt={event.title} loading="lazy" style={{ objectFit: 'cover' }} />
+                        <div className="highlight-date-tag">{displayDate}</div>
+                      </div>
+                      <div className="highlight-content">
+                        <h3 className="highlight-title">{event.title}</h3>
+                        <p className="highlight-desc">{event.description}</p>
+                        <button className="btn-highlight">{eventType === 'upcoming' ? 'BOOK NOW' : 'VIEW GALLERY'}</button>
+                      </div>
                     </div>
-                    <div className="highlight-content">
-                      <h3 className="highlight-title">{event.title}</h3>
-                      <p className="highlight-desc">{event.description}</p>
-                      <button className="btn-highlight">BOOK NOW</button>
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              ) : (
+                <div className="no-events-message">
+                  <p>No {eventType} events available at the moment.</p>
+                </div>
+              )}
             </div>
 
             {canScrollRight && (
@@ -222,7 +284,7 @@ const Highlights = () => {
             )}
           </div>
         ) : (
-          <div className="highlights-calendar-view" data-aos="fade-up">
+          <div className="highlights-calendar-view">
             <EventCalendar 
               events={events} 
               onDateSelect={(date) => setIsCalendarDateSelected(!!date)}

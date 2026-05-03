@@ -1,11 +1,11 @@
 // <define:__IMAGES_DEVICE_SIZES__>
-var define_IMAGES_DEVICE_SIZES_default = [640, 750, 828, 1080, 1200, 1920, 2048, 3840];
+var define_IMAGES_DEVICE_SIZES_default = [640, 750, 828, 1080, 1200, 1920];
 
 // <define:__IMAGES_FORMATS__>
-var define_IMAGES_FORMATS_default = ["image/webp"];
+var define_IMAGES_FORMATS_default = ["image/avif", "image/webp"];
 
 // <define:__IMAGES_IMAGE_SIZES__>
-var define_IMAGES_IMAGE_SIZES_default = [32, 48, 64, 96, 128, 256, 384];
+var define_IMAGES_IMAGE_SIZES_default = [16, 32, 48, 64, 96, 128, 256, 384];
 
 // <define:__IMAGES_LOCAL_PATTERNS__>
 var define_IMAGES_LOCAL_PATTERNS_default = [{ pathname: "^(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$))(?:(?:(?!(?:^|\\/)\\.{1,2}(?:\\/|$)).)*?)\\/?)$", search: "" }];

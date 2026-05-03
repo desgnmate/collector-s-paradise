@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
@@ -16,6 +15,7 @@ export default function Navbar() {
   const [isSolid, setIsSolid] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [initials, setInitials] = useState('');
+  const [isAtFooter, setIsAtFooter] = useState(false);
   
   const pathname = usePathname();
   const isHomePage = pathname === '/';
@@ -43,10 +43,12 @@ export default function Navbar() {
       
       // Transparent in the first 100px (Hero) or last 500px (Footer)
       const isTop = scrollPos <= 80;
-      const isBottom = scrollPos + windowHeight >= totalHeight - 500;
+      const footerThreshold = totalHeight - 800; // Trigger slightly before footer
+      const isBottom = scrollPos + windowHeight >= footerThreshold;
       
       setScrolled(scrollPos > 50);
       setIsSolid(!isTop && !isBottom);
+      setIsAtFooter(isBottom);
       
       setLoginDropdownOpen(false);
       setProfileDropdownOpen(false);
@@ -66,13 +68,23 @@ export default function Navbar() {
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
+    let rafId: number | null = null;
+    const throttledScroll = () => {
+      if (rafId !== null) return;
+      rafId = requestAnimationFrame(() => {
+        handleScroll();
+        rafId = null;
+      });
+    };
+
+    window.addEventListener('scroll', throttledScroll, { passive: true });
     document.addEventListener('click', handleClickOutside);
     handleScroll(); // Initialize on mount
     
     return () => {
-      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', throttledScroll);
       document.removeEventListener('click', handleClickOutside);
+      if (rafId !== null) cancelAnimationFrame(rafId);
       subscription.unsubscribe();
     };
   }, [supabase, pathname]);
@@ -114,14 +126,7 @@ export default function Navbar() {
       <div className="navbar-inner">
         {/* Left: Logo */}
         <Link href="/" className="navbar-logo-link">
-          <Image
-            src="/images/logo.png"
-            alt="Collector's Paradise"
-            width={180}
-            height={55}
-            className="navbar-logo"
-            priority
-          />
+          <img src="/images/logo.png" alt="Collector" width="180" height="55" loading="lazy" className="navbar-logo" />
         </Link>
 
         {/* Right: Actions Group */}
@@ -209,7 +214,7 @@ export default function Navbar() {
           {/* Hamburger Menu (Icon only) */}
           <div className="navbar-menu-wrapper" style={{ position: 'relative' }}>
             <button
-              className={`navbar-menu-icon ${menuOpen ? 'active' : ''}`}
+              className={`navbar-menu-icon ${menuOpen ? 'active' : ''} ${((['/collections'].includes(pathname) || pathname.startsWith('/events/')) && !isAtFooter) ? 'nav-icon-yellow' : ((['/about'].includes(pathname)) ? 'nav-icon-gray' : ((['/login', '/signup'].includes(pathname)) ? 'nav-icon-white' : ''))}`}
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
@@ -223,20 +228,17 @@ export default function Navbar() {
             {/* Dropdown menu (Positioned below MENU button) */}
             <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
               <div className="navbar-dropdown-inner">
-                <a href="/#about" onClick={(e) => handleSectionLink(e, 'about')}>
+                <Link href="/about" onClick={() => setMenuOpen(false)}>
                   <span className="menu-item-text">About</span>
-                </a>
-                <a href="/#experience" onClick={(e) => handleSectionLink(e, 'experience')}>
-                  <span className="menu-item-text">Experience</span>
-                </a>
+                </Link>
                 <Link href="/events" onClick={() => setMenuOpen(false)}>
                   <span className="menu-item-text">Events</span>
                 </Link>
+                <Link href="/collections" onClick={() => setMenuOpen(false)}>
+                  <span className="menu-item-text">Collections</span>
+                </Link>
                 <Link href="/vendors" onClick={() => setMenuOpen(false)}>
                   <span className="menu-item-text">Vendors</span>
-                </Link>
-                <Link href="/events" onClick={() => setMenuOpen(false)}>
-                  <span className="menu-item-text">Tickets</span>
                 </Link>
             </div>
         </div>

@@ -1,14 +1,7 @@
-'use client';
-
-import Image from 'next/image';
+import React from 'react';
 import Link from 'next/link';
 
 export default function Hero() {
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  };
-
   return (
     <section className="hero" id="hero">
       {/* Background video */}
@@ -18,6 +11,7 @@ export default function Hero() {
           loop
           muted
           playsInline
+          preload="metadata"
           className="hero-video"
         >
           <source src="/hero-section-video.mp4" type="video/mp4" />
@@ -46,33 +40,15 @@ export default function Hero() {
       <div className="hero-cards-fan">
         {/* Card 1 - Charizard (left, tilted left) */}
         <div className="hero-card hero-card-left">
-          <Image
-            src="/images/card1.png"
-            alt="Charizard Pokemon Card"
-            width={280}
-            height={390}
-            priority
-          />
+          <img src="/images/card1.png" alt="Charizard Pokemon Card" width="280" height="390" loading="lazy" />
         </div>
         {/* Card 2 - Arcanine V (center, upright, larger) */}
         <div className="hero-card hero-card-center">
-          <Image
-            src="/images/card2.png"
-            alt="Arcanine V Pokemon Card"
-            width={300}
-            height={420}
-            priority
-          />
+          <img src="/images/card2.png" alt="Arcanine V Pokemon Card" width="300" height="420" loading="lazy" />
         </div>
         {/* Card 3 - Pikachu ex (right, tilted right) */}
         <div className="hero-card hero-card-right">
-          <Image
-            src="/images/card3.png"
-            alt="Pikachu ex Pokemon Card"
-            width={280}
-            height={390}
-            priority
-          />
+          <img src="/images/card3.png" alt="Pikachu ex Pokemon Card" width="280" height="390" loading="lazy" />
         </div>
       </div>
     </section>

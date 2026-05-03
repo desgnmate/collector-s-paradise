@@ -1,9 +1,10 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { getEventById } from '@/app/actions/events';
-import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import EventDetailClient from './EventDetailClient';
 export const revalidate = 3600; // Cache for 1 hour
 
 type Props = {
@@ -32,9 +33,6 @@ export default async function EventDetailPage({ params }: Props) {
     notFound();
   }
 
-  const spotsLeft = event.capacity - event.tickets_sold;
-  const isSoldOut = spotsLeft <= 0;
-
   const formatTime = (time: string) => {
     const [h, m] = time.split(':');
     const hour = parseInt(h);
@@ -43,128 +41,98 @@ export default async function EventDetailPage({ params }: Props) {
     return `${displayHour}:${m} ${ampm}`;
   };
 
-  const formattedDate = new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU', {
+  const formattedDateShort = new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU', {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
-  });
+  }).toUpperCase();
+
+  const isSoldOut = (event.capacity - event.tickets_sold) <= 0;
 
   return (
     <main>
       <Navbar />
-      <section className="event-detail-section">
+
+      {/* ── Hero Banner ── */}
+      <section className="ed-hero">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="ed-hero-video"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center 10%',
+            zIndex: 1
+          }}
+        >
+          <source src="/videos/cp-bg.mp4" type="video/mp4" />
+        </video>
+        <div className="ed-hero-overlay" />
+        <div className="ed-hero-content container">
+          <h1 className="ed-hero-title">{event.title}</h1>
+          {event.description && (
+            <p className="ed-hero-subtitle">{event.description}</p>
+          )}
+        </div>
+      </section>
+
+      {/* ── Dark Info + Ticket Section ── */}
+      <section className="ed-info-section">
         <div className="container">
-          {/* Back Link */}
-          <Link href="/events" className="event-back-link">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-            Back to Events
-          </Link>
-
-          <div className="event-detail-grid">
-            {/* Main Content */}
-            <div className="event-detail-main">
-              <span className={`event-status-badge event-status-${event.status}`}>
-                {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-              </span>
-
-              <h1 className="event-detail-title">{event.title}</h1>
-
-              {event.description && (
-                <p className="event-detail-description">{event.description}</p>
-              )}
-
-              {/* Event Info Cards */}
-              <div className="event-info-cards">
-                <div className="event-info-card">
-                  <div className="event-info-icon">📅</div>
-                  <div>
-                    <div className="event-info-label">Date</div>
-                    <div className="event-info-value">{formattedDate}</div>
-                  </div>
-                </div>
-                <div className="event-info-card">
-                  <div className="event-info-icon">🕐</div>
-                  <div>
-                    <div className="event-info-label">Time</div>
-                    <div className="event-info-value">
-                      {formatTime(event.start_time)} — {formatTime(event.end_time)}
-                    </div>
-                  </div>
-                </div>
-                {event.venue && (
-                  <div className="event-info-card">
-                    <div className="event-info-icon">📍</div>
-                    <div>
-                      <div className="event-info-label">Venue</div>
-                      <div className="event-info-value">{event.venue}</div>
-                      {event.venue_address && (
-                        <div className="event-info-address">{event.venue_address}</div>
-                      )}
-                    </div>
-                  </div>
+          <div className="ed-info-inner">
+            {/* Left: Event Details */}
+            <div className="ed-details">
+              <div className="ed-detail-block">
+                <span className="ed-detail-label">Venue</span>
+                <h3 className="ed-detail-value">{event.venue?.toUpperCase() || 'TBA'}</h3>
+                {event.venue_address && (
+                  <p className="ed-detail-address">{event.venue_address.toUpperCase()}</p>
                 )}
               </div>
 
-              {/* Vendor Map Link (Phase 4) */}
-              <Link href={`/events/${event.id}/map`} className="event-map-link">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
-                  <line x1="8" y1="2" x2="8" y2="18" />
-                  <line x1="16" y1="6" x2="16" y2="22" />
-                </svg>
-                View Vendor Map
-              </Link>
+              <div className="ed-detail-row">
+                <div className="ed-detail-block">
+                  <span className="ed-detail-label">Date</span>
+                  <h3 className="ed-detail-value ed-detail-value--sm">{formattedDateShort}</h3>
+                </div>
+                <div className="ed-detail-block">
+                  <span className="ed-detail-label">Time</span>
+                  <h3 className="ed-detail-value ed-detail-value--sm">
+                    {formatTime(event.start_time)} — {formatTime(event.end_time)}
+                  </h3>
+                </div>
+              </div>
             </div>
 
-            {/* Ticket Sidebar */}
-            <div className="event-ticket-sidebar">
-              <div className="ticket-card">
-                <h3 className="ticket-card-title">Get Your Tickets</h3>
-
-                <div className="ticket-price-row">
-                  <span className="ticket-price-label">General Admission</span>
-                  <span className="ticket-price-amount">
-                    {event.ticket_price > 0
-                      ? `$${event.ticket_price.toFixed(2)}`
-                      : 'Free'}
-                  </span>
-                </div>
-
-                <div className="ticket-availability">
-                  {isSoldOut ? (
-                    <span className="ticket-sold-out">Sold Out</span>
-                  ) : (
-                    <span className="ticket-spots-left">
-                      {spotsLeft} of {event.capacity} spots left
-                    </span>
-                  )}
-                  <div className="ticket-progress-bar">
-                    <div
-                      className="ticket-progress-fill"
-                      style={{ width: `${(event.tickets_sold / event.capacity) * 100}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Checkout button — Phase 2 will wire this to the booking flow */}
-                <button
-                  className="btn btn-yellow ticket-buy-btn"
-                  disabled={isSoldOut}
-                >
-                  {isSoldOut ? 'Sold Out' : 'Buy Tickets'}
-                </button>
-
-                <p className="ticket-secure-note">
-                  🔒 Secure checkout powered by Square
-                </p>
+            {/* Right: Ticket Card */}
+            <div className="ed-ticket-card">
+              <div className="ed-ticket-row">
+                <span className="ed-ticket-type">General Admission</span>
+                <span className="ed-ticket-price">
+                  {event.ticket_price > 0 ? `$${event.ticket_price.toFixed(2)}` : 'Free'}
+                </span>
               </div>
+              <button
+                className="ed-ticket-btn"
+                disabled={isSoldOut}
+              >
+                {isSoldOut ? 'Sold Out' : 'Book Your Ticket'}
+              </button>
             </div>
           </div>
         </div>
       </section>
+
+      {/* ── Interactive Map Section ── */}
+      <EventDetailClient />
+
       <Footer />
     </main>
   );

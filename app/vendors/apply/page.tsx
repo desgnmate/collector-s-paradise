@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
 
 export const metadata: Metadata = {
@@ -34,7 +33,6 @@ export default function VendorApplyPage() {
           </div>
         </div>
       </section>
-      <Footer />
     </main>
   );
 }
