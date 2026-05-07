@@ -20,8 +20,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 
   return {
-    title: `${event.title} | Collector's Paradise`,
+    title: event.title,
     description: event.description || `Join us for ${event.title} at ${event.venue}.`,
+    openGraph: {
+      title: `${event.title} | Collector's Paradise`,
+      description: event.description || `Join us for ${event.title} at ${event.venue}.`,
+      ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
+        images: [{ url: event.cover_image_url, width: 1200, height: 630, alt: event.title }],
+      } : {}),
+    },
+    alternates: {
+      canonical: `https://collectorsparadise.com.au/events/${id}`,
+    },
   };
 }
 

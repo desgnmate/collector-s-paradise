@@ -1,5 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import card1 from '@/public/images/card1.png';
+import card2 from '@/public/images/card2.png';
+import card3 from '@/public/images/card3.png';
 
 export default function Hero() {
   return (
@@ -40,15 +44,15 @@ export default function Hero() {
       <div className="hero-cards-fan">
         {/* Card 1 - Charizard (left, tilted left) */}
         <div className="hero-card hero-card-left">
-          <img src="/images/card1.png" alt="Charizard Pokemon Card" width="280" height="390" loading="lazy" />
+          <Image src={card1} alt="Charizard Pokemon Card" width={280} height={390} priority />
         </div>
         {/* Card 2 - Arcanine V (center, upright, larger) */}
         <div className="hero-card hero-card-center">
-          <img src="/images/card2.png" alt="Arcanine V Pokemon Card" width="300" height="420" loading="lazy" />
+          <Image src={card2} alt="Arcanine V Pokemon Card" width={300} height={420} priority />
         </div>
         {/* Card 3 - Pikachu ex (right, tilted right) */}
         <div className="hero-card hero-card-right">
-          <img src="/images/card3.png" alt="Pikachu ex Pokemon Card" width="280" height="390" loading="lazy" />
+          <Image src={card3} alt="Pikachu ex Pokemon Card" width={280} height={390} priority />
         </div>
       </div>
     </section>

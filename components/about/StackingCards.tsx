@@ -2,26 +2,36 @@
 
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import Image, { StaticImageData } from 'next/image';
+import exp1 from '@/public/images/3rd-section-card-image.jpg';
+import exp2 from '@/public/images/meet-fans.png';
+import exp3 from '@/public/images/event-experience.png';
 
 const experiences = [
   {
     title: 'PSA Card Evaluations',
     desc: 'Get your rare finds evaluated by experts and learn the true value of your collection. Real-time market data at your fingertips.',
-    image: '/images/3rd-section-card-image.jpg',
+    image: exp1,
   },
   {
     title: 'Guest Signings',
     desc: "Meet your favorite artists and creators. Get your cards signed and captured in the moment. Experience pop culture history live.",
-    image: '/images/meet-fans.png',
+    image: exp2,
   },
   {
     title: 'Buy / Sell / Trade',
     desc: "The heart of the event. Connect with thousands of collectors. Find that one-of-a-kind card you've been searching for years.",
-    image: '/images/event-experience.png',
+    image: exp3,
   },
 ];
 
-const ExperienceCard = ({ exp, index }: { exp: typeof experiences[0]; index: number }) => {
+interface Experience {
+  title: string;
+  desc: string;
+  image: StaticImageData;
+}
+
+const ExperienceCard = ({ exp, index }: { exp: Experience; index: number }) => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
@@ -32,9 +42,10 @@ const ExperienceCard = ({ exp, index }: { exp: typeof experiences[0]; index: num
       initial={{ opacity: 0, y: 40 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay: index * 0.15 }}
+      whileHover={{ y: -4, transition: { duration: 0.3, ease: 'easeOut' } }}
     >
       <div className="experience-card-image">
-        <img src={exp.image} alt={exp.title} loading="lazy" style={{ objectFit: 'cover' }} />
+        <Image src={exp.image} alt={exp.title} loading="lazy" style={{ objectFit: 'cover' }} />
       </div>
       <div className="experience-card-content">
         <h3 className="experience-card-title">{exp.title}</h3>

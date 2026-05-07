@@ -23,22 +23,6 @@
   },
   "dynamicRoutes": [
     {
-      "page": "/collections/[id]",
-      "regex": "^/collections/([^/]+?)(?:/)?$",
-      "routeKeys": {
-        "nxtPid": "nxtPid"
-      },
-      "namedRegex": "^/collections/(?<nxtPid>[^/]+?)(?:/)?$"
-    },
-    {
-      "page": "/collections/[id]/edit",
-      "regex": "^/collections/([^/]+?)/edit(?:/)?$",
-      "routeKeys": {
-        "nxtPid": "nxtPid"
-      },
-      "namedRegex": "^/collections/(?<nxtPid>[^/]+?)/edit(?:/)?$"
-    },
-    {
       "page": "/events/[id]",
       "regex": "^/events/([^/]+?)(?:/)?$",
       "routeKeys": {
@@ -103,18 +87,6 @@
       "namedRegex": "^/admin\\-login(?:/)?$"
     },
     {
-      "page": "/collections",
-      "regex": "^/collections(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/collections(?:/)?$"
-    },
-    {
-      "page": "/collections/new",
-      "regex": "^/collections/new(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/collections/new(?:/)?$"
-    },
-    {
       "page": "/events",
       "regex": "^/events(?:/)?$",
       "routeKeys": {},
@@ -125,12 +97,6 @@
       "regex": "^/icon\\.png(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/icon\\.png(?:/)?$"
-    },
-    {
-      "page": "/login",
-      "regex": "^/login(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/login(?:/)?$"
     },
     {
       "page": "/manifest.webmanifest",
@@ -145,22 +111,10 @@
       "namedRegex": "^/privacy(?:/)?$"
     },
     {
-      "page": "/profile",
-      "regex": "^/profile(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/profile(?:/)?$"
-    },
-    {
       "page": "/robots.txt",
       "regex": "^/robots\\.txt(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/robots\\.txt(?:/)?$"
-    },
-    {
-      "page": "/signup",
-      "regex": "^/signup(?:/)?$",
-      "routeKeys": {},
-      "namedRegex": "^/signup(?:/)?$"
     },
     {
       "page": "/sitemap.xml",

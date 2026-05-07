@@ -1,9 +1,11 @@
 import type { MetadataRoute } from 'next';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://collectorsparadise.com.au';
 
-  return [
+  // Static pages
+  const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
@@ -21,12 +23,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
-    },
-    {
-      url: `${baseUrl}/collections`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly',
-      priority: 0.7,
     },
     {
       url: `${baseUrl}/vendors`,
@@ -53,4 +49,29 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.3,
     },
   ];
+
+  // Dynamic event pages
+  let eventPages: MetadataRoute.Sitemap = [];
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data: events } = await supabase
+      .from('events')
+      .select('id, updated_at')
+      .in('status', ['upcoming', 'active', 'completed'])
+      .order('event_date', { ascending: false });
+
+    if (events) {
+      eventPages = events.map((event) => ({
+        url: `${baseUrl}/events/${event.id}`,
+        lastModified: new Date(event.updated_at),
+        changeFrequency: 'weekly' as const,
+        priority: 0.7,
+      }));
+    }
+  } catch (error) {
+    // Fail silently — static pages still get indexed
+    console.error('Sitemap: failed to fetch events', error);
+  }
+
+  return [...staticPages, ...eventPages];
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import { approveVendor, rejectVendor, waitlistVendor } from '@/app/actions/vendors';
+import { approveVendor, rejectVendor, waitlistVendor, deleteVendor } from '@/app/actions/vendors';
 import type { Vendor } from '@/app/actions/vendors';
 
 type TabType = 'all' | 'pending' | 'approved' | 'rejected' | 'waitlisted';
@@ -13,7 +13,7 @@ export default function AdminVendorsClient() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [modalAction, setModalAction] = useState<'approve' | 'reject' | 'waitlist' | null>(null);
+  const [modalAction, setModalAction] = useState<'approve' | 'reject' | 'waitlist' | 'delete' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
   const tabs: { key: TabType; label: string; count: number }[] = [
@@ -28,7 +28,7 @@ export default function AdminVendorsClient() {
     activeTab === 'all' || v.application_status === activeTab
   );
 
-  const handleAction = async (vendor: Vendor, action: 'approve' | 'reject' | 'waitlist') => {
+  const handleAction = async (vendor: Vendor, action: 'approve' | 'reject' | 'waitlist' | 'delete') => {
     setSelectedVendor(vendor);
     setModalAction(action);
     setRejectionReason('');
@@ -51,6 +51,9 @@ export default function AdminVendorsClient() {
           break;
         case 'waitlist':
           result = await waitlistVendor(selectedVendor.id);
+          break;
+        case 'delete':
+          result = await deleteVendor(selectedVendor.id);
           break;
       }
       
@@ -209,14 +212,57 @@ export default function AdminVendorsClient() {
                     </button>
                   </>
                 )}
+                {vendor.application_status === 'approved' && (
+                  <>
+                    <button
+                      onClick={() => handleAction(vendor, 'reject')}
+                      disabled={processingId === vendor.id}
+                      className="btn-reject"
+                    >
+                      ✕ Unapprove
+                    </button>
+                    <button
+                      onClick={() => handleAction(vendor, 'waitlist')}
+                      disabled={processingId === vendor.id}
+                      className="btn-waitlist"
+                    >
+                       Waitlist
+                    </button>
+                    <button
+                      onClick={() => handleAction(vendor, 'delete')}
+                      disabled={processingId === vendor.id}
+                      className="btn-delete"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      Delete
+                    </button>
+                  </>
+                )}
                 {vendor.application_status === 'rejected' && (
-                  <button
-                    onClick={() => handleAction(vendor, 'approve')}
-                    disabled={processingId === vendor.id}
-                    className="btn-approve"
-                  >
-                    {processingId === vendor.id ? 'Processing...' : '✓ Re-approve'}
-                  </button>
+                  <>
+                    <button
+                      onClick={() => handleAction(vendor, 'approve')}
+                      disabled={processingId === vendor.id}
+                      className="btn-approve"
+                    >
+                      {processingId === vendor.id ? 'Processing...' : '✓ Re-approve'}
+                    </button>
+                    <button
+                      onClick={() => handleAction(vendor, 'waitlist')}
+                      disabled={processingId === vendor.id}
+                      className="btn-waitlist"
+                    >
+                       Waitlist
+                    </button>
+                    <button
+                      onClick={() => handleAction(vendor, 'delete')}
+                      disabled={processingId === vendor.id}
+                      className="btn-delete"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      Delete
+                    </button>
+                  </>
                 )}
                 {vendor.application_status === 'waitlisted' && (
                   <>
@@ -234,6 +280,14 @@ export default function AdminVendorsClient() {
                     >
                       ✕ Reject
                     </button>
+                    <button
+                      onClick={() => handleAction(vendor, 'delete')}
+                      disabled={processingId === vendor.id}
+                      className="btn-delete"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      Delete
+                    </button>
                   </>
                 )}
               </div>
@@ -244,42 +298,62 @@ export default function AdminVendorsClient() {
 
       {showModal && selectedVendor && modalAction && (
         <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">
-              {modalAction === 'approve' && 'Approve Vendor'}
-              {modalAction === 'reject' && 'Reject Application'}
-              {modalAction === 'waitlist' && 'Waitlist Vendor'}
-            </h3>
-            <p className="modal-vendor-name">{selectedVendor.business_name}</p>
+          <div className="modal-content modal-sm" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title" style={modalAction === 'delete' ? { color: '#f87171' } : {}}>
+                {modalAction === 'approve' && 'Approve Vendor'}
+                {modalAction === 'reject' && 'Reject Application'}
+                {modalAction === 'waitlist' && 'Waitlist Vendor'}
+                {modalAction === 'delete' && 'Delete Vendor'}
+              </h3>
+            </div>
             
-            {modalAction === 'reject' && (
-              <div className="modal-field">
-                <label>Rejection Reason (Optional):</label>
-                <textarea
-                  value={rejectionReason}
-                  onChange={e => setRejectionReason(e.target.value)}
-                  placeholder="Provide a reason for rejection..."
-                  rows={3}
-                  className="modal-textarea"
-                />
-              </div>
-            )}
-            
-            <div className="modal-actions">
-              <button onClick={() => setShowModal(false)} className="btn-cancel">
-                Cancel
-              </button>
-              <button 
-                onClick={confirmAction} 
-                className={
-                  modalAction === 'approve' ? 'btn-confirm-approve' :
-                  modalAction === 'reject' ? 'btn-confirm-reject' :
-                  'btn-confirm-waitlist'
+            <div className="modal-body">
+              <p className="modal-vendor-name" style={{ margin: 0, marginBottom: modalAction === 'reject' || modalAction === 'delete' ? '12px' : '0' }}>
+                {modalAction === 'delete' ? 
+                  `Are you sure you want to delete "${selectedVendor.business_name}"?` :
+                  selectedVendor.business_name
                 }
-                disabled={processingId !== null}
-              >
-                {processingId ? 'Processing...' : 'Confirm'}
-              </button>
+              </p>
+              
+              {modalAction === 'delete' && (
+                <p className="modal-warning" style={{ margin: 0, color: '#f87171', fontSize: '0.9rem' }}>
+                  This will permanently remove this vendor from the database. This action cannot be undone.
+                </p>
+              )}
+              
+              {modalAction === 'reject' && (
+                <div className="modal-field">
+                  <label>Rejection Reason (Optional):</label>
+                  <textarea
+                    value={rejectionReason}
+                    onChange={e => setRejectionReason(e.target.value)}
+                    placeholder="Provide a reason for rejection..."
+                    rows={3}
+                    className="modal-textarea"
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="modal-footer">
+              <div className="modal-actions" style={{ marginTop: 0 }}>
+                <button onClick={() => setShowModal(false)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmAction} 
+                  className={
+                    modalAction === 'approve' ? 'btn-confirm-approve' :
+                    modalAction === 'reject' ? 'btn-confirm-reject' :
+                    modalAction === 'delete' ? 'btn-confirm-reject' :
+                    'btn-confirm-waitlist'
+                  }
+                  disabled={processingId !== null}
+                >
+                  {processingId ? 'Processing...' : modalAction === 'delete' ? 'Delete Permanently' : 'Confirm'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

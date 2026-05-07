@@ -149,7 +149,7 @@ export async function signUp(prevState: ActionState, formData: FormData): Promis
   }
 
   revalidatePath('/', 'layout');
-  redirect('/profile');
+  redirect('/');
 }
 
 /** Sign out the current user */
@@ -238,7 +238,7 @@ export async function updateProfile(prevState: ActionState, formData: FormData):
     return { message: error.message };
   }
 
-  revalidatePath('/profile');
+  revalidatePath('/');
   return { success: true, message: 'Profile updated successfully!' };
 }
 

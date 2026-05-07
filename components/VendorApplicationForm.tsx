@@ -21,9 +21,6 @@ export default function VendorApplicationForm() {
     message: '',
   });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [showPassword, setShowPassword] = useState(false);
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
 
@@ -181,70 +178,6 @@ export default function VendorApplicationForm() {
             />
             {state.errors?.email && (
               <span className="vendor-form-error">{state.errors.email[0]}</span>
-            )}
-          </div>
-
-          <div className="vendor-form-group">
-            <label htmlFor="password">Account Password *</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Create a secure password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ width: '100%', paddingRight: '40px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: '10px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#666',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                aria-label={showPassword ? "Hide password" : "Show password"}
-              >
-                {showPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/><path d="M14.08 14.08A3 3 0 0 1 9.92 9.92"/></svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
-                )}
-              </button>
-            </div>
-            {state.errors?.password && (
-              <span className="vendor-form-error">{state.errors.password[0]}</span>
-            )}
-          </div>
-
-          <div className="vendor-form-group">
-            <label htmlFor="confirm_password">Confirm Password *</label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="confirm_password"
-                name="confirm_password"
-                type={showPassword ? "text" : "password"}
-                placeholder="Confirm your password"
-                required
-                minLength={8}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{ width: '100%', paddingRight: '40px' }}
-              />
-            </div>
-            {state.errors?.confirm_password && password !== confirmPassword && (
-              <span className="vendor-form-error">{state.errors.confirm_password[0]}</span>
             )}
           </div>
 

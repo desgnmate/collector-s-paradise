@@ -71,14 +71,7 @@ export async function middleware(request: NextRequest) {
     ].join('; ')
   );
 
-  // 1. Protect /profile - redirect to /login if unauthenticated
-  if (pathname.startsWith('/profile') && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/login';
-    return NextResponse.redirect(url);
-  }
-
-  // 2. Admin login page — allow access without auth check
+  // 1. Admin login page — allow access without auth check
   if (pathname === '/admin-login') {
     // If already authenticated as admin, redirect to admin dashboard
     if (user) {

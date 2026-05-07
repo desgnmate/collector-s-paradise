@@ -42,11 +42,6 @@ export function OrganizationSchema({
     name,
     url,
     description,
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: `${url}/collections?q={search_term_string}`,
-      'query-input': 'required name=search_term_string',
-    },
   };
 
   return (
@@ -94,7 +89,7 @@ export function EventSchema({
 }: EventSchemaProps) {
   const eventStatusMap: Record<string, string> = {
     upcoming: 'https://schema.org/EventScheduled',
-    completed: 'https://schema.org/EventMovedOnline',
+    completed: 'https://schema.org/EventScheduled',
     cancelled: 'https://schema.org/EventCancelled',
   };
 

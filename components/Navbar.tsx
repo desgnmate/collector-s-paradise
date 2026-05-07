@@ -2,14 +2,16 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { signOut } from '@/app/actions/auth';
+import logo from '@/public/images/logo.png';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [loginDropdownOpen, setLoginDropdownOpen] = useState(false);
+
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [isSolid, setIsSolid] = useState(false);
@@ -50,19 +52,18 @@ export default function Navbar() {
       setIsSolid(!isTop && !isBottom);
       setIsAtFooter(isBottom);
       
-      setLoginDropdownOpen(false);
+      
       setProfileDropdownOpen(false);
     };
     
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Element;
       if (
-        !target.closest('.navbar-login-wrapper') && 
         !target.closest('.navbar-menu-icon') && 
         !target.closest('.navbar-dropdown') &&
         !target.closest('.navbar-profile-wrapper')
       ) {
-        setLoginDropdownOpen(false);
+        
         setMenuOpen(false);
         setProfileDropdownOpen(false);
       }
@@ -101,7 +102,7 @@ export default function Navbar() {
   const toggleMenu = () => {
     setMenuOpen(!menuOpen);
     if (!menuOpen) {
-      setLoginDropdownOpen(false);
+      
       setProfileDropdownOpen(false);
     }
   };
@@ -126,7 +127,7 @@ export default function Navbar() {
       <div className="navbar-inner">
         {/* Left: Logo */}
         <Link href="/" className="navbar-logo-link">
-          <img src="/images/logo.png" alt="Collector" width="180" height="55" loading="lazy" className="navbar-logo" />
+          <Image src={logo} alt="Collector's Paradise" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
         </Link>
 
         {/* Right: Actions Group */}
@@ -150,10 +151,6 @@ export default function Navbar() {
                     <span className="login-item-title" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0' }}>Logged in as</span>
                     <span className="login-item-desc" style={{ fontWeight: 700, color: 'var(--color-dark)', fontSize: '0.9rem' }}>{user.email}</span>
                   </div>
-                  <Link href="/profile" className="login-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
-                    <span className="login-item-title">My Profile</span>
-                    <span className="login-item-desc">Personal info & security</span>
-                  </Link>
                   <Link href="/events" className="login-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
                     <span className="login-item-title">My Tickets</span>
                     <span className="login-item-desc">Track orders & passes</span>
@@ -178,43 +175,16 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            /* GUEST: LOGIN / SIGN-UP Dropdown */
-            <div className="navbar-login-wrapper">
-              <button 
-                className="navbar-join-pill"
-                onClick={() => {
-                  setLoginDropdownOpen(!loginDropdownOpen);
-                  if (!loginDropdownOpen) setMenuOpen(false);
-                }}
-              >
-                LOGIN / SIGN-UP
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: '6px', transition: 'transform 0.2s', transform: loginDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}>
-                  <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-              </button>
-              <div className={`navbar-login-dropdown ${loginDropdownOpen ? 'open' : ''}`}>
-                <div className="navbar-login-dropdown-inner">
-                  <Link href="/login" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
-                    <span className="login-item-title">Login to Account</span>
-                    <span className="login-item-desc">Access your collector portal</span>
-                  </Link>
-                  <Link href="/signup" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
-                    <span className="login-item-title">Sign Up as Buyer</span>
-                    <span className="login-item-desc">Get tickets & track your orders</span>
-                  </Link>
-                  <Link href="/vendors/apply" className="login-dropdown-item" onClick={() => setLoginDropdownOpen(false)}>
-                    <span className="login-item-title">Apply as Vendor</span>
-                    <span className="login-item-desc">Secure a booth & sell your collection</span>
-                  </Link>
-                </div>
-              </div>
-            </div>
+            /* GUEST: APPLY AS VENDOR (direct link, no dropdown) */
+            <Link href="/vendors/apply" className="navbar-join-pill">
+              APPLY AS VENDOR
+            </Link>
           )}
 
           {/* Hamburger Menu (Icon only) */}
           <div className="navbar-menu-wrapper" style={{ position: 'relative' }}>
             <button
-              className={`navbar-menu-icon ${menuOpen ? 'active' : ''} ${((['/collections'].includes(pathname) || pathname.startsWith('/events/')) && !isAtFooter) ? 'nav-icon-yellow' : ((['/about'].includes(pathname)) ? 'nav-icon-gray' : ((['/login', '/signup'].includes(pathname)) ? 'nav-icon-white' : ''))}`}
+              className={`navbar-menu-icon ${menuOpen ? 'active' : ''} ${(pathname.startsWith('/events/') && !isAtFooter) ? 'nav-icon-yellow' : (['/about'].includes(pathname)) ? 'nav-icon-gray' : ''}`}
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >
@@ -233,9 +203,6 @@ export default function Navbar() {
                 </Link>
                 <Link href="/events" onClick={() => setMenuOpen(false)}>
                   <span className="menu-item-text">Events</span>
-                </Link>
-                <Link href="/collections" onClick={() => setMenuOpen(false)}>
-                  <span className="menu-item-text">Collections</span>
                 </Link>
                 <Link href="/vendors" onClick={() => setMenuOpen(false)}>
                   <span className="menu-item-text">Vendors</span>

@@ -1,5 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import s1 from '@/public/images/silhouette-1.png';
+import t1 from '@/public/images/team-vendors-1.png';
+import s2 from '@/public/images/silhouette-2.png';
+import v2 from '@/public/images/vendor-2.png';
 
 const VendorShowcase = () => {
   return (
@@ -28,8 +33,8 @@ const VendorShowcase = () => {
             </div>
             <div className="vendor-card-content">
               <div className="vendor-image-wrapper">
-                <img src="/images/silhouette-1.png" alt="Vendors Showcase Silhouette" width="800" height="700" loading="lazy" className="silhouette-img" />
-                <img src="/images/team-vendors-1.png" alt="Vendors Showcase revealed" width="800" height="700" loading="lazy" className="reveal-img" />
+                <Image src={s1} alt="Vendors Showcase Silhouette" width={800} height={700} loading="lazy" className="silhouette-img" />
+                <Image src={t1} alt="Vendors Showcase revealed" width={800} height={700} loading="lazy" className="reveal-img" />
               </div>
               <Link href="/vendors" className="vendor-card-btn">VIEW VENDOR LIST</Link>
             </div>
@@ -47,8 +52,8 @@ const VendorShowcase = () => {
             </div>
             <div className="vendor-card-content">
               <div className="vendor-image-wrapper">
-                <img src="/images/silhouette-2.png" alt="Singles Showcase Silhouette" width="800" height="700" loading="lazy" className="silhouette-img" />
-                <img src="/images/vendor-2.png" alt="Singles Showcase revealed" width="800" height="700" loading="lazy" className="reveal-img" />
+                <Image src={s2} alt="Singles Showcase Silhouette" width={800} height={700} loading="lazy" className="silhouette-img" />
+                <Image src={v2} alt="Singles Showcase revealed" width={800} height={700} loading="lazy" className="reveal-img" />
               </div>
               <Link href="/vendors/apply" className="vendor-card-btn">JOIN AS VENDOR</Link>
             </div>

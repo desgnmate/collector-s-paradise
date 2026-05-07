@@ -207,7 +207,7 @@ export default function CollectionForm({ initialData, vendorId }: Props) {
 
       {/* Actions */}
       <div className="profile-form-actions">
-        <a href="/collections" className="btn-profile-cancel">Cancel</a>
+        <a href="/" className="btn-profile-cancel">Cancel</a>
         <button type="submit" className="btn-profile-save" disabled={isPending || uploading}>
           {isPending ? 'Saving...' : isEdit ? 'Save Changes' : 'Post Collection'}
         </button>

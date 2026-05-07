@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { useActionState } from 'react';
 import { createEvent, type Event } from '@/app/actions/events';
 
@@ -11,6 +12,36 @@ const initialState = { message: '', errors: undefined, success: false };
 
 export default function AdminEventsClient({ events }: AdminEventFormProps) {
   const [state, formAction, pending] = useActionState(createEvent, initialState);
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null);
+  const coverImageRef = useRef<HTMLInputElement>(null);
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Cover image must be less than 5MB.');
+      e.target.value = '';
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      alert('Cover image must be an image file.');
+      e.target.value = '';
+      return;
+    }
+
+    setSelectedCoverImage(file);
+    const reader = new FileReader();
+    reader.onload = () => setCoverImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const clearCoverImage = () => {
+    setCoverImagePreview(null);
+    setSelectedCoverImage(null);
+    if (coverImageRef.current) coverImageRef.current.value = '';
+  };
 
   return (
     <div className="admin-page">
@@ -79,6 +110,35 @@ export default function AdminEventsClient({ events }: AdminEventFormProps) {
               <label htmlFor="ticket_price">Ticket Price (AUD) *</label>
               <input type="number" id="ticket_price" name="ticket_price" required step="0.01" min="0" placeholder="15.00" />
             </div>
+
+            {/* Cover Image Upload */}
+            <div className="admin-form-group admin-form-group-wide">
+              <label htmlFor="cover_image">Cover Image</label>
+              <div className="admin-cover-upload">
+                {coverImagePreview ? (
+                  <div className="admin-cover-preview">
+                    <img src={coverImagePreview} alt="Cover preview" className="admin-cover-preview-img" />
+                    <button type="button" onClick={clearCoverImage} className="admin-cover-remove" title="Remove image">
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <label htmlFor="cover_image" className="admin-cover-placeholder">
+                    <span>Click to upload cover image</span>
+                    <span className="admin-cover-hint">PNG, JPG, WebP — max 5MB</span>
+                  </label>
+                )}
+                <input
+                  ref={coverImageRef}
+                  type="file"
+                  id="cover_image"
+                  name="cover_image"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  onChange={handleCoverImageChange}
+                  className="admin-cover-input"
+                />
+              </div>
+            </div>
           </div>
 
           <button type="submit" className="btn btn-yellow admin-submit-btn" disabled={pending}>
@@ -98,6 +158,7 @@ export default function AdminEventsClient({ events }: AdminEventFormProps) {
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th>Cover</th>
                   <th>Title</th>
                   <th>Date</th>
                   <th>Venue</th>
@@ -109,6 +170,13 @@ export default function AdminEventsClient({ events }: AdminEventFormProps) {
               <tbody>
                 {events.map((event) => (
                   <tr key={event.id}>
+                    <td className="admin-table-cover">
+                      {event.cover_image_url ? (
+                        <img src={event.cover_image_url} alt="" className="admin-table-cover-img" />
+                      ) : (
+                        <span className="admin-table-cover-empty">—</span>
+                      )}
+                    </td>
                     <td className="admin-table-title">{event.title}</td>
                     <td>{new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU')}</td>
                     <td>{event.venue || '—'}</td>

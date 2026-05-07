@@ -7,8 +7,10 @@ import {
   useControls 
 } from 'react-zoom-pan-pinch';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { X, Search, ZoomIn, ZoomOut, Maximize, User, Info, MapPin, MousePointer2, Move } from 'lucide-react';
 import { MOCK_MAP_DATA, Booth } from '@/data/mapData';
+import floorplan from '@/public/images/pokemon_floorplan.png';
 
 interface VendorMapProps {
   isOpen: boolean;
@@ -141,7 +143,7 @@ export default function VendorMap({ isOpen, onClose, eventTitle }: VendorMapProp
                       }}
                     >
                       {/* Base Map Image */}
-                      <img src="/images/pokemon_floorplan.png" alt="Event Floor Plan" loading="lazy" className="object-cover opacity-80" />
+                      <Image src={floorplan} alt="Event Floor Plan" loading="lazy" className="object-cover opacity-80" />
 
                       {/* Interactive Booths */}
                       {MOCK_MAP_DATA.booths.map((booth) => (

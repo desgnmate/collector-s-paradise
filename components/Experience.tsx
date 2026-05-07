@@ -38,30 +38,44 @@ const tags = [
 ];
 
 const slides = [
-  { src: '/images/3rd-section-card-image.jpg', alt: 'Event experience at Collector\'s Paradise' },
-  { src: '/images/meet-fans.png',              alt: 'Meet fellow fans and collectors' },
-  { src: '/images/culture-fun.png',            alt: 'Culture and fun at the event' },
-  { src: '/images/live-deals.png',             alt: 'Live deal evaluations' },
+  { src: '/videos/vlog-1.mp4', alt: 'Event experience at Collector\'s Paradise' },
+  { src: '/videos/vlog-2.mp4', alt: 'Meet fellow fans and collectors' },
+  { src: '/videos/vlog-3.mp4', alt: 'Culture and fun at the event' },
+  { src: '/videos/vlog-4.mp4', alt: 'Live deal evaluations' },
 ];
 
 const Experience = () => {
   const [current, setCurrent] = useState(0);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const bgVideoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const slideVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
 
   const next = useCallback(() => setCurrent(c => (c + 1) % slides.length), []);
   const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), []);
 
-  // Auto-advance every 4 s
+  // Play/pause slide videos based on active index
   useEffect(() => {
-    const id = setInterval(next, 4000);
+    slideVideoRefs.current.forEach((video, i) => {
+      if (!video) return;
+      if (i === current) {
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      } else {
+        video.pause();
+      }
+    });
+  }, [current]);
+
+  // Auto-advance every 8s (longer for video content)
+  useEffect(() => {
+    const id = setInterval(next, 8000);
     return () => clearInterval(id);
   }, [next]);
 
   // Lazy-load the background video when the section enters viewport
   useEffect(() => {
     const section = sectionRef.current;
-    const video = videoRef.current;
+    const video = bgVideoRef.current;
     if (!section || !video) return;
 
     const observer = new IntersectionObserver(
@@ -72,7 +86,7 @@ const Experience = () => {
           observer.disconnect();
         }
       },
-      { rootMargin: '200px' } // Start loading 200px before entering viewport
+      { rootMargin: '200px' }
     );
 
     observer.observe(section);
@@ -82,7 +96,7 @@ const Experience = () => {
   return (
     <section id="experience" className="experience-section" ref={sectionRef}>
       <video 
-        ref={videoRef}
+        ref={bgVideoRef}
         autoPlay 
         muted 
         loop 
@@ -110,16 +124,24 @@ const Experience = () => {
           </div>
         </div>
 
-        {/* Right Side: Carousel */}
+        {/* Right Side: Video Carousel */}
         <div className="experience-image-side">
           {/* Slides */}
           <div className="exp-carousel-track">
             {slides.map((slide, i) => (
               <div
-                key={slide.src}
+                key={i}
                 className={`exp-carousel-slide ${i === current ? 'active' : ''}`}
               >
-                <img src={slide.src} alt={slide.alt} loading="lazy" style={{ objectFit: 'cover', objectPosition: 'center' }} />
+                <video
+                  ref={(el) => { slideVideoRefs.current[i] = el; }}
+                  src={slide.src}
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                />
               </div>
             ))}
           </div>

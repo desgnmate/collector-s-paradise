@@ -3,8 +3,15 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Collector\'s Paradise',
+  title: 'Privacy Policy',
   description: 'Read our Privacy Policy to understand how Collector\'s Paradise collects, uses, and protects your personal information.',
+  openGraph: {
+    title: "Privacy Policy | Collector's Paradise",
+    description: "How Collector's Paradise collects, uses, and protects your personal information.",
+  },
+  alternates: {
+    canonical: 'https://collectorsparadise.com.au/privacy',
+  },
 };
 
 export default function PrivacyPage() {

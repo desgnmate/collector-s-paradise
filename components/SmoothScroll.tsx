@@ -22,7 +22,12 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
     window.scrollTo({ top: 0, behavior: 'instant' });
   }, [pathname]);
 
+  // Hide ChatWidget (Pokeball) on admin pages
+  const isAdminRoute = pathname?.startsWith('/admin') || pathname === '/admin-login';
+
   useEffect(() => {
+    if (isAdminRoute) return;
+
     // Dynamically import Lenis only on client to avoid SSR hydration issues
     let lenisInstance: any;
     let rafId: number;
@@ -56,10 +61,7 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
       if (rafId) cancelAnimationFrame(rafId);
       if (lenisInstance) lenisInstance.destroy();
     };
-  }, []);
-
-  // Hide ChatWidget (Pokeball) on admin pages
-  const isAdminRoute = pathname?.startsWith('/admin') || pathname === '/admin-login';
+  }, [isAdminRoute]);
 
   return (
     <>

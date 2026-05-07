@@ -3,9 +3,16 @@ import Navbar from '@/components/Navbar';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
 
 export const metadata: Metadata = {
-  title: 'Apply as Vendor | Collector\'s Paradise',
+  title: 'Apply as Vendor',
   description:
     'Join Collector\'s Paradise as a vendor. Apply to showcase your trading cards, collectibles, and merchandise at Melbourne\'s top collector events.',
+  openGraph: {
+    title: "Apply as Vendor | Collector's Paradise",
+    description: "Apply to showcase your trading cards and collectibles at Melbourne's top collector events.",
+  },
+  alternates: {
+    canonical: 'https://collectorsparadise.com.au/vendors/apply',
+  },
 };
 
 export default function VendorApplyPage() {

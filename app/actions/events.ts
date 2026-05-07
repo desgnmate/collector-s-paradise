@@ -128,6 +128,46 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSe
   return { user, adminRecord };
 }
 
+/** Upload cover image to Supabase Storage and return the public URL.
+ * Falls back to base64 data URI if the storage bucket isn't configured.
+ * NOTE: Requires an 'event_covers' bucket in Supabase Storage (public).
+ */
+async function uploadCoverImage(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  file: File,
+  eventId?: string
+): Promise<string | null> {
+  const fileExt = file.name.split('.').pop();
+  const filePath = `event-covers/${eventId || 'pending'}-${Date.now()}.${fileExt}`;
+  const arrayBuffer = await file.arrayBuffer();
+
+  const { error: uploadError } = await supabase.storage
+    .from('event_covers')
+    .upload(filePath, arrayBuffer, {
+      contentType: file.type,
+      cacheControl: '3600',
+      upsert: false,
+    });
+
+  if (uploadError) {
+    console.error('Event cover upload error:', uploadError);
+    // Fallback: If storage bucket isn't configured or has RLS issues,
+    // save the image as a base64 string to prevent blocking event creation.
+    if (
+      uploadError.message.includes('security policy') ||
+      uploadError.message.includes('not found') ||
+      uploadError.message.includes('bucket')
+    ) {
+      console.warn('Storage upload failed for event cover, falling back to Base64 encoding.');
+      const base64String = Buffer.from(arrayBuffer).toString('base64');
+      return `data:${file.type};base64,${base64String}`;
+    }
+    return null; // Non-recoverable upload error
+  }
+
+  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event_covers/${filePath}`;
+}
+
 /** Create a new event (admin only) */
 export async function createEvent(
   prevState: ActionState,
@@ -138,6 +178,18 @@ export async function createEvent(
 
   if ('error' in auth) {
     return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
+  }
+
+  const coverImage = formData.get('cover_image') as File | null;
+
+  // Validate cover image if provided
+  if (coverImage && coverImage.size > 0) {
+    if (coverImage.size > 5 * 1024 * 1024) {
+      return { message: 'Cover image file size must be less than 5MB.' };
+    }
+    if (!coverImage.type.startsWith('image/')) {
+      return { message: 'Cover image must be an image file.' };
+    }
   }
 
   const validatedFields = createEventSchema.safeParse({
@@ -160,7 +212,19 @@ export async function createEvent(
     };
   }
 
-  const { error } = await supabase.from('events').insert(validatedFields.data);
+  let coverImageUrl: string | null = null;
+
+  if (coverImage && coverImage.size > 0) {
+    coverImageUrl = await uploadCoverImage(supabase, coverImage);
+    if (coverImageUrl === null) {
+      return { message: 'Failed to upload cover image. Please try again.' };
+    }
+  }
+
+  const { error } = await supabase.from('events').insert({
+    ...validatedFields.data,
+    cover_image_url: coverImageUrl,
+  });
 
   if (error) {
     console.error('Error creating event:', error);
@@ -185,6 +249,18 @@ export async function updateEvent(
     return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
   }
 
+  const coverImage = formData.get('cover_image') as File | null;
+
+  // Validate cover image if provided
+  if (coverImage && coverImage.size > 0) {
+    if (coverImage.size > 5 * 1024 * 1024) {
+      return { message: 'Cover image file size must be less than 5MB.' };
+    }
+    if (!coverImage.type.startsWith('image/')) {
+      return { message: 'Cover image must be an image file.' };
+    }
+  }
+
   const validatedFields = createEventSchema.safeParse({
     title: formData.get('title'),
     description: formData.get('description'),
@@ -205,9 +281,43 @@ export async function updateEvent(
     };
   }
 
+  let coverImageUrl: string | undefined;
+
+  if (coverImage && coverImage.size > 0) {
+    // Fetch current event to get old cover image URL for potential cleanup
+    const { data: currentEvent } = await supabase
+      .from('events')
+      .select('cover_image_url')
+      .eq('id', eventId)
+      .maybeSingle();
+
+    const uploadResult = await uploadCoverImage(supabase, coverImage, eventId);
+    if (uploadResult === null) {
+      return { message: 'Failed to upload cover image. Please try again.' };
+    }
+    coverImageUrl = uploadResult;
+
+    // Attempt to delete old cover image from storage (best effort)
+    if (currentEvent?.cover_image_url && !currentEvent.cover_image_url.startsWith('data:')) {
+      try {
+        const urlPath = currentEvent.cover_image_url.split('/storage/v1/object/public/event_covers/')[1];
+        if (urlPath) {
+          await supabase.storage.from('event_covers').remove([urlPath]);
+        }
+      } catch {
+        // Best effort cleanup — ignore errors
+      }
+    }
+  }
+
+  const updateData: Record<string, unknown> = { ...validatedFields.data };
+  if (coverImageUrl !== undefined) {
+    updateData.cover_image_url = coverImageUrl;
+  }
+
   const { error } = await supabase
     .from('events')
-    .update(validatedFields.data)
+    .update(updateData)
     .eq('id', eventId);
 
   if (error) {

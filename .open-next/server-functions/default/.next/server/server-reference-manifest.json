@@ -32,30 +32,6 @@
           "exportedName": "signOut",
           "filename": "app/actions/auth.ts"
         },
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
         "app/events/[id]/page": {
           "moduleId": 56986,
           "async": false,
@@ -68,12 +44,6 @@
           "exportedName": "signOut",
           "filename": "app/actions/auth.ts"
         },
-        "app/login/page": {
-          "moduleId": 51661,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
         "app/page": {
           "moduleId": 90651,
           "async": false,
@@ -82,18 +52,6 @@
         },
         "app/privacy/page": {
           "moduleId": 33785,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/profile/page": {
-          "moduleId": 56195,
-          "async": false,
-          "exportedName": "signOut",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/signup/page": {
-          "moduleId": 33451,
           "async": false,
           "exportedName": "signOut",
           "filename": "app/actions/auth.ts"
@@ -175,12 +133,6 @@
           "async": false,
           "exportedName": "updatePassword",
           "filename": "app/actions/auth.ts"
-        },
-        "app/profile/page": {
-          "moduleId": 56195,
-          "async": false,
-          "exportedName": "updatePassword",
-          "filename": "app/actions/auth.ts"
         }
       },
       "filename": "app/actions/auth.ts",
@@ -208,12 +160,6 @@
         },
         "app/admin/vendors/page": {
           "moduleId": 91829,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/signup/page": {
-          "moduleId": 33451,
           "async": false,
           "exportedName": "signUp",
           "filename": "app/actions/auth.ts"
@@ -283,12 +229,6 @@
           "async": false,
           "exportedName": "updateProfile",
           "filename": "app/actions/auth.ts"
-        },
-        "app/profile/page": {
-          "moduleId": 56195,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
         }
       },
       "filename": "app/actions/auth.ts",
@@ -316,12 +256,6 @@
         },
         "app/admin/vendors/page": {
           "moduleId": 91829,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/login/page": {
-          "moduleId": 51661,
           "async": false,
           "exportedName": "login",
           "filename": "app/actions/auth.ts"
@@ -504,6 +438,42 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "waitlistVendor"
     },
+    "40d083eaf6a42deabfdc6b3829ce90ffd1a9b04f19": {
+      "workers": {
+        "app/admin/about/page": {
+          "moduleId": 73691,
+          "async": false,
+          "exportedName": "deleteVendor",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/events/page": {
+          "moduleId": 19718,
+          "async": false,
+          "exportedName": "deleteVendor",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/page": {
+          "moduleId": 15909,
+          "async": false,
+          "exportedName": "deleteVendor",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/vendors/page": {
+          "moduleId": 91829,
+          "async": false,
+          "exportedName": "deleteVendor",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/vendors/page": {
+          "moduleId": 78446,
+          "async": false,
+          "exportedName": "deleteVendor",
+          "filename": "app/actions/vendors.ts"
+        }
+      },
+      "filename": "app/actions/vendors.ts",
+      "exportedName": "deleteVendor"
+    },
     "60afa09d1c62c5e3995055489ca81270d5f57a9ae3": {
       "workers": {
         "app/admin/about/page": {
@@ -671,228 +641,6 @@
       },
       "filename": "app/actions/events.ts",
       "exportedName": "getAdminEvents"
-    },
-    "400c1ff2226a46b48d53cb4faaf7452272b13cafbe": {
-      "workers": {
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "$$RSC_SERVER_ACTION_0",
-          "filename": "app/collections/page.tsx"
-        }
-      },
-      "filename": "app/collections/page.tsx",
-      "exportedName": "$$RSC_SERVER_ACTION_0"
-    },
-    "003adfa41d58c1d13f9be2ff5bd0e47c4b83b385ff": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "checkVendorStatus",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "checkVendorStatus",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "checkVendorStatus",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "checkVendorStatus",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "checkVendorStatus"
-    },
-    "00bc70686ed7e27a2b687571140538d909b472a992": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "getVendorCollections",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "getVendorCollections",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "getVendorCollections",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "getVendorCollections",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "getVendorCollections"
-    },
-    "00d1112f8e705093f5d6c4a9c0fa3979508dac737e": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "getCollections",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "getCollections",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "getCollections",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "getCollections",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "getCollections"
-    },
-    "4024d4a4ce426206c957d51c6ad95e87d30d0bce2b": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "deleteCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "deleteCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "deleteCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "deleteCollection",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "deleteCollection"
-    },
-    "408e51563fbae6e95be6c55718bead9766c5df93f6": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "getCollectionById",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "getCollectionById",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "getCollectionById",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "getCollectionById",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "getCollectionById"
-    },
-    "60da8026c54c2f6e88d587cba483bf452c060409b5": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "createCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "createCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "createCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "createCollection",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "createCollection"
-    },
-    "7074331e3b6940ef1bf327d8ae9022f5d358a910e8": {
-      "workers": {
-        "app/collections/[id]/edit/page": {
-          "moduleId": 72851,
-          "async": false,
-          "exportedName": "updateCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/[id]/page": {
-          "moduleId": 55208,
-          "async": false,
-          "exportedName": "updateCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/new/page": {
-          "moduleId": 18989,
-          "async": false,
-          "exportedName": "updateCollection",
-          "filename": "app/actions/collections.ts"
-        },
-        "app/collections/page": {
-          "moduleId": 39721,
-          "async": false,
-          "exportedName": "updateCollection",
-          "filename": "app/actions/collections.ts"
-        }
-      },
-      "filename": "app/actions/collections.ts",
-      "exportedName": "updateCollection"
     },
     "00a10fa81d111028145c77369b185eeff95ac3e702": {
       "workers": {

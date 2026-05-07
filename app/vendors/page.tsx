@@ -8,8 +8,15 @@ import { getApprovedVendors } from '@/app/actions/vendors';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Our Vendors | Collector\'s Paradise',
+  title: 'Our Vendors',
   description: 'Explore the amazing vendors joining Collector\'s Paradise. Discover rare cards, vintage collectibles, and more from our approved sellers.',
+  openGraph: {
+    title: "Our Vendors | Collector's Paradise",
+    description: "Discover rare cards, vintage collectibles, and more from our approved sellers.",
+  },
+  alternates: {
+    canonical: 'https://collectorsparadise.com.au/vendors',
+  },
 };
 
 export default async function VendorsPage() {

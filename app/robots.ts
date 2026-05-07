@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/admin/', '/profile/', '/login', '/signup'],
+        disallow: ['/admin/', '/login', '/signup'],
       },
     ],
     sitemap: 'https://collectorsparadise.com.au/sitemap.xml',

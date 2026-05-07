@@ -15,6 +15,9 @@ export const metadata: Metadata = {
     description:
       "Learn about Collector's Paradise — Melbourne's premier Pokémon trading card event.",
   },
+  alternates: {
+    canonical: 'https://collectorsparadise.com.au/about',
+  },
 };
 
 export default function AboutPage() {

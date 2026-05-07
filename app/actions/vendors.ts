@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { sendNewApplicationEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -33,14 +34,9 @@ const vendorApplicationSchema = z.object({
   business_name: z.string().min(1, 'Business name is required').max(200),
   contact_name: z.string().min(1, 'Contact name is required').max(200),
   email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
-  confirm_password: z.string(),
   phone: z.string().optional(),
   description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
   categories: z.array(z.string()).min(1, 'Please select at least one category'),
-}).refine((data) => data.password === data.confirm_password, {
-  message: "Passwords don't match",
-  path: ["confirm_password"],
 });
 
 type ActionState = {
@@ -76,8 +72,6 @@ export async function submitVendorApplication(
     business_name: fields.business_name,
     contact_name: fields.contact_name,
     email: fields.email,
-    password: formData.get('password'),
-    confirm_password: formData.get('confirm_password'),
     phone: fields.phone || undefined,
     description: fields.description,
     categories,
@@ -113,40 +107,21 @@ export async function submitVendorApplication(
     return { message: 'This Business Name is already registered.', fields };
   }
 
-  // 2. Sign out any lingering session before creating a new account.
-  await supabase.auth.signOut();
+  // 2. Check if email is already registered
+  const { data: existingEmail } = await supabase
+    .from('vendors')
+    .select('id')
+    .eq('email', validatedFields.data.email)
+    .maybeSingle();
 
-  // 3. Create the Auth Account
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: validatedFields.data.email,
-    password: validatedFields.data.password,
-  });
-
-  if (authError) {
-    console.error('Auth error:', authError);
-    if (authError.message.includes('already registered')) {
-      return { message: 'An account with this email already exists.', fields };
-    }
-    return { message: authError.message, fields };
+  if (existingEmail) {
+    return { message: 'An application with this email already exists.', fields };
   }
 
-  // Handle the Supabase edge case where duplicate emails return a fake
-  // success with an empty identities array
-  if (
-    authData.user &&
-    authData.user.identities &&
-    authData.user.identities.length === 0
-  ) {
-    return { message: 'An account with this email already exists.', fields };
-  }
-
-  if (!authData.user) {
-    return { message: 'Failed to create vendor account. Please try again.', fields };
-  }
-
-  // 4. Upload the logo
+  // 3. Upload the logo
+  const vendorId = crypto.randomUUID();
   const fileExt = logo.name.split('.').pop();
-  const filePath = `${authData.user.id}/logo-${Date.now()}.${fileExt}`;
+  const filePath = `${vendorId}/logo-${Date.now()}.${fileExt}`;
 
   const arrayBuffer = await logo.arrayBuffer();
 
@@ -176,7 +151,7 @@ export async function submitVendorApplication(
 
   // 5. Save Vendor Record
   const { error: dbError } = await supabase.from('vendors').insert({
-    user_id: authData.user.id,
+    id: vendorId,
     business_name: validatedFields.data.business_name,
     contact_name: validatedFields.data.contact_name,
     email: validatedFields.data.email,
@@ -199,6 +174,13 @@ export async function submitVendorApplication(
     
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }
+
+  // Send notification emails (non-blocking)
+  sendNewApplicationEmail(
+    validatedFields.data.email,
+    validatedFields.data.business_name,
+    validatedFields.data.contact_name
+  ).catch((err) => console.error('Failed to send application emails:', err));
 
   revalidatePath('/admin');
   return {
@@ -281,6 +263,13 @@ export async function getPendingVendors(): Promise<Vendor[]> {
 export async function approveVendor(vendorId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
+  // Fetch vendor details first for email notification
+  const { data: vendor } = await supabase
+    .from('vendors')
+    .select('email, business_name, contact_name')
+    .eq('id', vendorId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from('vendors')
     .update({ application_status: 'approved' })
@@ -291,6 +280,12 @@ export async function approveVendor(vendorId: string): Promise<ActionState> {
     return { message: `Failed to approve vendor: ${error.message}` };
   }
 
+  // Send approval email (non-blocking)
+  if (vendor) {
+    sendApprovalEmail(vendor.email, vendor.business_name, vendor.contact_name)
+      .catch((err) => console.error('Failed to send approval email:', err));
+  }
+
   revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
   return { success: true, message: 'Vendor approved successfully!' };
@@ -299,6 +294,13 @@ export async function approveVendor(vendorId: string): Promise<ActionState> {
 /** Reject a vendor application */
 export async function rejectVendor(vendorId: string, reason?: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+
+  // Fetch vendor details first for email notification
+  const { data: vendor } = await supabase
+    .from('vendors')
+    .select('email, business_name, contact_name')
+    .eq('id', vendorId)
+    .maybeSingle();
 
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
@@ -313,6 +315,12 @@ export async function rejectVendor(vendorId: string, reason?: string): Promise<A
   if (error) {
     console.error('Error rejecting vendor:', JSON.stringify(error, null, 2));
     return { message: `Failed to reject vendor: ${error.message}` };
+  }
+
+  // Send rejection email (non-blocking)
+  if (vendor) {
+    sendRejectionEmail(vendor.email, vendor.business_name, vendor.contact_name, reason || undefined)
+      .catch((err) => console.error('Failed to send rejection email:', err));
   }
 
   revalidatePath('/admin/vendors');
@@ -335,6 +343,25 @@ export async function waitlistVendor(vendorId: string): Promise<ActionState> {
 
   revalidatePath('/admin/vendors');
   return { success: true, message: 'Vendor waitlisted successfully!' };
+}
+
+/** Delete a vendor (admin only) — removes vendor from database */
+export async function deleteVendor(vendorId: string): Promise<ActionState> {
+  const supabase = await createSupabaseServerClient();
+
+  const { error } = await supabase
+    .from('vendors')
+    .delete()
+    .eq('id', vendorId);
+
+  if (error) {
+    console.error('Error deleting vendor:', JSON.stringify(error, null, 2));
+    return { message: `Failed to delete vendor: ${error.message}` };
+  }
+
+  revalidatePath('/admin/vendors');
+  revalidatePath('/vendors');
+  return { success: true, message: 'Vendor deleted successfully!' };
 }
 
 /** Get approved vendors list for admin view (with more fields than public) - OPTIMIZED */

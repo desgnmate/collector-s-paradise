@@ -3,8 +3,15 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions | Collector\'s Paradise',
+  title: 'Terms & Conditions',
   description: 'Read the Terms and Conditions governing your use of the Collector\'s Paradise website and services.',
+  openGraph: {
+    title: "Terms & Conditions | Collector's Paradise",
+    description: "Terms and Conditions governing your use of the Collector's Paradise website and services.",
+  },
+  alternates: {
+    canonical: 'https://collectorsparadise.com.au/terms',
+  },
 };
 
 export default function TermsPage() {

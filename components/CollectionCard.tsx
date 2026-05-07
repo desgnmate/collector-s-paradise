@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import type { Collection } from '@/app/actions/collections-types';
 
 type Props = {
@@ -20,11 +21,11 @@ export default function CollectionCard({ collection }: Props) {
   });
 
   return (
-    <Link href={`/collections/${collection.id}`} className="collection-card">
+    <Link href="/" className="collection-card">
       {/* Image */}
       <div className="collection-card-image">
         {primaryImage ? (
-          <img src={primaryImage} alt={collection.title} loading="lazy" style={{ objectFit: 'cover' }} />
+          <Image src={primaryImage} alt={collection.title} fill style={{ objectFit: 'cover' }} />
         ) : (
           <div className="collection-card-image-placeholder" />
         )}

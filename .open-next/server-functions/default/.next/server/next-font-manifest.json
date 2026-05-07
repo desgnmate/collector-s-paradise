@@ -35,26 +35,6 @@
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
     ],
-    "[project]/app/collections/[id]/edit/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
-    "[project]/app/collections/[id]/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
-    "[project]/app/collections/new/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
-    "[project]/app/collections/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
     "[project]/app/events/[id]/page": [
       "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
@@ -65,27 +45,12 @@
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
     ],
-    "[project]/app/login/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
     "[project]/app/page": [
       "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
     ],
     "[project]/app/privacy/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
-    "[project]/app/profile/page": [
-      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
-      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
-      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
-    ],
-    "[project]/app/signup/page": [
       "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"

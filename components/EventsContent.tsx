@@ -1,6 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import Image from 'next/image';
+
+import { useState, useEffect, useRef } from 'react';
 import { createEvent, updateEvent, deleteEvent, getAdminEvents, type Event } from '@/app/actions/events';
 
 export default function EventsContent() {
@@ -12,6 +14,10 @@ export default function EventsContent() {
   const [submitting, setSubmitting] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  // Cover image state
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null);
+  const coverImageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchEvents();
@@ -27,6 +33,31 @@ export default function EventsContent() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setMessage({ text: 'Cover image must be less than 5MB.', type: 'error' });
+      e.target.value = '';
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setMessage({ text: 'Cover image must be an image file.', type: 'error' });
+      e.target.value = '';
+      return;
+    }
+    setSelectedCoverImage(file);
+    const reader = new FileReader();
+    reader.onload = () => setCoverImagePreview(reader.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const clearCoverImage = () => {
+    setCoverImagePreview(null);
+    setSelectedCoverImage(null);
+    if (coverImageRef.current) coverImageRef.current.value = '';
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -53,6 +84,7 @@ export default function EventsContent() {
         setShowForm(false);
         setEditingEvent(null);
         form.reset();
+        clearCoverImage();
         fetchEvents();
       } else {
         setMessage({ text: result.message, type: 'error' });
@@ -88,12 +120,23 @@ export default function EventsContent() {
     setEditingEvent(event);
     setShowForm(true);
     setMessage(null);
+    // Set existing cover image preview if available
+    if (event.cover_image_url) {
+      setCoverImagePreview(event.cover_image_url);
+      setSelectedCoverImage(null); // No new file selected, keeping existing URL
+    } else {
+      setCoverImagePreview(null);
+      setSelectedCoverImage(null);
+    }
   };
 
   const openCreate = () => {
     setEditingEvent(null);
     setShowForm(true);
     setMessage(null);
+    setCoverImagePreview(null);
+    setSelectedCoverImage(null);
+    if (coverImageRef.current) coverImageRef.current.value = '';
   };
 
   const filteredEvents = events.filter(e => statusFilter === 'all' || e.status === statusFilter);
@@ -182,6 +225,12 @@ export default function EventsContent() {
         ) : (
           filteredEvents.map(event => (
             <div key={event.id} className="event-card">
+              {/* Event Cover Image */}
+              {event.cover_image_url && (
+                <div className="event-cover-image-wrapper">
+                  <Image src={event.cover_image_url} alt={event.title} className="event-cover-image" fill style={{ objectFit: 'cover' }} />
+                </div>
+              )}
               <div className="event-card-header">
                 <span
                   className="status-badge"
@@ -195,13 +244,13 @@ export default function EventsContent() {
                 </span>
                 <div className="event-card-actions">
                   <button onClick={() => openEdit(event)} className="btn-edit" title="Edit">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
                       <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                     </svg>
                   </button>
                   <button onClick={() => setDeletingEvent(event)} className="btn-delete" title="Delete">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6" />
                       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                     </svg>
@@ -283,137 +332,172 @@ export default function EventsContent() {
       {showForm && (
         <div className="modal-overlay" onClick={() => { setShowForm(false); setEditingEvent(null); }}>
           <div className="modal-content modal-lg" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title">{editingEvent ? 'Edit Event' : 'Create New Event'}</h3>
-            <p className="modal-vendor-name">Fill in the event details below</p>
+            <div className="modal-header">
+              <h3 className="modal-title">{editingEvent ? 'Edit Event' : 'Create New Event'}</h3>
+              <p className="modal-vendor-name">Fill in the event details below</p>
+            </div>
 
-            <form onSubmit={handleSubmit} className="event-form">
-              <div className="event-form-grid">
-                <div className="event-form-group full-width">
-                  <label htmlFor="title">Event Title *</label>
-                  <input
-                    type="text"
-                    id="title"
-                    name="title"
-                    required
-                    placeholder="e.g. Collector's Paradise — May Market"
-                    defaultValue={editingEvent?.title || ''}
-                  />
+            <div className="modal-body">
+              <form onSubmit={handleSubmit} className="event-form">
+                <div className="event-form-grid">
+                  <div className="event-form-group full-width">
+                    <label htmlFor="title">Event Title *</label>
+                    <input
+                      type="text"
+                      id="title"
+                      name="title"
+                      required
+                      placeholder="e.g. Collector's Paradise — May Market"
+                      defaultValue={editingEvent?.title || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group full-width">
+                    <label htmlFor="description">Description</label>
+                    <textarea
+                      id="description"
+                      name="description"
+                      rows={3}
+                      placeholder="Describe the event..."
+                      defaultValue={editingEvent?.description || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="event_date">Event Date *</label>
+                    <input
+                      type="date"
+                      id="event_date"
+                      name="event_date"
+                      required
+                      defaultValue={editingEvent?.event_date || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="start_time">Start Time *</label>
+                    <input
+                      type="time"
+                      id="start_time"
+                      name="start_time"
+                      required
+                      defaultValue={editingEvent?.start_time || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="end_time">End Time *</label>
+                    <input
+                      type="time"
+                      id="end_time"
+                      name="end_time"
+                      required
+                      defaultValue={editingEvent?.end_time || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="venue">Venue</label>
+                    <input
+                      type="text"
+                      id="venue"
+                      name="venue"
+                      placeholder="e.g. Melbourne Convention Centre"
+                      defaultValue={editingEvent?.venue || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group full-width">
+                    <label htmlFor="venue_address">Venue Address</label>
+                    <input
+                      type="text"
+                      id="venue_address"
+                      name="venue_address"
+                      placeholder="e.g. 1 Convention Centre Pl, South Wharf VIC 3006"
+                      defaultValue={editingEvent?.venue_address || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="capacity">Capacity *</label>
+                    <input
+                      type="number"
+                      id="capacity"
+                      name="capacity"
+                      required
+                      min="1"
+                      placeholder="200"
+                      defaultValue={editingEvent?.capacity || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="ticket_price">Ticket Price (AUD) *</label>
+                    <input
+                      type="number"
+                      id="ticket_price"
+                      name="ticket_price"
+                      required
+                      step="0.01"
+                      min="0"
+                      placeholder="15.00"
+                      defaultValue={editingEvent?.ticket_price || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group full-width">
+                    <label htmlFor="booking_link">Booking Link</label>
+                    <input
+                      type="url"
+                      id="booking_link"
+                      name="booking_link"
+                      placeholder="https://eventbrite.com/e/your-event"
+                      defaultValue={editingEvent?.booking_link || ''}
+                    />
+                  </div>
+
+                  {/* Cover Image Upload */}
+                  <div className="event-form-group full-width">
+                    <label htmlFor="cover_image">Cover Image</label>
+                    <div className="admin-cover-upload">
+                      {coverImagePreview ? (
+                        <div className="admin-cover-preview">
+                          <img src={coverImagePreview} alt="Cover preview" className="admin-cover-preview-img" />
+                          <button type="button" onClick={clearCoverImage} className="admin-cover-remove" title="Remove image">
+                            ✕
+                          </button>
+                        </div>
+                      ) : (
+                        <label htmlFor="cover_image" className="admin-cover-placeholder">
+                          <span>Click to upload cover image</span>
+                          <span className="admin-cover-hint">PNG, JPG, WebP — max 5MB</span>
+                        </label>
+                      )}
+                      <input
+                        ref={coverImageRef}
+                        type="file"
+                        id="cover_image"
+                        name="cover_image"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        onChange={handleCoverImageChange}
+                        className="admin-cover-input"
+                      />
+                    </div>
+                  </div>
                 </div>
+              </form>
+            </div>
 
-                <div className="event-form-group full-width">
-                  <label htmlFor="description">Description</label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    rows={3}
-                    placeholder="Describe the event..."
-                    defaultValue={editingEvent?.description || ''}
-                  />
-                </div>
-
-                <div className="event-form-group">
-                  <label htmlFor="event_date">Event Date *</label>
-                  <input
-                    type="date"
-                    id="event_date"
-                    name="event_date"
-                    required
-                    defaultValue={editingEvent?.event_date || ''}
-                  />
-                </div>
-
-                <div className="event-form-group">
-                  <label htmlFor="start_time">Start Time *</label>
-                  <input
-                    type="time"
-                    id="start_time"
-                    name="start_time"
-                    required
-                    defaultValue={editingEvent?.start_time || ''}
-                  />
-                </div>
-
-                <div className="event-form-group">
-                  <label htmlFor="end_time">End Time *</label>
-                  <input
-                    type="time"
-                    id="end_time"
-                    name="end_time"
-                    required
-                    defaultValue={editingEvent?.end_time || ''}
-                  />
-                </div>
-
-                <div className="event-form-group">
-                  <label htmlFor="venue">Venue</label>
-                  <input
-                    type="text"
-                    id="venue"
-                    name="venue"
-                    placeholder="e.g. Melbourne Convention Centre"
-                    defaultValue={editingEvent?.venue || ''}
-                  />
-                </div>
-
-                <div className="event-form-group full-width">
-                  <label htmlFor="venue_address">Venue Address</label>
-                  <input
-                    type="text"
-                    id="venue_address"
-                    name="venue_address"
-                    placeholder="e.g. 1 Convention Centre Pl, South Wharf VIC 3006"
-                    defaultValue={editingEvent?.venue_address || ''}
-                  />
-                </div>
-
-                <div className="event-form-group">
-                  <label htmlFor="capacity">Capacity *</label>
-                  <input
-                    type="number"
-                    id="capacity"
-                    name="capacity"
-                    required
-                    min="1"
-                    placeholder="200"
-                    defaultValue={editingEvent?.capacity || ''}
-                  />
-                </div>
-
-                <div className="event-form-group">
-                  <label htmlFor="ticket_price">Ticket Price (AUD) *</label>
-                  <input
-                    type="number"
-                    id="ticket_price"
-                    name="ticket_price"
-                    required
-                    step="0.01"
-                    min="0"
-                    placeholder="15.00"
-                    defaultValue={editingEvent?.ticket_price || ''}
-                  />
-                </div>
-
-                <div className="event-form-group full-width">
-                  <label htmlFor="booking_link">Booking Link</label>
-                  <input
-                    type="url"
-                    id="booking_link"
-                    name="booking_link"
-                    placeholder="https://eventbrite.com/e/your-event"
-                    defaultValue={editingEvent?.booking_link || ''}
-                  />
-                </div>
-              </div>
-
+            <div className="modal-footer">
               <div className="modal-actions">
                 <button type="button" onClick={() => { setShowForm(false); setEditingEvent(null); }} className="btn-cancel">
                   Cancel
                 </button>
-                <button type="submit" className="btn-confirm-approve" disabled={submitting}>
+                <button type="submit" className="btn-confirm-approve" disabled={submitting} onClick={() => (document.querySelector('.event-form') as HTMLFormElement)?.requestSubmit()}>
                   {submitting ? 'Saving...' : editingEvent ? 'Update Event' : 'Create Event'}
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -422,20 +506,27 @@ export default function EventsContent() {
       {deletingEvent && (
         <div className="modal-overlay" onClick={() => setDeletingEvent(null)}>
           <div className="modal-content modal-sm" onClick={e => e.stopPropagation()}>
-            <h3 className="modal-title" style={{ color: '#f87171' }}>Delete Event</h3>
-            <p className="modal-vendor-name">Are you sure you want to delete "{deletingEvent.title}"? This action cannot be undone.</p>
-
-            <div className="modal-actions">
-              <button onClick={() => setDeletingEvent(null)} className="btn-cancel">
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="btn-confirm-reject"
-                disabled={submitting}
-              >
-                {submitting ? 'Deleting...' : 'Delete'}
-              </button>
+            <div className="modal-header">
+              <h3 className="modal-title" style={{ color: '#f87171' }}>Delete Event</h3>
+            </div>
+            <div className="modal-body">
+              <p className="modal-vendor-name" style={{ margin: 0 }}>
+                Are you sure you want to delete "{deletingEvent.title}"? This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <div className="modal-actions" style={{ marginTop: 0 }}>
+                <button onClick={() => setDeletingEvent(null)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="btn-confirm-reject"
+                  disabled={submitting}
+                >
+                  {submitting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
