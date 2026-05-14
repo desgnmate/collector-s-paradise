@@ -2,7 +2,11 @@
 
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { Vendor } from '@/app/actions/vendors';
+import { Volunteer } from '@/app/actions/volunteers';
+import { Sponsor } from '@/app/actions/sponsors';
 import { getAllVendors } from '@/app/actions/vendors';
+import { getAllVolunteers } from '@/app/actions/volunteers';
+import { getAllSponsors } from '@/app/actions/sponsors';
 import { getDashboardStats } from '@/app/actions/dashboard';
 
 interface DashboardStats {
@@ -14,14 +18,18 @@ interface DashboardStats {
 
 interface AdminDataContextType {
   vendors: Vendor[];
+  volunteers: Volunteer[];
+  sponsors: Sponsor[];
   stats: DashboardStats | null;
   loading: boolean;
   error: string | null;
   lastFetchedAt: number;
   
   setVendors: (vendors: Vendor[]) => void;
+  setVolunteers: (volunteers: Volunteer[]) => void;
+  setSponsors: (sponsors: Sponsor[]) => void;
   setStats: (stats: DashboardStats) => void;
-  invalidateCache: (type: 'vendors' | 'stats') => void;
+  invalidateCache: (type: 'vendors' | 'volunteers' | 'sponsors' | 'stats') => void;
   refreshData: () => Promise<void>;
 }
 
@@ -30,11 +38,15 @@ const AdminDataContext = createContext<AdminDataContextType | undefined>(undefin
 // Cache duration in milliseconds
 const CACHE_DURATION = {
   vendors: 2 * 60 * 1000, // 2 minutes
+  volunteers: 2 * 60 * 1000, // 2 minutes
+  sponsors: 2 * 60 * 1000, // 2 minutes
   stats: 5 * 60 * 1000,   // 5 minutes
 };
 
 export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [volunteers, setVolunteers] = useState<Volunteer[]>([]);
+  const [sponsors, setSponsors] = useState<Sponsor[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,12 +61,16 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     setError(null);
 
     try {
-      const [vendorsData, statsData] = await Promise.all([
+      const [vendorsData, volunteersData, sponsorsData, statsData] = await Promise.all([
         getAllVendors(),
+        getAllVolunteers(),
+        getAllSponsors(),
         getDashboardStats(),
       ]);
 
       setVendors(vendorsData);
+      setVolunteers(volunteersData);
+      setSponsors(sponsorsData);
       setStats(statsData);
       setLastFetchedAt(Date.now());
     } catch (err) {
@@ -66,13 +82,17 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const invalidateCache = useCallback((type: 'vendors' | 'stats') => {
+  const invalidateCache = useCallback((type: 'vendors' | 'volunteers' | 'sponsors' | 'stats') => {
     if (type === 'vendors') {
-      // For vendors, we clear and refetch to ensure consistency
       setVendors([]);
       fetchAllData();
+    } else if (type === 'volunteers') {
+      setVolunteers([]);
+      fetchAllData();
+    } else if (type === 'sponsors') {
+      setSponsors([]);
+      fetchAllData();
     } else if (type === 'stats') {
-      // Stats can be stale, just mark for refetch
       setLastFetchedAt(0);
       fetchAllData();
     }
@@ -92,11 +112,15 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     <AdminDataContext.Provider
       value={{
         vendors,
+        volunteers,
+        sponsors,
         stats,
         loading,
         error,
         lastFetchedAt,
         setVendors,
+        setVolunteers,
+        setSponsors,
         setStats,
         invalidateCache,
         refreshData,

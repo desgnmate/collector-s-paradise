@@ -13,6 +13,7 @@ export default function AdminVendorsClient() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showViewModal, setShowViewModal] = useState(false);
   const [modalAction, setModalAction] = useState<'approve' | 'reject' | 'waitlist' | 'delete' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
@@ -33,6 +34,11 @@ export default function AdminVendorsClient() {
     setModalAction(action);
     setRejectionReason('');
     setShowModal(true);
+  };
+
+  const handleViewInfo = (vendor: Vendor) => {
+    setSelectedVendor(vendor);
+    setShowViewModal(true);
   };
 
   const confirmAction = async () => {
@@ -180,6 +186,33 @@ export default function AdminVendorsClient() {
                 </div>
               )}
               
+              <div className="vendor-event-requirements" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                {(vendor.tables_requested || vendor.power_requirements) && (
+                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                    {vendor.tables_requested && (
+                      <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>
+                        📦 Tables: {vendor.tables_requested}
+                      </span>
+                    )}
+                    {vendor.power_requirements && (
+                      <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>
+                        ⚡ Power: {vendor.power_requirements}
+                      </span>
+                    )}
+                  </div>
+                )}
+                {vendor.social_links && (
+                  <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
+                    🔗 <a href={vendor.social_links} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-dark)', textDecoration: 'underline' }}>Social Profile</a>
+                  </div>
+                )}
+                {vendor.additional_notes && (
+                  <div style={{ fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
+                     {vendor.additional_notes}
+                  </div>
+                )}
+              </div>
+              
               {vendor.rejection_reason && (
                 <div className="rejection-reason">
                   <strong>Rejection Reason:</strong> {vendor.rejection_reason}
@@ -187,6 +220,25 @@ export default function AdminVendorsClient() {
               )}
               
               <div className="vendor-actions">
+                <button
+                  onClick={() => handleViewInfo(vendor)}
+                  className="btn-view-info"
+                  style={{
+                    background: 'var(--color-dark)',
+                    color: 'white',
+                    border: '2px solid var(--color-dark)',
+                    padding: '0.5rem 1rem',
+                    borderRadius: '6px',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  👁 View Information
+                </button>
                 {vendor.application_status === 'pending' && (
                   <>
                     <button
@@ -354,6 +406,276 @@ export default function AdminVendorsClient() {
                   {processingId ? 'Processing...' : modalAction === 'delete' ? 'Delete Permanently' : 'Confirm'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* View Information Modal */}
+      {showViewModal && selectedVendor && (
+        <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
+          <div className="modal-content modal-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+            <div className="modal-header" style={{ borderBottom: '2px solid var(--color-dark)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 className="modal-title" style={{ margin: 0 }}>Vendor Application Details</h3>
+                <button 
+                  onClick={() => setShowViewModal(false)}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    color: '#666',
+                    padding: '0.25rem',
+                    lineHeight: 1
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            
+            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
+              {/* Business Info Section */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h4 style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: 800, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '1px',
+                  color: '#666',
+                  marginBottom: '0.75rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '2px solid var(--color-yellow)'
+                }}>
+                  Business Information
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Business Name</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.business_name}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Contact Person</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.contact_name}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Email Address</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.email}</p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Phone Number</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.phone || 'Not provided'}</p>
+                  </div>
+                </div>
+                {selectedVendor.logo_url && (
+                  <div style={{ marginTop: '1rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Business Logo</p>
+                    <img 
+                      src={selectedVendor.logo_url} 
+                      alt={`${selectedVendor.business_name} logo`}
+                      style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '2px solid var(--color-dark)' }}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Social Media Section */}
+              {selectedVendor.social_links && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ 
+                    fontSize: '0.75rem', 
+                    fontWeight: 800, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '1px',
+                    color: '#666',
+                    marginBottom: '0.75rem',
+                    paddingBottom: '0.5rem',
+                    borderBottom: '2px solid var(--color-yellow)'
+                  }}>
+                    Social Media
+                  </h4>
+                  <a 
+                    href={selectedVendor.social_links} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    style={{ 
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      color: 'var(--color-dark)',
+                      textDecoration: 'underline',
+                      fontWeight: 500
+                    }}
+                  >
+                     {selectedVendor.social_links}
+                  </a>
+                </div>
+              )}
+
+              {/* Products & Categories Section */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h4 style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: 800, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '1px',
+                  color: '#666',
+                  marginBottom: '0.75rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '2px solid var(--color-yellow)'
+                }}>
+                  Products & Categories
+                </h4>
+                {selectedVendor.categories && selectedVendor.categories.length > 0 && (
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                    {selectedVendor.categories.map((cat, i) => (
+                      <span 
+                        key={i}
+                        style={{
+                          background: 'var(--color-yellow)',
+                          color: 'var(--color-dark)',
+                          padding: '0.35rem 0.75rem',
+                          borderRadius: '4px',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          textTransform: 'uppercase',
+                          border: '1px solid var(--color-dark)'
+                        }}
+                      >
+                        {cat}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {selectedVendor.description && (
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Business Description</p>
+                    <p style={{ lineHeight: 1.6, fontSize: '0.95rem' }}>{selectedVendor.description}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Event Requirements Section */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h4 style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: 800, 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '1px',
+                  color: '#666',
+                  marginBottom: '0.75rem',
+                  paddingBottom: '0.5rem',
+                  borderBottom: '2px solid var(--color-yellow)'
+                }}>
+                  Event Requirements
+                </h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Tables Requested</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>
+                      {selectedVendor.tables_requested ? `📦 ${selectedVendor.tables_requested}` : 'Not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Power Requirements</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>
+                      {selectedVendor.power_requirements ? `⚡ ${selectedVendor.power_requirements}` : 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Additional Notes Section */}
+              {selectedVendor.additional_notes && (
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <h4 style={{ 
+                    fontSize: '0.75rem', 
+                    fontWeight: 800, 
+                    textTransform: 'uppercase', 
+                    letterSpacing: '1px',
+                    color: '#666',
+                    marginBottom: '0.75rem',
+                    paddingBottom: '0.5rem',
+                    borderBottom: '2px solid var(--color-yellow)'
+                  }}>
+                    Additional Notes
+                  </h4>
+                  <p style={{ 
+                    lineHeight: 1.6, 
+                    fontSize: '0.95rem',
+                    background: 'rgba(244, 197, 66, 0.1)',
+                    padding: '1rem',
+                    borderRadius: '6px',
+                    border: '1px dashed var(--color-dark)'
+                  }}>
+                    {selectedVendor.additional_notes}
+                  </p>
+                </div>
+              )}
+
+              {/* Application Status Section */}
+              <div style={{ 
+                background: 'rgba(0,0,0,0.05)', 
+                padding: '1rem', 
+                borderRadius: '6px',
+                marginTop: '1.5rem'
+              }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Application Status</p>
+                    <p style={{ 
+                      fontWeight: 700, 
+                      fontSize: '1rem',
+                      textTransform: 'uppercase',
+                      color: selectedVendor.application_status === 'approved' ? '#22c55e' :
+                             selectedVendor.application_status === 'rejected' ? '#ef4444' :
+                             selectedVendor.application_status === 'waitlisted' ? '#8b5cf6' : '#f59e0b'
+                    }}>
+                      {selectedVendor.application_status}
+                    </p>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Applied On</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>
+                      {new Date(selectedVendor.applied_at).toLocaleDateString('en-US', { 
+                        month: 'long', 
+                        day: 'numeric', 
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                {selectedVendor.booth_assignment && (
+                  <div style={{ marginTop: '0.75rem' }}>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Booth Assignment</p>
+                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.booth_assignment}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <div className="modal-footer" style={{ borderTop: '1px solid #e5e5e5', paddingTop: '1rem', marginTop: '1.5rem' }}>
+              <button 
+                onClick={() => setShowViewModal(false)} 
+                className="btn-cancel"
+                style={{
+                  background: 'var(--color-dark)',
+                  color: 'white',
+                  border: '2px solid var(--color-dark)',
+                  padding: '0.65rem 1.5rem',
+                  borderRadius: '6px',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
-export type AdminRoute = '/admin' | '/admin/events' | '/admin/vendors' | '/admin/about';
+export type AdminRoute = '/admin' | '/admin/events' | '/admin/vendors' | '/admin/volunteers' | '/admin/sponsors' | '/admin/about';
 
 interface AdminRouterContext {
   currentRoute: AdminRoute;
@@ -23,7 +23,7 @@ export function AdminRouterProvider({ children }: { children: ReactNode }) {
 
   // Sync with browser navigation (back/forward buttons)
   useEffect(() => {
-    const validRoutes: AdminRoute[] = ['/admin', '/admin/events', '/admin/vendors', '/admin/about'];
+    const validRoutes: AdminRoute[] = ['/admin', '/admin/events', '/admin/vendors', '/admin/volunteers', '/admin/sponsors', '/admin/about'];
     if (validRoutes.includes(pathname as AdminRoute)) {
       setCurrentRoute(pathname as AdminRoute);
     }

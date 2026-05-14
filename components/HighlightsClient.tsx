@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import EventCalendar from './EventCalendar';
 import type { Event } from '@/app/actions/events';
@@ -11,54 +11,8 @@ interface HighlightsClientProps {
 }
 
 const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'card' | 'calendar'>('card');
   const [eventType, setEventType] = useState<'upcoming' | 'past'>('upcoming');
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
-
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setCanScrollLeft(scrollLeft > 2);
-      setCanScrollRight(Math.ceil(scrollLeft + clientWidth) < scrollWidth - 2);
-    }
-  };
-
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
-  }, []);
-
-  const scrollLeft = () => {
-    if (scrollRef.current) {
-      const card = scrollRef.current.querySelector('.highlight-card') as HTMLElement;
-      const amount = card ? card.offsetWidth + 48 : scrollRef.current.clientWidth;
-      scrollRef.current.scrollTo({
-        left: scrollRef.current.scrollLeft - amount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollRef.current) {
-      const card = scrollRef.current.querySelector('.highlight-card') as HTMLElement;
-      const amount = card ? card.offsetWidth + 48 : scrollRef.current.clientWidth;
-      scrollRef.current.scrollTo({
-        left: scrollRef.current.scrollLeft + amount,
-        behavior: 'smooth'
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0;
-      handleScroll();
-    }
-  }, [eventType]);
 
   // Combine all events for the calendar view
   const allEvents = [...upcomingEvents, ...pastEvents];
@@ -122,20 +76,8 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
         </div>
 
         {viewMode === 'card' ? (
-          <div className="highlights-carousel-wrapper">
-            {canScrollLeft && (
-              <button className="highlights-carousel-arrow arrow-prev" aria-label="Previous" onClick={scrollLeft}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M15 18l-6-6 6-6"/>
-                </svg>
-              </button>
-            )}
-
-            <div 
-              className="highlights-grid" 
-              ref={scrollRef} 
-              onScroll={handleScroll}
-            >
+          <div className="highlights-grid-wrapper">
+            <div className="highlights-grid-2rows">
               {filteredEvents.length > 0 ? (
                 filteredEvents.map((event) => {
                   const dateObj = new Date(event.event_date);
@@ -164,14 +106,6 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
                 </div>
               )}
             </div>
-
-            {canScrollRight && (
-              <button className="highlights-carousel-arrow arrow-next" aria-label="Next" onClick={scrollRight}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 18l6-6-6-6"/>
-                </svg>
-              </button>
-            )}
           </div>
         ) : (
           <div className="highlights-calendar-view">

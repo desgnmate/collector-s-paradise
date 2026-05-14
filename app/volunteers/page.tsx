@@ -119,9 +119,9 @@ export default function VolunteersPage() {
               </p>
             </div>
             <div className="vendors-cta-actions">
-              <a href="mailto:volunteer@collectorsparadise.com.au" className="vendors-cta-btn-primary">
+              <Link href="/volunteers/apply" className="vendors-cta-btn-primary">
                 Sign Up to Volunteer
-              </a>
+              </Link>
               <Link href="/events" className="vendors-cta-btn-secondary">
                 View Upcoming Events
               </Link>

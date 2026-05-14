@@ -17,6 +17,10 @@ export type Vendor = {
   description: string | null;
   categories: string[];
   logo_url: string | null;
+  social_links: string | null;
+  tables_requested: string | null;
+  power_requirements: string | null;
+  additional_notes: string | null;
   application_status: 'pending' | 'approved' | 'rejected' | 'waitlisted';
   booth_assignment: string | null;
   event_id: string | null;
@@ -25,7 +29,7 @@ export type Vendor = {
 };
 
 // Column selection for admin queries - only fetch what's needed
-const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, description, categories, logo_url, application_status, booth_assignment, event_id, rejection_reason, applied_at';
+const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
 
 // ============================================
 // Validation Schema
@@ -37,6 +41,11 @@ const vendorApplicationSchema = z.object({
   phone: z.string().optional(),
   description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
   categories: z.array(z.string()).min(1, 'Please select at least one category'),
+  social_links: z.string().optional(),
+  tables_requested: z.string().min(1, 'Please select the number of tables'),
+  power_requirements: z.string().optional(),
+  additional_notes: z.string().optional(),
+  agreement: z.literal(true, { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
 });
 
 type ActionState = {
@@ -66,6 +75,11 @@ export async function submitVendorApplication(
     email: formData.get('email') as string || '',
     phone: formData.get('phone') as string || '',
     description: formData.get('description') as string || '',
+    social_links: formData.get('social_links') as string || '',
+    tables_requested: formData.get('tables_requested') as string || '',
+    power_requirements: formData.get('power_requirements') as string || '',
+    additional_notes: formData.get('additional_notes') as string || '',
+    agreement: formData.get('agreement') === 'on',
   };
 
   const validatedFields = vendorApplicationSchema.safeParse({
@@ -75,6 +89,11 @@ export async function submitVendorApplication(
     phone: fields.phone || undefined,
     description: fields.description,
     categories,
+    social_links: fields.social_links || undefined,
+    tables_requested: fields.tables_requested,
+    power_requirements: fields.power_requirements || undefined,
+    additional_notes: fields.additional_notes || undefined,
+    agreement: fields.agreement,
   });
 
   if (!validatedFields.success) {
@@ -159,6 +178,10 @@ export async function submitVendorApplication(
     description: validatedFields.data.description,
     categories: validatedFields.data.categories,
     logo_url: logoUrl,
+    social_links: validatedFields.data.social_links || null,
+    tables_requested: validatedFields.data.tables_requested,
+    power_requirements: validatedFields.data.power_requirements || null,
+    additional_notes: validatedFields.data.additional_notes || null,
     application_status: 'pending',
   });
 

@@ -245,6 +245,101 @@ export default function VendorApplicationForm() {
         </div>
       </div>
 
+      {/* Social Media */}
+      <div className="vendor-form-section">
+        <h3 className="vendor-form-section-title">Social Media & Online Presence</h3>
+        <div className="vendor-form-grid">
+          <div className="vendor-form-group vendor-form-group-wide">
+            <label htmlFor="social_links">Instagram / Social Links</label>
+            <input
+              id="social_links"
+              name="social_links"
+              type="url"
+              placeholder="https://instagram.com/yourbusiness"
+              defaultValue={state.fields?.social_links || ''}
+            />
+            <span className="vendor-form-hint">Share your Instagram, Facebook, or other social profiles.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Event Requirements */}
+      <div className="vendor-form-section">
+        <h3 className="vendor-form-section-title">Event Requirements</h3>
+        <div className="vendor-form-grid">
+          <div className="vendor-form-group">
+            <label htmlFor="tables_requested">Number of Tables Requested *</label>
+            <select
+              id="tables_requested"
+              name="tables_requested"
+              required
+              defaultValue={state.fields?.tables_requested || ''}
+            >
+              <option value="">Select quantity</option>
+              <option value="1">1 Table</option>
+              <option value="2">2 Tables</option>
+              <option value="3">3 Tables</option>
+              <option value="4">4 Tables</option>
+              <option value="5+">5+ Tables (contact for large setup)</option>
+            </select>
+            {state.errors?.tables_requested && (
+              <span className="vendor-form-error">{state.errors.tables_requested[0]}</span>
+            )}
+          </div>
+
+          <div className="vendor-form-group">
+            <label htmlFor="power_requirements">Power Requirements</label>
+            <select
+              id="power_requirements"
+              name="power_requirements"
+              defaultValue={state.fields?.power_requirements || ''}
+            >
+              <option value="">Select requirement</option>
+              <option value="none">No power needed</option>
+              <option value="standard">Standard outlet (1-2 devices)</option>
+              <option value="multiple">Multiple outlets (3+ devices)</option>
+              <option value="heavy">Heavy duty (equipment requiring dedicated circuit)</option>
+            </select>
+            <span className="vendor-form-hint">Let us know your electrical needs for the event.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Additional Notes */}
+      <div className="vendor-form-section">
+        <h3 className="vendor-form-section-title">Additional Notes</h3>
+        <div className="vendor-form-group vendor-form-group-wide">
+          <label htmlFor="additional_notes">Anything else we should know?</label>
+          <textarea
+            id="additional_notes"
+            name="additional_notes"
+            rows={4}
+            placeholder="Special setup requirements, accessibility needs, or other information..."
+            defaultValue={state.fields?.additional_notes || ''}
+          />
+        </div>
+      </div>
+
+      {/* Agreement */}
+      <div className="vendor-form-section">
+        <div className="vendor-form-group vendor-form-group-wide">
+          <label className="vendor-agreement-label" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              name="agreement"
+              required
+              style={{ marginTop: '0.25rem', accentColor: 'var(--color-dark)' }}
+            />
+            <span style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', color: 'var(--color-dark)' }}>Terms and Conditions</a> and confirm that all information provided is accurate. I understand that submission of this application does not guarantee vendor acceptance. *
+            </span>
+          </label>
+          {state.errors?.agreement && (
+            <span className="vendor-form-error">{state.errors.agreement[0]}</span>
+          )}
+        </div>
+      </div>
+
       {/* Submit */}
       <button
         type="submit"

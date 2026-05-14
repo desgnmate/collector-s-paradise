@@ -105,9 +105,9 @@ export default function SponsorshipPage() {
               </p>
             </div>
             <div className="vendors-cta-actions">
-              <a href="mailto:sponsor@collectorsparadise.com.au" className="vendors-cta-btn-primary">
+              <Link href="/sponsors/apply" className="vendors-cta-btn-primary">
                 Become a Sponsor
-              </a>
+              </Link>
               <Link href="/about" className="vendors-cta-btn-secondary">
                 Learn More About Us
               </Link>

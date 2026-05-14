@@ -2570,6 +2570,14 @@ button.login-dropdown-item:hover .login-item-desc {
   margin: 0 auto;
 }
 
+/* Grid wrapper for 2-row layout */
+.highlights-grid-wrapper {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 10px;
+}
+
 .highlights-calendar-view {
   width: 100%;
 }
@@ -2639,8 +2647,32 @@ button.login-dropdown-item:hover .login-item-desc {
   pointer-events: none;
 }
 
-.highlight-card {
+/* 2-Row Grid Layout - 3 columns x 2 rows = 6 events visible */
+.highlights-grid-2rows {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  padding: 0;
   pointer-events: auto;
+  flex-wrap: unset !important;
+  scrollbar-width: unset !important;
+  overscroll-behavior-x: unset !important;
+  touch-action: unset !important;
+}
+
+@media (max-width: 1024px) {
+  .highlights-grid-2rows {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .highlights-grid-2rows {
+    grid-template-columns: 1fr;
+  }
 }
 
 .highlights-grid::-webkit-scrollbar {
@@ -2648,8 +2680,6 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .highlight-card {
-  flex: 0 0 calc(33.333% - var(--space-xl) * 0.666);
-  min-width: 280px;
   background: var(--color-white);
   border-radius: var(--radius-lg);
   display: flex;
@@ -2657,12 +2687,6 @@ button.login-dropdown-item:hover .login-item-desc {
   overflow: hidden;
   border: 2px solid var(--color-dark);
   text-align: left;
-}
-
-@media (min-width: 1024px) and (max-width: 1439px) {
-  .highlight-card {
-    min-width: 280px;
-  }
 }
 
 /* Highlight Cards - Simple Lift Hover */
