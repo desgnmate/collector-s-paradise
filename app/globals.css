@@ -9286,6 +9286,253 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 /* ==============================
+   Sponsorship Page
+   ============================== */
+.sponsorship-tiers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-xl);
+  margin-top: var(--space-2xl);
+}
+
+@media (max-width: 1024px) {
+  .sponsorship-tiers-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sponsorship-tier-card {
+  background: var(--color-white);
+  border: 2px solid var(--color-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.sponsorship-tier-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 4px 4px 0px var(--color-dark);
+}
+
+.sponsorship-tier-card.platinum {
+  border-color: #E5E4E2;
+  background: linear-gradient(135deg, #F8F8F8 0%, #FFFFFF 100%);
+}
+
+.sponsorship-tier-card.gold {
+  border-color: #FFD700;
+  background: linear-gradient(135deg, #FFFBF0 0%, #FFFFFF 100%);
+}
+
+.sponsorship-tier-card.silver {
+  border-color: #C0C0C0;
+  background: linear-gradient(135deg, #F5F5F5 0%, #FFFFFF 100%);
+}
+
+.tier-header {
+  text-align: center;
+  padding-bottom: var(--space-md);
+  border-bottom: 2px solid var(--color-dark);
+}
+
+.tier-badge {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-pill);
+  margin-bottom: 0.5rem;
+}
+
+.platinum .tier-badge {
+  background: #E5E4E2;
+  color: var(--color-dark);
+}
+
+.gold .tier-badge {
+  background: #FFD700;
+  color: var(--color-dark);
+}
+
+.silver .tier-badge {
+  background: #C0C0C0;
+  color: var(--color-dark);
+}
+
+.tier-title {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.tier-benefits {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.tier-benefits li {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--color-dark);
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.tier-benefits li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-yellow);
+  font-weight: 900;
+}
+
+/* ==============================
+   Volunteers Page
+   ============================== */
+.volunteer-roles-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+  margin-top: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+  .volunteer-roles-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.volunteer-role-card {
+  background: var(--color-white);
+  border: 2px solid var(--color-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.volunteer-role-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 4px 4px 0px var(--color-dark);
+}
+
+.role-icon {
+  width: 64px;
+  height: 64px;
+  background: var(--color-yellow);
+  border: 2px solid var(--color-dark);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-dark);
+}
+
+.role-title {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.role-description {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.6;
+  flex: 1;
+}
+
+.role-time {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: var(--color-cream);
+  border: 1.5px solid var(--color-dark);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.8rem;
+  align-self: flex-start;
+}
+.volunteer-perks-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.volunteer-perks-list {
+  list-style: none;
+  padding: 0;
+  margin: var(--space-lg) auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 500px;
+  text-align: left;
+}
+
+.volunteer-perks-list li {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: #000000;
+  padding-left: 2rem;
+  position: relative;
+}
+
+.volunteer-perks-list li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: var(--color-yellow);
+  font-weight: 900;
+  font-size: 1.2rem;
+}
+
+/* Specific override for perks section to ensure black text */
+.volunteer-perks-inner .vendors-cta-title,
+.volunteer-perks-inner .volunteer-perks-list li {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+.perks-title {
+  color: #000000 !important;
+  -webkit-text-fill-color: #000000 !important;
+}
+
+@media (max-width: 768px) {
+  .volunteer-perks-list {
+    text-align: center;
+  }
+  .volunteer-perks-list li {
+    padding-left: 0;
+  }
+  .volunteer-perks-list li::before {
+    display: none;
+  }
+}
+
+
+/* ==============================
    Collections Feature
    ============================== */
 

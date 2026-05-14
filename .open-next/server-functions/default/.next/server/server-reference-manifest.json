@@ -2,8 +2,20 @@
   "node": {
     "001efdb7130013fb0efa7e4721ad4de273b0f9ad7b": {
       "workers": {
+        "app/_not-found/page": {
+          "moduleId": 74639,
+          "async": false,
+          "exportedName": "signOut",
+          "filename": "app/actions/auth.ts"
+        },
         "app/about/page": {
           "moduleId": 4649,
+          "async": false,
+          "exportedName": "signOut",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin-login/page": {
+          "moduleId": 10535,
           "async": false,
           "exportedName": "signOut",
           "filename": "app/actions/auth.ts"
@@ -330,6 +342,48 @@
       "filename": "app/actions/dashboard.ts",
       "exportedName": "getDashboardStats"
     },
+    "00f0b5f8d4f952a62f6f71ea473e2bbc3bdbda3726": {
+      "workers": {
+        "app/admin/about/page": {
+          "moduleId": 73691,
+          "async": false,
+          "exportedName": "getAdminEvents",
+          "filename": "app/actions/events.ts"
+        },
+        "app/admin/events/page": {
+          "moduleId": 19718,
+          "async": false,
+          "exportedName": "getAdminEvents",
+          "filename": "app/actions/events.ts"
+        },
+        "app/admin/page": {
+          "moduleId": 15909,
+          "async": false,
+          "exportedName": "getAdminEvents",
+          "filename": "app/actions/events.ts"
+        },
+        "app/admin/vendors/page": {
+          "moduleId": 91829,
+          "async": false,
+          "exportedName": "getAdminEvents",
+          "filename": "app/actions/events.ts"
+        },
+        "app/events/[id]/page": {
+          "moduleId": 56986,
+          "async": false,
+          "exportedName": "getAdminEvents",
+          "filename": "app/actions/events.ts"
+        },
+        "app/events/page": {
+          "moduleId": 16425,
+          "async": false,
+          "exportedName": "getAdminEvents",
+          "filename": "app/actions/events.ts"
+        }
+      },
+      "filename": "app/actions/events.ts",
+      "exportedName": "getAdminEvents"
+    },
     "4007e90c0dd6ea55cee54eba02c9a1b902a8547818": {
       "workers": {
         "app/admin/about/page": {
@@ -599,48 +653,6 @@
       },
       "filename": "app/actions/events.ts",
       "exportedName": "deleteEvent"
-    },
-    "00f0b5f8d4f952a62f6f71ea473e2bbc3bdbda3726": {
-      "workers": {
-        "app/admin/about/page": {
-          "moduleId": 73691,
-          "async": false,
-          "exportedName": "getAdminEvents",
-          "filename": "app/actions/events.ts"
-        },
-        "app/admin/events/page": {
-          "moduleId": 19718,
-          "async": false,
-          "exportedName": "getAdminEvents",
-          "filename": "app/actions/events.ts"
-        },
-        "app/admin/page": {
-          "moduleId": 15909,
-          "async": false,
-          "exportedName": "getAdminEvents",
-          "filename": "app/actions/events.ts"
-        },
-        "app/admin/vendors/page": {
-          "moduleId": 91829,
-          "async": false,
-          "exportedName": "getAdminEvents",
-          "filename": "app/actions/events.ts"
-        },
-        "app/events/[id]/page": {
-          "moduleId": 56986,
-          "async": false,
-          "exportedName": "getAdminEvents",
-          "filename": "app/actions/events.ts"
-        },
-        "app/events/page": {
-          "moduleId": 16425,
-          "async": false,
-          "exportedName": "getAdminEvents",
-          "filename": "app/actions/events.ts"
-        }
-      },
-      "filename": "app/actions/events.ts",
-      "exportedName": "getAdminEvents"
     },
     "00a10fa81d111028145c77369b185eeff95ac3e702": {
       "workers": {

@@ -207,6 +207,12 @@ export default function Navbar() {
                 <Link href="/vendors" onClick={() => setMenuOpen(false)}>
                   <span className="menu-item-text">Vendors</span>
                 </Link>
+                <Link href="/sponsorship" onClick={() => setMenuOpen(false)}>
+                  <span className="menu-item-text">Sponsorship</span>
+                </Link>
+                <Link href="/volunteers" onClick={() => setMenuOpen(false)}>
+                  <span className="menu-item-text">Volunteers</span>
+                </Link>
             </div>
         </div>
       </div>
