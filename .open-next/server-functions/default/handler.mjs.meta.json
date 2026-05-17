@@ -3643,6 +3643,11 @@
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js": {
+      "bytes": 11808,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/terms/page_client-reference-manifest.js": {
       "bytes": 11790,
       "imports": [],
@@ -3653,8 +3658,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js": {
-      "bytes": 11808,
+    ".open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js": {
+      "bytes": 325,
       "imports": [],
       "format": "cjs"
     },
@@ -3668,23 +3673,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js": {
-      "bytes": 325,
-      "imports": [],
-      "format": "cjs"
-    },
     ".open-next/server-functions/default/.next/server/app/events/page_client-reference-manifest.js": {
       "bytes": 12741,
-      "imports": [],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
-      "bytes": 11487,
-      "imports": [],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js": {
-      "bytes": 12554,
       "imports": [],
       "format": "cjs"
     },
@@ -3693,8 +3683,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js": {
-      "bytes": 16583,
+    ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
+      "bytes": 11487,
       "imports": [],
       "format": "cjs"
     },
@@ -3703,8 +3693,13 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js": {
-      "bytes": 12804,
+    ".open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js": {
+      "bytes": 12554,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js": {
+      "bytes": 16583,
       "imports": [],
       "format": "cjs"
     },
@@ -3718,6 +3713,11 @@
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js": {
+      "bytes": 12804,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/.next/server/app/events/[id]/page_client-reference-manifest.js": {
       "bytes": 12754,
       "imports": [],
@@ -3728,18 +3728,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js": {
-      "bytes": 16590,
-      "imports": [],
-      "format": "cjs"
-    },
     ".open-next/server-functions/default/.next/server/app/admin/vendors/page_client-reference-manifest.js": {
       "bytes": 16591,
-      "imports": [],
-      "format": "cjs"
-    },
-    ".open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js": {
-      "bytes": 16589,
       "imports": [],
       "format": "cjs"
     },
@@ -3748,8 +3738,18 @@
       "imports": [],
       "format": "cjs"
     },
+    ".open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js": {
+      "bytes": 16590,
+      "imports": [],
+      "format": "cjs"
+    },
+    ".open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js": {
+      "bytes": 16589,
+      "imports": [],
+      "format": "cjs"
+    },
     ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
-      "bytes": 100065,
+      "bytes": 100066,
       "imports": [
         {
           "path": "path",
@@ -3787,6 +3787,11 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/vendors/page_client-reference-manifest.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/terms/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/terms/page_client-reference-manifest.js"
@@ -3797,9 +3802,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/sitemap.xml/route_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js",
+          "path": ".open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/robots.txt/route_client-reference-manifest.js",
@@ -3812,24 +3817,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/privacy/page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/events/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/events/page_client-reference-manifest.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js"
-        },
-        {
-          "path": ".open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/about/page_client-reference-manifest.js",
@@ -3837,9 +3827,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/about/page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js",
+          "path": ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js",
@@ -3847,9 +3837,14 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js",
+          "path": ".open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/app/volunteers/apply/page_client-reference-manifest.js",
@@ -3862,6 +3857,11 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/vendors/apply/page_client-reference-manifest.js"
         },
         {
+          "path": ".open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js"
+        },
+        {
           "path": ".open-next/server-functions/default/.next/server/app/events/[id]/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/events/[id]/page_client-reference-manifest.js"
@@ -3872,24 +3872,24 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/volunteers/page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/admin/vendors/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/vendors/page_client-reference-manifest.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js",
-          "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js"
-        },
-        {
           "path": ".open-next/server-functions/default/.next/server/app/admin/sponsors/page_client-reference-manifest.js",
           "kind": "require-call",
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/sponsors/page_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js"
+        },
+        {
+          "path": ".open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js",
+          "kind": "require-call",
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js"
         }
       ],
       "format": "cjs"
@@ -4639,8 +4639,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__02r4ppe._.js": {
-      "bytes": 251441,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jwc-xc._.js": {
+      "bytes": 242508,
       "imports": [
         {
           "path": "node:crypto",
@@ -4665,8 +4665,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_0ad3p1o._.js": {
-      "bytes": 23731,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_10fjgyq._.js": {
+      "bytes": 33755,
       "imports": [],
       "format": "cjs"
     },
@@ -5284,7 +5284,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/_01r3emd._.js": {
-      "bytes": 9606,
+      "bytes": 10120,
       "imports": [],
       "format": "cjs"
     },
@@ -5379,8 +5379,8 @@
       "imports": [],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_apply_page_actions_054ta9_.js": {
-      "bytes": 331,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_0r0snuv._.js": {
+      "bytes": 9351,
       "imports": [],
       "format": "cjs"
     },
@@ -5406,8 +5406,8 @@
       ],
       "format": "cjs"
     },
-    ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_page_actions_0.ftlkz.js": {
-      "bytes": 865,
+    ".open-next/server-functions/default/.next/server/chunks/ssr/_0iqr1ix._.js": {
+      "bytes": 9891,
       "imports": [],
       "format": "cjs"
     },
@@ -5434,7 +5434,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/_0818un6._.js": {
-      "bytes": 7020,
+      "bytes": 7460,
       "imports": [],
       "format": "cjs"
     },
@@ -5482,7 +5482,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
-      "bytes": 66784,
+      "bytes": 66596,
       "imports": [
         {
           "path": "worker_threads",
@@ -5695,9 +5695,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__01l~dqa._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__02r4ppe._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jwc-xc._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__02r4ppe._.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jwc-xc._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_003t~k3._.js",
@@ -5715,9 +5715,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_about_page_actions_0~es428.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_0ad3p1o._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_10fjgyq._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/app_actions_0ad3p1o._.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/app_actions_10fjgyq._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_0.brr9c._.js",
@@ -6025,9 +6025,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_0b9o5r_._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_apply_page_actions_054ta9_.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0r0snuv._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_apply_page_actions_054ta9_.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_0r0snuv._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_02_vc.8.js",
@@ -6040,9 +6040,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0wi13aa._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_page_actions_0.ftlkz.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0iqr1ix._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_page_actions_0.ftlkz.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_0iqr1ix._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0br2g6b.js",
@@ -6093,7 +6093,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js": {
-      "bytes": 66794,
+      "bytes": 66606,
       "imports": [
         {
           "path": "worker_threads",
@@ -6306,9 +6306,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__01l~dqa._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__02r4ppe._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jwc-xc._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__02r4ppe._.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jwc-xc._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_003t~k3._.js",
@@ -6326,9 +6326,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_about_page_actions_0~es428.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_0ad3p1o._.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_10fjgyq._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/app_actions_0ad3p1o._.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/app_actions_10fjgyq._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_0.brr9c._.js",
@@ -6636,9 +6636,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_0b9o5r_._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_apply_page_actions_054ta9_.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0r0snuv._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_apply_page_actions_054ta9_.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_0r0snuv._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_02_vc.8.js",
@@ -6651,9 +6651,9 @@
           "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0wi13aa._.js"
         },
         {
-          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_page_actions_0.ftlkz.js",
+          "path": ".open-next/server-functions/default/.next/server/chunks/ssr/_0iqr1ix._.js",
           "kind": "require-call",
-          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_page_actions_0.ftlkz.js"
+          "original": "/Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.open-next/server-functions/default/.next/server/chunks/ssr/_0iqr1ix._.js"
         },
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0br2g6b.js",
@@ -6902,7 +6902,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/sponsors/apply/page.js": {
-      "bytes": 1206,
+      "bytes": 1266,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6935,7 +6935,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/vendors/apply/page.js": {
-      "bytes": 1315,
+      "bytes": 1265,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6946,7 +6946,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/vendors/page.js": {
-      "bytes": 1300,
+      "bytes": 1256,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -6957,7 +6957,7 @@
       "format": "cjs"
     },
     ".open-next/server-functions/default/.next/server/app/volunteers/apply/page.js": {
-      "bytes": 1208,
+      "bytes": 1268,
       "imports": [
         {
           "path": ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js",
@@ -8310,7 +8310,7 @@
       "format": "esm"
     },
     ".open-next/server-functions/default/index.mjs": {
-      "bytes": 94818,
+      "bytes": 94819,
       "imports": [
         {
           "path": "node:module",
@@ -9673,14 +9673,17 @@
         ".open-next/server-functions/default/.next/server/app/vendors/page_client-reference-manifest.js": {
           "bytesInOutput": 11258
         },
+        ".open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js": {
+          "bytesInOutput": 11274
+        },
         ".open-next/server-functions/default/.next/server/app/terms/page_client-reference-manifest.js": {
           "bytesInOutput": 11250
         },
         ".open-next/server-functions/default/.next/server/app/sitemap.xml/route_client-reference-manifest.js": {
           "bytesInOutput": 463
         },
-        ".open-next/server-functions/default/.next/server/app/sponsorship/page_client-reference-manifest.js": {
-          "bytesInOutput": 11274
+        ".open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js": {
+          "bytesInOutput": 482
         },
         ".open-next/server-functions/default/.next/server/app/robots.txt/route_client-reference-manifest.js": {
           "bytesInOutput": 462
@@ -9688,29 +9691,23 @@
         ".open-next/server-functions/default/.next/server/app/privacy/page_client-reference-manifest.js": {
           "bytesInOutput": 11258
         },
-        ".open-next/server-functions/default/.next/server/app/manifest.webmanifest/route_client-reference-manifest.js": {
-          "bytesInOutput": 482
-        },
         ".open-next/server-functions/default/.next/server/app/events/page_client-reference-manifest.js": {
           "bytesInOutput": 12154
+        },
+        ".open-next/server-functions/default/.next/server/app/about/page_client-reference-manifest.js": {
+          "bytesInOutput": 14738
         },
         ".open-next/server-functions/default/.next/server/app/_not-found/page_client-reference-manifest.js": {
           "bytesInOutput": 10966
         },
-        ".open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js": {
-          "bytesInOutput": 11972
-        },
-        ".open-next/server-functions/default/.next/server/app/about/page_client-reference-manifest.js": {
-          "bytesInOutput": 14739
-        },
-        ".open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js": {
-          "bytesInOutput": 15804
-        },
         ".open-next/server-functions/default/.next/server/app/_global-error/page_client-reference-manifest.js": {
           "bytesInOutput": 5689
         },
-        ".open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js": {
-          "bytesInOutput": 12226
+        ".open-next/server-functions/default/.next/server/app/admin-login/page_client-reference-manifest.js": {
+          "bytesInOutput": 11973
+        },
+        ".open-next/server-functions/default/.next/server/app/admin/page_client-reference-manifest.js": {
+          "bytesInOutput": 15804
         },
         ".open-next/server-functions/default/.next/server/app/volunteers/apply/page_client-reference-manifest.js": {
           "bytesInOutput": 12177
@@ -9718,23 +9715,26 @@
         ".open-next/server-functions/default/.next/server/app/vendors/apply/page_client-reference-manifest.js": {
           "bytesInOutput": 12179
         },
+        ".open-next/server-functions/default/.next/server/app/sponsors/apply/page_client-reference-manifest.js": {
+          "bytesInOutput": 12226
+        },
         ".open-next/server-functions/default/.next/server/app/events/[id]/page_client-reference-manifest.js": {
           "bytesInOutput": 12173
         },
         ".open-next/server-functions/default/.next/server/app/admin/volunteers/page_client-reference-manifest.js": {
           "bytesInOutput": 15826
         },
-        ".open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js": {
-          "bytesInOutput": 15818
-        },
         ".open-next/server-functions/default/.next/server/app/admin/vendors/page_client-reference-manifest.js": {
           "bytesInOutput": 15820
         },
-        ".open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js": {
-          "bytesInOutput": 15816
-        },
         ".open-next/server-functions/default/.next/server/app/admin/sponsors/page_client-reference-manifest.js": {
           "bytesInOutput": 15822
+        },
+        ".open-next/server-functions/default/.next/server/app/admin/events/page_client-reference-manifest.js": {
+          "bytesInOutput": 15818
+        },
+        ".open-next/server-functions/default/.next/server/app/admin/about/page_client-reference-manifest.js": {
+          "bytesInOutput": 15816
         },
         ".open-next/server-functions/default/node_modules/next/dist/server/load-manifest.external.js": {
           "bytesInOutput": 64220
@@ -9907,8 +9907,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__01l~dqa._.js": {
           "bytesInOutput": 1536
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__02r4ppe._.js": {
-          "bytesInOutput": 264001
+        ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0jwc-xc._.js": {
+          "bytesInOutput": 254883
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_003t~k3._.js": {
           "bytesInOutput": 7940
@@ -9919,8 +9919,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_admin_about_page_actions_0~es428.js": {
           "bytesInOutput": 2214
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_0ad3p1o._.js": {
-          "bytesInOutput": 24297
+        ".open-next/server-functions/default/.next/server/chunks/ssr/app_actions_10fjgyq._.js": {
+          "bytesInOutput": 34534
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_0.brr9c._.js": {
           "bytesInOutput": 3833
@@ -10070,7 +10070,7 @@
           "bytesInOutput": 2434
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_01r3emd._.js": {
-          "bytesInOutput": 9853
+          "bytesInOutput": 10386
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_103x.-_._.js": {
           "bytesInOutput": 3885
@@ -10105,8 +10105,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/_0b9o5r_._.js": {
           "bytesInOutput": 14876
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_apply_page_actions_054ta9_.js": {
-          "bytesInOutput": 482
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_0r0snuv._.js": {
+          "bytesInOutput": 9625
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_02_vc.8.js": {
           "bytesInOutput": 22811
@@ -10114,8 +10114,8 @@
         ".open-next/server-functions/default/.next/server/chunks/ssr/[root-of-the-server]__0wi13aa._.js": {
           "bytesInOutput": 5519
         },
-        ".open-next/server-functions/default/.next/server/chunks/ssr/_next-internal_server_app_vendors_page_actions_0.ftlkz.js": {
-          "bytesInOutput": 1011
+        ".open-next/server-functions/default/.next/server/chunks/ssr/_0iqr1ix._.js": {
+          "bytesInOutput": 10165
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/node_modules_next_dist_esm_build_templates_app-page_0br2g6b.js": {
           "bytesInOutput": 22750
@@ -10124,7 +10124,7 @@
           "bytesInOutput": 2444
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_0818un6._.js": {
-          "bytesInOutput": 7226
+          "bytesInOutput": 7685
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/_0b-qn34._.js": {
           "bytesInOutput": 16874
@@ -10142,10 +10142,10 @@
           "bytesInOutput": 22765
         },
         ".open-next/server-functions/default/.next/server/chunks/[turbopack]_runtime.js": {
-          "bytesInOutput": 30859
+          "bytesInOutput": 30666
         },
         ".open-next/server-functions/default/.next/server/chunks/ssr/[turbopack]_runtime.js": {
-          "bytesInOutput": 30874
+          "bytesInOutput": 30681
         },
         ".open-next/server-functions/default/.next/server/app/_global-error/page.js": {
           "bytesInOutput": 802
@@ -10202,7 +10202,7 @@
           "bytesInOutput": 494
         },
         ".open-next/server-functions/default/.next/server/app/sponsors/apply/page.js": {
-          "bytesInOutput": 1322
+          "bytesInOutput": 1382
         },
         ".open-next/server-functions/default/.next/server/app/sponsorship/page.js": {
           "bytesInOutput": 1364
@@ -10211,13 +10211,13 @@
           "bytesInOutput": 1346
         },
         ".open-next/server-functions/default/.next/server/app/vendors/apply/page.js": {
-          "bytesInOutput": 1430
+          "bytesInOutput": 1380
         },
         ".open-next/server-functions/default/.next/server/app/vendors/page.js": {
-          "bytesInOutput": 1412
+          "bytesInOutput": 1368
         },
         ".open-next/server-functions/default/.next/server/app/volunteers/apply/page.js": {
-          "bytesInOutput": 1326
+          "bytesInOutput": 1386
         },
         ".open-next/server-functions/default/.next/server/app/volunteers/page.js": {
           "bytesInOutput": 1361
@@ -10376,7 +10376,7 @@
           "bytesInOutput": 67863
         }
       },
-      "bytes": 5979572
+      "bytes": 5999620
     }
   }
 }
