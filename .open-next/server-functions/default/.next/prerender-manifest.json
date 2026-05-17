@@ -146,6 +146,30 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/admin/sponsors": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/admin/sponsors",
+      "dataRoute": "/admin/sponsors.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/admin/vendors": {
       "experimentalBypassFor": [
         {
@@ -161,6 +185,30 @@
       "initialRevalidateSeconds": false,
       "srcRoute": "/admin/vendors",
       "dataRoute": "/admin/vendors.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/admin/volunteers": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/admin/volunteers",
+      "dataRoute": "/admin/volunteers.rsc",
       "allowHeader": [
         "host",
         "x-matched-path",
@@ -305,6 +353,54 @@
         "x-next-revalidate-tag-token"
       ]
     },
+    "/sponsors/apply": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/sponsors/apply",
+      "dataRoute": "/sponsors/apply.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/sponsorship": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/sponsorship",
+      "dataRoute": "/sponsorship.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
     "/terms": {
       "experimentalBypassFor": [
         {
@@ -352,13 +448,61 @@
         "x-next-revalidated-tags",
         "x-next-revalidate-tag-token"
       ]
+    },
+    "/volunteers": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/volunteers",
+      "dataRoute": "/volunteers.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
+    },
+    "/volunteers/apply": {
+      "experimentalBypassFor": [
+        {
+          "type": "header",
+          "key": "next-action"
+        },
+        {
+          "type": "header",
+          "key": "content-type",
+          "value": "multipart/form-data;.*"
+        }
+      ],
+      "initialRevalidateSeconds": false,
+      "srcRoute": "/volunteers/apply",
+      "dataRoute": "/volunteers/apply.rsc",
+      "allowHeader": [
+        "host",
+        "x-matched-path",
+        "x-prerender-revalidate",
+        "x-prerender-revalidate-if-generated",
+        "x-next-revalidated-tags",
+        "x-next-revalidate-tag-token"
+      ]
     }
   },
   "dynamicRoutes": {},
   "notFoundRoutes": [],
   "preview": {
-    "previewModeId": "2c1b807c95a599669cc377205e587728",
-    "previewModeSigningKey": "f5e0e2d89ba2fbee75417409a6f02c948bfcee2a86a5217b60e09455dcbc5214",
-    "previewModeEncryptionKey": "a7ca3684aca3f976c3557f92470e8289ae48855ec85a122c9ffdb761536eb4dd"
+    "previewModeId": "d5f80bab975c164d0a792d00ab37fb04",
+    "previewModeSigningKey": "c5e5dcc5781aa4f4887651d0424123a3637d60eaa58052551714740cb42fac01",
+    "previewModeEncryptionKey": "7d15088e93d7c96657d2e4885ffe36af418ff38c958e053056b8c5e9fda0e809"
   }
 }

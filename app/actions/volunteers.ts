@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -53,7 +54,7 @@ type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
-  fields?: Record<string, string>;
+  fields?: Record<string, any>;
 };
 
 // ============================================
@@ -198,6 +199,13 @@ export async function getPendingVolunteers(): Promise<Volunteer[]> {
 export async function approveVolunteer(volunteerId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
+  // Fetch volunteer details first for email notification
+  const { data: volunteer } = await supabase
+    .from('volunteers')
+    .select('email, full_name')
+    .eq('id', volunteerId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from('volunteers')
     .update({ application_status: 'approved' })
@@ -208,6 +216,12 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
     return { message: `Failed to approve volunteer: ${error.message}` };
   }
 
+  // Send approval email (non-blocking)
+  if (volunteer) {
+    sendApprovalEmail(volunteer.email, volunteer.full_name, volunteer.full_name)
+      .catch((err) => console.error('Failed to send approval email:', err));
+  }
+
   revalidatePath('/admin/volunteers');
   return { success: true, message: 'Volunteer approved successfully!' };
 }
@@ -215,6 +229,13 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
 /** Reject a volunteer application */
 export async function rejectVolunteer(volunteerId: string, reason?: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+
+  // Fetch volunteer details first for email notification
+  const { data: volunteer } = await supabase
+    .from('volunteers')
+    .select('email, full_name')
+    .eq('id', volunteerId)
+    .maybeSingle();
 
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
@@ -229,6 +250,12 @@ export async function rejectVolunteer(volunteerId: string, reason?: string): Pro
   if (error) {
     console.error('Error rejecting volunteer:', JSON.stringify(error, null, 2));
     return { message: `Failed to reject volunteer: ${error.message}` };
+  }
+
+  // Send rejection email (non-blocking)
+  if (volunteer) {
+    sendRejectionEmail(volunteer.email, volunteer.full_name, volunteer.full_name, reason || undefined)
+      .catch((err) => console.error('Failed to send rejection email:', err));
   }
 
   revalidatePath('/admin/volunteers');

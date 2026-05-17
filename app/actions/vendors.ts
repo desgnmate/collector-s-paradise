@@ -45,14 +45,14 @@ const vendorApplicationSchema = z.object({
   tables_requested: z.string().min(1, 'Please select the number of tables'),
   power_requirements: z.string().optional(),
   additional_notes: z.string().optional(),
-  agreement: z.literal(true, { errorMap: () => ({ message: 'You must agree to the Terms and Conditions' }) }),
+  agreement: z.literal(true).refine((val) => val === true, { message: 'You must agree to the Terms and Conditions' }),
 });
 
 type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
-  fields?: Record<string, string>;
+  fields?: Record<string, any>;
 };
 
 // ============================================

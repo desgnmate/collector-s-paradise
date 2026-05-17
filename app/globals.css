@@ -1990,7 +1990,7 @@ button.login-dropdown-item:hover .login-item-desc {
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 3;
+  z-index: 1;
   width: 90%;
   max-width: 800px;
   /* Restored to original max-width */
@@ -2000,22 +2000,94 @@ button.login-dropdown-item:hover .login-item-desc {
 /* Reduced size specifically for Laptop view to ensure content fits */
 @media (min-width: 1024px) and (max-width: 1439px) {
   .hero-cards-fan {
-    max-width: 540px;
-    height: clamp(200px, 28vw, 340px);
+    max-width: 500px;
+    height: clamp(140px, 18vw, 220px);
+    bottom: -60px;
   }
 
   .hero-card-left {
-    left: 4% !important;
-    width: 33% !important;
+    left: 8% !important;
+    width: 30% !important;
+    bottom: -35% !important;
   }
 
   .hero-card-right {
-    right: 4% !important;
-    width: 33% !important;
+    right: 8% !important;
+    width: 30% !important;
+    bottom: -35% !important;
   }
 
   .hero-card-center {
-    width: 40% !important;
+    width: 36% !important;
+    bottom: -30% !important;
+  }
+}
+
+/* Short viewport heights (e.g. laptops, landscape tablets) to prevent card fan blocking CTA */
+@media (max-height: 800px) and (min-width: 768px) {
+  .hero {
+    padding-top: 80px;
+  }
+
+  .hero-content {
+    padding-top: 1rem;
+  }
+
+  .hero-title {
+    font-size: clamp(1.8rem, 5.5vh, 3.2rem) !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .hero-subtitle {
+    font-size: clamp(0.75rem, 2.5vh, 0.95rem) !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .hero-cards-fan {
+    max-width: 440px !important;
+    height: clamp(120px, 22vh, 180px) !important;
+    bottom: -55px !important;
+  }
+
+  .hero-card-left {
+    left: 8% !important;
+    width: 30% !important;
+    bottom: -35% !important;
+  }
+
+  .hero-card-right {
+    right: 8% !important;
+    width: 30% !important;
+    bottom: -35% !important;
+  }
+
+  .hero-card-center {
+    width: 36% !important;
+    bottom: -30% !important;
+  }
+}
+
+/* Extra small cards for mobile to prevent overlap */
+@media (max-width: 767px) {
+  .hero-cards-fan {
+    max-width: 380px;
+    height: clamp(120px, 30vw, 180px);
+    bottom: -30px;
+  }
+
+  .hero-card-left {
+    width: 28% !important;
+    bottom: -30% !important;
+  }
+
+  .hero-card-right {
+    width: 28% !important;
+    bottom: -30% !important;
+  }
+
+  .hero-card-center {
+    width: 34% !important;
+    bottom: -25% !important;
   }
 }
 

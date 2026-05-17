@@ -6,7 +6,9 @@
   "/admin/about/page": "/admin/about",
   "/admin/events/page": "/admin/events",
   "/admin/page": "/admin",
+  "/admin/sponsors/page": "/admin/sponsors",
   "/admin/vendors/page": "/admin/vendors",
+  "/admin/volunteers/page": "/admin/volunteers",
   "/events/[id]/page": "/events/[id]",
   "/events/page": "/events",
   "/icon.png/route": "/icon.png",
@@ -15,7 +17,11 @@
   "/privacy/page": "/privacy",
   "/robots.txt/route": "/robots.txt",
   "/sitemap.xml/route": "/sitemap.xml",
+  "/sponsors/apply/page": "/sponsors/apply",
+  "/sponsorship/page": "/sponsorship",
   "/terms/page": "/terms",
   "/vendors/apply/page": "/vendors/apply",
-  "/vendors/page": "/vendors"
+  "/vendors/page": "/vendors",
+  "/volunteers/apply/page": "/volunteers/apply",
+  "/volunteers/page": "/volunteers"
 }

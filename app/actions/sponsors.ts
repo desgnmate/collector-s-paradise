@@ -3,6 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
+import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -77,7 +78,7 @@ type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
-  fields?: Record<string, string>;
+  fields?: Record<string, any>;
 };
 
 // ============================================
@@ -252,6 +253,13 @@ export async function getPendingSponsors(): Promise<Sponsor[]> {
 export async function approveSponsor(sponsorId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
+  // Fetch sponsor details first for email notification
+  const { data: sponsor } = await supabase
+    .from('sponsors')
+    .select('contact_email, company_name, contact_name')
+    .eq('id', sponsorId)
+    .maybeSingle();
+
   const { error } = await supabase
     .from('sponsors')
     .update({ application_status: 'approved' })
@@ -262,6 +270,12 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
     return { message: `Failed to approve sponsor: ${error.message}` };
   }
 
+  // Send approval email (non-blocking)
+  if (sponsor) {
+    sendApprovalEmail(sponsor.contact_email, sponsor.company_name, sponsor.contact_name)
+      .catch((err) => console.error('Failed to send approval email:', err));
+  }
+
   revalidatePath('/admin/sponsors');
   return { success: true, message: 'Sponsor approved successfully!' };
 }
@@ -269,6 +283,13 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
 /** Reject a sponsor application */
 export async function rejectSponsor(sponsorId: string, reason?: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+
+  // Fetch sponsor details first for email notification
+  const { data: sponsor } = await supabase
+    .from('sponsors')
+    .select('contact_email, company_name, contact_name')
+    .eq('id', sponsorId)
+    .maybeSingle();
 
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
@@ -283,6 +304,12 @@ export async function rejectSponsor(sponsorId: string, reason?: string): Promise
   if (error) {
     console.error('Error rejecting sponsor:', JSON.stringify(error, null, 2));
     return { message: `Failed to reject sponsor: ${error.message}` };
+  }
+
+  // Send rejection email (non-blocking)
+  if (sponsor) {
+    sendRejectionEmail(sponsor.contact_email, sponsor.company_name, sponsor.contact_name, reason || undefined)
+      .catch((err) => console.error('Failed to send rejection email:', err));
   }
 
   revalidatePath('/admin/sponsors');

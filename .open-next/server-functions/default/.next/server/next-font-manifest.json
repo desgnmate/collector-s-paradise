@@ -30,7 +30,17 @@
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
     ],
+    "[project]/app/admin/sponsors/page": [
+      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
+    ],
     "[project]/app/admin/vendors/page": [
+      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
+    ],
+    "[project]/app/admin/volunteers/page": [
       "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
@@ -55,6 +65,16 @@
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
     ],
+    "[project]/app/sponsors/apply/page": [
+      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
+    ],
+    "[project]/app/sponsorship/page": [
+      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
+    ],
     "[project]/app/terms/page": [
       "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
@@ -66,6 +86,16 @@
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
     ],
     "[project]/app/vendors/page": [
+      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
+    ],
+    "[project]/app/volunteers/apply/page": [
+      "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
+      "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
+      "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"
+    ],
+    "[project]/app/volunteers/page": [
       "static/media/e8f2fbee2754df70-s.p.0fzkl03jw-sdz.woff2",
       "static/media/83afe278b6a6bb3c-s.p.0q-301v4kxxnr.woff2",
       "static/media/Baloo_Regular-s.p.0v2e6xgidrxco.ttf"

@@ -8,10 +8,9 @@ ALTER TABLE public.vendors
   ADD COLUMN user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   ADD COLUMN logo_url TEXT;
 
--- Enforce that future vendors require a user_id
--- (Doing this after adding the column in case there are existing test rows)
-ALTER TABLE public.vendors
-  ALTER COLUMN user_id SET NOT NULL;
+-- NOTE: user_id is nullable to support anonymous vendor applications
+-- (The current public vendor form doesn't require authentication)
+-- Future versions can enforce NOT NULL once auth flow is implemented
 
 -- Make business_name unique to prevent duplicate businesses even with different emails
 ALTER TABLE public.vendors

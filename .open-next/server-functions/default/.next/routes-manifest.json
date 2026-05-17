@@ -75,10 +75,22 @@
       "namedRegex": "^/admin/events(?:/)?$"
     },
     {
+      "page": "/admin/sponsors",
+      "regex": "^/admin/sponsors(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/sponsors(?:/)?$"
+    },
+    {
       "page": "/admin/vendors",
       "regex": "^/admin/vendors(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/admin/vendors(?:/)?$"
+    },
+    {
+      "page": "/admin/volunteers",
+      "regex": "^/admin/volunteers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/volunteers(?:/)?$"
     },
     {
       "page": "/admin-login",
@@ -123,6 +135,18 @@
       "namedRegex": "^/sitemap\\.xml(?:/)?$"
     },
     {
+      "page": "/sponsors/apply",
+      "regex": "^/sponsors/apply(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sponsors/apply(?:/)?$"
+    },
+    {
+      "page": "/sponsorship",
+      "regex": "^/sponsorship(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/sponsorship(?:/)?$"
+    },
+    {
       "page": "/terms",
       "regex": "^/terms(?:/)?$",
       "routeKeys": {},
@@ -139,6 +163,18 @@
       "regex": "^/vendors/apply(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/vendors/apply(?:/)?$"
+    },
+    {
+      "page": "/volunteers",
+      "regex": "^/volunteers(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/volunteers(?:/)?$"
+    },
+    {
+      "page": "/volunteers/apply",
+      "regex": "^/volunteers/apply(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/volunteers/apply(?:/)?$"
     }
   ],
   "dataRoutes": [],
