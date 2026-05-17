@@ -1847,14 +1847,15 @@ button.login-dropdown-item:hover .login-item-desc {
   background-color: var(--color-blue-primary);
 }
 
-/* Cream gradient fade at bottom */
+/* Cream gradient fade at bottom (grass overlay) */
 .hero::after {
   content: '';
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 8%;
+  height: 18%;
+  min-height: 120px;
   background: linear-gradient(to bottom, transparent 0%, var(--color-cream) 100%);
   z-index: 4;
   pointer-events: none;
@@ -2002,7 +2003,7 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 500px;
     height: clamp(140px, 18vw, 220px);
-    bottom: 35px;
+    bottom: -20px;
   }
 
   .hero-card-left {
@@ -2046,7 +2047,7 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 440px !important;
     height: clamp(120px, 22vh, 180px) !important;
-    bottom: 35px !important;
+    bottom: -20px !important;
   }
 
   .hero-card-left {
@@ -2072,7 +2073,7 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 380px;
     height: clamp(120px, 30vw, 180px);
-    bottom: 40px;
+    bottom: -5px;
   }
 
   .hero-card-left {
@@ -4131,9 +4132,9 @@ button.login-dropdown-item:hover .login-item-desc {
     bottom: -1px;
     left: 0;
     right: 0;
-    height: 80px; 
+    height: 120px; 
     background: linear-gradient(to bottom, transparent 0%, var(--color-cream) 100%);
-    z-index: 2; /* Behind card fan (z-3) but above bg (z-0) */
+    z-index: 4; /* Above card fan (z-1) to create crop effect */
     pointer-events: none;
   }
 
@@ -4160,6 +4161,7 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 500px;
     height: 270px;
+    bottom: -5px;
   }
 
   .hero-card-left {
