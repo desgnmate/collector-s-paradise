@@ -2002,24 +2002,24 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 500px;
     height: clamp(140px, 18vw, 220px);
-    bottom: -60px;
+    bottom: 35px;
   }
 
   .hero-card-left {
     left: 8% !important;
     width: 30% !important;
-    bottom: -35% !important;
+    bottom: 8% !important;
   }
 
   .hero-card-right {
     right: 8% !important;
     width: 30% !important;
-    bottom: -35% !important;
+    bottom: 8% !important;
   }
 
   .hero-card-center {
     width: 36% !important;
-    bottom: -30% !important;
+    bottom: 12% !important;
   }
 }
 
@@ -2046,24 +2046,24 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 440px !important;
     height: clamp(120px, 22vh, 180px) !important;
-    bottom: -55px !important;
+    bottom: 35px !important;
   }
 
   .hero-card-left {
     left: 8% !important;
     width: 30% !important;
-    bottom: -35% !important;
+    bottom: 8% !important;
   }
 
   .hero-card-right {
     right: 8% !important;
     width: 30% !important;
-    bottom: -35% !important;
+    bottom: 8% !important;
   }
 
   .hero-card-center {
     width: 36% !important;
-    bottom: -30% !important;
+    bottom: 12% !important;
   }
 }
 
@@ -2072,22 +2072,22 @@ button.login-dropdown-item:hover .login-item-desc {
   .hero-cards-fan {
     max-width: 380px;
     height: clamp(120px, 30vw, 180px);
-    bottom: -30px;
+    bottom: 40px;
   }
 
   .hero-card-left {
     width: 28% !important;
-    bottom: -30% !important;
+    bottom: 8% !important;
   }
 
   .hero-card-right {
     width: 28% !important;
-    bottom: -30% !important;
+    bottom: 8% !important;
   }
 
   .hero-card-center {
     width: 34% !important;
-    bottom: -25% !important;
+    bottom: 12% !important;
   }
 }
 
