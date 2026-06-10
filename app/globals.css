@@ -1895,6 +1895,8 @@ button.login-dropdown-item:hover .login-item-desc {
   display: flex;
   justify-content: center;
   margin-bottom: 0;
+  position: relative;
+  z-index: 10;
 }
 
 .btn-hero-ticket {
@@ -1998,22 +2000,22 @@ button.login-dropdown-item:hover .login-item-desc {
   height: clamp(240px, 35vw, 420px);
 }
 
-/* Reduced size specifically for Laptop view to ensure content fits */
+/* Bigger size for Laptop view with option C overlap design */
 @media (min-width: 1024px) and (max-width: 1439px) {
   .hero-cards-fan {
-    max-width: 500px;
-    height: clamp(140px, 18vw, 220px);
+    max-width: 580px;
+    height: clamp(160px, 20vw, 250px);
     bottom: -20px;
   }
 
   .hero-card-left {
-    left: 8% !important;
+    left: 6% !important;
     width: 30% !important;
     bottom: 8% !important;
   }
 
   .hero-card-right {
-    right: 8% !important;
+    right: 6% !important;
     width: 30% !important;
     bottom: 8% !important;
   }
@@ -2024,7 +2026,7 @@ button.login-dropdown-item:hover .login-item-desc {
   }
 }
 
-/* Short viewport heights (e.g. laptops, landscape tablets) to prevent card fan blocking CTA */
+/* Short viewport heights (e.g. laptops, landscape tablets) - larger cards under option C */
 @media (max-height: 800px) and (min-width: 768px) {
   .hero {
     padding-top: 80px;
@@ -2045,19 +2047,19 @@ button.login-dropdown-item:hover .login-item-desc {
   }
 
   .hero-cards-fan {
-    max-width: 440px !important;
-    height: clamp(120px, 22vh, 180px) !important;
+    max-width: 520px !important;
+    height: clamp(140px, 22vh, 210px) !important;
     bottom: -20px !important;
   }
 
   .hero-card-left {
-    left: 8% !important;
+    left: 6% !important;
     width: 30% !important;
     bottom: 8% !important;
   }
 
   .hero-card-right {
-    right: 8% !important;
+    right: 6% !important;
     width: 30% !important;
     bottom: 8% !important;
   }
@@ -3402,7 +3404,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 @media (min-width: 1024px) and (max-width: 1439px) {
   .vendor-card-3d {
-    max-width: 420px;
+    max-width: 462px;
   }
 }
 
@@ -3453,7 +3455,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 @media (min-width: 1024px) and (max-width: 1439px) {
   .vendor-card-content {
-    min-height: 400px;
+    min-height: 440px;
     padding-top: 40px;
   }
 }
@@ -3478,8 +3480,8 @@ button.login-dropdown-item:hover .login-item-desc {
 
 @media (min-width: 1024px) and (max-width: 1439px) {
   .vendor-image-wrapper {
-    height: 320px;
-    /* Scaled down for laptop screens */
+    height: 352px;
+    /* Scaled up 10% for laptop screens */
   }
 }
 
@@ -3557,8 +3559,8 @@ button.login-dropdown-item:hover .login-item-desc {
 
 @media (min-width: 1024px) and (max-width: 1439px) {
   .vendor-card-btn {
-    padding: 10px 24px;
-    font-size: 10px;
+    padding: 11px 26px;
+    font-size: 11px;
   }
 }
 
