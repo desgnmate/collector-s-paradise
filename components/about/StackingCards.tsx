@@ -9,12 +9,12 @@ import exp3 from '@/public/images/event-experience.png';
 
 const experiences = [
   {
-    title: 'PSA Card Evaluations',
+    title: 'Collaboration',
     desc: 'Get your rare finds evaluated by experts and learn the true value of your collection. Real-time market data at your fingertips.',
     image: exp1,
   },
   {
-    title: 'Guest Signings',
+    title: 'Giveaways',
     desc: "Meet your favorite artists and creators. Get your cards signed and captured in the moment. Experience pop culture history live.",
     image: exp2,
   },

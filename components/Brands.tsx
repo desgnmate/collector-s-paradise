@@ -21,8 +21,11 @@ const Brands = () => {
     <section id="brands" className="brands-section">
       <div className="brands-header" data-aos="fade-up">
         <h2 className="section-title">
-          BRANDS WE&apos;VE <br className="brands-mobile-break" /> WORKED WITH
+          WHAT VENDORS <br className="brands-mobile-break" /> ARE SAYING
         </h2>
+        <p className="section-subtitle">
+          Hear from the vendors who make every event unforgettable.
+        </p>
       </div>
 
       <div className="brands-marquee-wrapper">

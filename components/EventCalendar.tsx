@@ -184,12 +184,12 @@ export default function EventCalendar({ events, onDateSelect }: EventCalendarPro
                     <span className="calendar-event-price">
                       {event.ticket_price > 0
                         ? `$${event.ticket_price.toFixed(2)}`
-                        : 'Free'}
+                        : ''}
                     </span>
                     <span className="calendar-event-availability">
                       {event.capacity - event.tickets_sold > 0
                         ? `${event.capacity - event.tickets_sold} spots left`
-                        : 'Sold Out'}
+                        : ''}
                     </span>
                   </div>
                 </Link>

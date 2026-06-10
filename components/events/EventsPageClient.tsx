@@ -1,8 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import EventCard from './EventCard';
 import EventCalendar from '../EventCalendar';
 import type { Event } from '@/app/actions/events';
 
@@ -50,7 +49,7 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
 
         {/* Header — hide when calendar date is selected */}
         {!isCalendarDateSelected && (
-          <div className="events-page-header" data-aos="fade-up">
+          <div className="events-page-header">
             <span className="eyebrow-badge">EVENTS</span>
             <h1 className="section-title">
               {viewMode === 'calendar' ? 'EVENT CALENDAR' : (eventType === 'upcoming' ? 'UPCOMING EVENTS' : 'PAST EVENTS')}
@@ -103,37 +102,21 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
           </div>
         </div>
 
-        {/* Content: Card or Calendar */}
+{/* Content: Card or Calendar */}
         {viewMode === 'card' ? (
-          <div className="highlights-grid-wrapper">
-            <div className="highlights-grid-2rows">
+          <div className="ec-grid-wrapper">
+            <div className="ec-grid">
               {filteredEvents.length > 0 ? (
-                filteredEvents.map((event) => {
-                  const dateObj = new Date(event.event_date);
-                  const displayDate = dateObj.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
-                  
-                  return (
-                    <Link 
-                      href={`/events/${event.id}`}
-                      className="highlight-card" 
-                      key={event.id}
-                      style={{ textDecoration: 'none', color: 'inherit' }}
-                    >
-                      <div className="highlight-image-wrapper">
-                        <Image src={event.cover_image_url || '/images/placeholder-event.png'} alt={event.title} width={400} height={250} loading="lazy" style={{ objectFit: 'cover' }} />
-                        <div className="highlight-date-tag">{displayDate}</div>
-                      </div>
-                      <div className="highlight-content">
-                        <h3 className="highlight-title">{event.title}</h3>
-                        <p className="highlight-desc">{event.description || ''}</p>
-                        <span className="btn-highlight">{eventType === 'upcoming' ? 'VIEW DETAILS' : 'VIEW GALLERY'}</span>
-                      </div>
-                    </Link>
-                  );
-                })
+                filteredEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant={eventType}
+                  />
+                ))
               ) : (
-                <div className="no-events-message">
-                  <p>No {eventType} events available at the moment.</p>
+                <div className="ec-empty">
+                  <p>No {eventType === 'upcoming' ? 'upcoming' : 'past'} events available at the moment.</p>
                 </div>
               )}
             </div>

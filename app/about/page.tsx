@@ -4,7 +4,6 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AboutHero from '@/components/about/AboutHero';
 import StackingCards from '@/components/about/StackingCards';
-import GymBadges from '@/components/about/GymBadges';
 
 export const metadata: Metadata = {
   title: 'About Us',
@@ -27,7 +26,6 @@ export default function AboutPage() {
       <main className="about-page-wrapper">
         <AboutHero />
         <StackingCards />
-        <GymBadges />
       </main>
       <Footer />
     </>

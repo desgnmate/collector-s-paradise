@@ -111,6 +111,12 @@ export default function AdminEventsClient({ events }: AdminEventFormProps) {
               <input type="number" id="ticket_price" name="ticket_price" required step="0.01" min="0" placeholder="15.00" />
             </div>
 
+            <div className="admin-form-group admin-form-group-wide">
+              <label htmlFor="booking_link">Booking Link (TryBooking, Eventbrite, etc.)</label>
+              <input type="url" id="booking_link" name="booking_link" placeholder="https://www.trybooking.com/events/landing/..." />
+              {state.errors?.booking_link && <span className="admin-form-error">{state.errors.booking_link[0]}</span>}
+            </div>
+
             {/* Cover Image Upload */}
             <div className="admin-form-group admin-form-group-wide">
               <label htmlFor="cover_image">Cover Image</label>

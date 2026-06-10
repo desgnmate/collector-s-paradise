@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import card1 from '@/public/images/card1.png';
-import card2 from '@/public/images/card2.png';
-import card3 from '@/public/images/card3.png';
+import cardLeft from '@/public/images/card2-v2.jpg';
+import cardCenter from '@/public/images/card3.png';
+import cardRight from '@/public/images/card1-v3.png';
 
 export default function Hero() {
   return (
@@ -42,17 +42,14 @@ export default function Hero() {
 
       {/* Cards fan at the bottom */}
       <div className="hero-cards-fan">
-        {/* Card 1 - Charizard (left, tilted left) */}
         <div className="hero-card hero-card-left">
-          <Image src={card1} alt="Charizard Pokemon Card" width={280} height={390} priority />
+          <Image src={cardLeft} alt="Pokemon Card" width={190} height={265} priority />
         </div>
-        {/* Card 2 - Arcanine V (center, upright, larger) */}
         <div className="hero-card hero-card-center">
-          <Image src={card2} alt="Arcanine V Pokemon Card" width={300} height={420} priority />
+          <Image src={cardCenter} alt="Pokemon Card" width={210} height={290} priority />
         </div>
-        {/* Card 3 - Pikachu ex (right, tilted right) */}
         <div className="hero-card hero-card-right">
-          <Image src={card3} alt="Pikachu ex Pokemon Card" width={280} height={390} priority />
+          <Image src={cardRight} alt="Pokemon Card" width={380} height={530} priority />
         </div>
       </div>
     </section>

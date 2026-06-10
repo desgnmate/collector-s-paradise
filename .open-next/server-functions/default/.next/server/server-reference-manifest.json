@@ -1,6 +1,6 @@
 {
   "node": {
-    "00b284cc4f061e62304e50ebe324b675bb963898ad": {
+    "00558474560fce30f6a3ac9a37d876d9b4e837a55b": {
       "workers": {
         "app/_not-found/page": {
           "moduleId": 74639,
@@ -126,7 +126,7 @@
       "filename": "app/actions/auth.ts",
       "exportedName": "signOut"
     },
-    "00fd99b5f98e2fb522d90d7589cc67d9833b4a6068": {
+    "0025f32822d66e2b60b55a038a6c7fb8dd0d9bb5b0": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -168,7 +168,91 @@
       "filename": "app/actions/auth.ts",
       "exportedName": "adminSignOut"
     },
-    "600fa39db4145726785f7936fb3c1729134ac02e29": {
+    "606962a7919b149f1fc88078d7f5d5b8a2b38f6bba": {
+      "workers": {
+        "app/admin/about/page": {
+          "moduleId": 36166,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/events/page": {
+          "moduleId": 63567,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/page": {
+          "moduleId": 12464,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/sponsors/page": {
+          "moduleId": 55999,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/vendors/page": {
+          "moduleId": 53156,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/volunteers/page": {
+          "moduleId": 75096,
+          "async": false,
+          "exportedName": "signUp",
+          "filename": "app/actions/auth.ts"
+        }
+      },
+      "filename": "app/actions/auth.ts",
+      "exportedName": "signUp"
+    },
+    "608f00c890a109e607e8c89abc3562634d076ace30": {
+      "workers": {
+        "app/admin/about/page": {
+          "moduleId": 36166,
+          "async": false,
+          "exportedName": "login",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/events/page": {
+          "moduleId": 63567,
+          "async": false,
+          "exportedName": "login",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/page": {
+          "moduleId": 12464,
+          "async": false,
+          "exportedName": "login",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/sponsors/page": {
+          "moduleId": 55999,
+          "async": false,
+          "exportedName": "login",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/vendors/page": {
+          "moduleId": 53156,
+          "async": false,
+          "exportedName": "login",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/volunteers/page": {
+          "moduleId": 75096,
+          "async": false,
+          "exportedName": "login",
+          "filename": "app/actions/auth.ts"
+        }
+      },
+      "filename": "app/actions/auth.ts",
+      "exportedName": "login"
+    },
+    "60a8c32c11927533e58f133c9fbcf128fec28ae714": {
       "workers": {
         "app/admin-login/page": {
           "moduleId": 10535,
@@ -216,133 +300,7 @@
       "filename": "app/actions/auth.ts",
       "exportedName": "adminLogin"
     },
-    "605e1a280360c708b478879d06fa12071ca122226e": {
-      "workers": {
-        "app/admin/about/page": {
-          "moduleId": 36166,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/events/page": {
-          "moduleId": 63567,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/page": {
-          "moduleId": 12464,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/sponsors/page": {
-          "moduleId": 55999,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/vendors/page": {
-          "moduleId": 53156,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/volunteers/page": {
-          "moduleId": 75096,
-          "async": false,
-          "exportedName": "login",
-          "filename": "app/actions/auth.ts"
-        }
-      },
-      "filename": "app/actions/auth.ts",
-      "exportedName": "login"
-    },
-    "60de17b2b9a3f2379b309512452b83d9c5fb68e16b": {
-      "workers": {
-        "app/admin/about/page": {
-          "moduleId": 36166,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/events/page": {
-          "moduleId": 63567,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/page": {
-          "moduleId": 12464,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/sponsors/page": {
-          "moduleId": 55999,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/vendors/page": {
-          "moduleId": 53156,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/volunteers/page": {
-          "moduleId": 75096,
-          "async": false,
-          "exportedName": "signUp",
-          "filename": "app/actions/auth.ts"
-        }
-      },
-      "filename": "app/actions/auth.ts",
-      "exportedName": "signUp"
-    },
-    "60ecb94a8bdcf44deb71dc2067252beaba9fe3bdcf": {
-      "workers": {
-        "app/admin/about/page": {
-          "moduleId": 36166,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/events/page": {
-          "moduleId": 63567,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/page": {
-          "moduleId": 12464,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/sponsors/page": {
-          "moduleId": 55999,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/vendors/page": {
-          "moduleId": 53156,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
-        },
-        "app/admin/volunteers/page": {
-          "moduleId": 75096,
-          "async": false,
-          "exportedName": "updateProfile",
-          "filename": "app/actions/auth.ts"
-        }
-      },
-      "filename": "app/actions/auth.ts",
-      "exportedName": "updateProfile"
-    },
-    "60f14439b223bdcfd3af68fdfede8ec8c92af6b430": {
+    "60d7f5178b628d5fcf035f7d347d80570350d435f8": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -384,7 +342,49 @@
       "filename": "app/actions/auth.ts",
       "exportedName": "updatePassword"
     },
-    "00e74732f9057eab8db81cde3fe8fdbf8441bec0f4": {
+    "60f578b781dc5d88d2cfc41be3a834c09abcc734a7": {
+      "workers": {
+        "app/admin/about/page": {
+          "moduleId": 36166,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/events/page": {
+          "moduleId": 63567,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/page": {
+          "moduleId": 12464,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/sponsors/page": {
+          "moduleId": 55999,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/vendors/page": {
+          "moduleId": 53156,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "app/actions/auth.ts"
+        },
+        "app/admin/volunteers/page": {
+          "moduleId": 75096,
+          "async": false,
+          "exportedName": "updateProfile",
+          "filename": "app/actions/auth.ts"
+        }
+      },
+      "filename": "app/actions/auth.ts",
+      "exportedName": "updateProfile"
+    },
+    "004b67b99d0b0701d3884f45f90c7478e1bd855fe4": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -432,7 +432,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "getAllVendors"
     },
-    "00d7acb3f2298d04f1abb047e18749e35acd16e5d5": {
+    "00243e27209fe3c7f1ed5f9bf7cfcc71a43aa6d971": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -474,7 +474,7 @@
       "filename": "app/actions/volunteers.ts",
       "exportedName": "getAllVolunteers"
     },
-    "00265ae4f410737ce45555739b964a5fa1a06b7446": {
+    "009a92c902508f492ca89ded2ab70d47475cbd732c": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -516,7 +516,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "getAllSponsors"
     },
-    "005586ae4567b95da6de3a31fa172a881702d79946": {
+    "006f65158901e2449522012d6a4e4f9dd26daa7223": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -558,7 +558,7 @@
       "filename": "app/actions/dashboard.ts",
       "exportedName": "getDashboardStats"
     },
-    "00d687464d89dbb6bca3f5fc938bc4c1b70e780ca1": {
+    "005f6a739930e4f806cf37eaf83c90e6769fecf91f": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -612,7 +612,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "getAdminEvents"
     },
-    "40ea44567dbdb09f696f52ce9ca6c149bd2301a966": {
+    "4034bba077130e1db529a42281806b7193932a28a5": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -660,7 +660,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "approveVendor"
     },
-    "608ddc18fb7ed7d63f1b7f12f7f607a9cc1d25cda0": {
+    "604242b0b9998f3c1ab5635701754115350fbd2013": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -708,7 +708,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "rejectVendor"
     },
-    "4000f052db2c7f027f61d3a0a43e77da0086faae0d": {
+    "40ff63c7f9f59bebbddcedc3e3caf4f7179dc48e23": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -756,7 +756,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "waitlistVendor"
     },
-    "40b5fa35a21b449760474479ce3e964366ab09b7f7": {
+    "40f288f9a393e4328680c3cef3f47cbed9e36f5370": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -804,7 +804,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "deleteVendor"
     },
-    "40ff96bed2a7bc013978c859995e1868e31ff14952": {
+    "40a87e2533c3d71923fea131778b96c2e8c6f842cb": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -846,7 +846,7 @@
       "filename": "app/actions/volunteers.ts",
       "exportedName": "approveVolunteer"
     },
-    "608165fcd2fcf5c49a59c5debc9fb9e19e7bb6d6dd": {
+    "607ccebc9fcf720d7b3bd666245cde7963add24182": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -888,7 +888,7 @@
       "filename": "app/actions/volunteers.ts",
       "exportedName": "rejectVolunteer"
     },
-    "406597b9fd42b98c13f4d0a032dcc3e89713e11b27": {
+    "40ed2ca73d3ee55d8e06d967ca6dd33b55c7feae9d": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -930,7 +930,7 @@
       "filename": "app/actions/volunteers.ts",
       "exportedName": "waitlistVolunteer"
     },
-    "4053a252ecfac72dd49f27d531ae422b052e8f9eca": {
+    "40717fcfe0ab886e294ee8d3ca70a5b6ccc14cb131": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -972,7 +972,7 @@
       "filename": "app/actions/volunteers.ts",
       "exportedName": "deleteVolunteer"
     },
-    "40b50b06ab90bd898ec544719f238ef397cfdea02f": {
+    "40bdc9559e97b76e546294c284e48ae46d361c8a56": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1014,7 +1014,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "approveSponsor"
     },
-    "6043654439e1fd38c61eac560c28f7b30415dd0fa0": {
+    "60ac739fdd18fc04455874530775321ecaa7bb4517": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1056,7 +1056,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "rejectSponsor"
     },
-    "408ceba5dc85ecba3a1b68480aff4d8a74a188b8b9": {
+    "40865fb7a3c05e592d74b05f671164f0020e46ed6a": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1098,7 +1098,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "waitlistSponsor"
     },
-    "40a02dbcc7c78f18b6f893c2783742607552a67a49": {
+    "40b72bf84ef128035b72dbee20adff6866d47295ec": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1140,7 +1140,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "negotiateSponsor"
     },
-    "40e00a820e7b7a7170d720a2c4e4f67e696cca4395": {
+    "403fbd19fd59f032266127dd35c138a6eaa098b7fd": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1182,7 +1182,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "deleteSponsor"
     },
-    "60274c4d625919b9356fe432c3ccd3ca536329549e": {
+    "6036af18b10b5f191541617fc480991c4f550ad40e": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1236,7 +1236,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "createEvent"
     },
-    "70b1868349d7bce42cb940fdb4ca8833d264ed0abf": {
+    "70ef8c6c68d2c88d014e1c2652b43d06a8820fd15d": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1290,7 +1290,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "updateEvent"
     },
-    "408f9aa8616969e350970b73c592a13782ee8b144d": {
+    "408aea6e12799570b5f4ac70e5bf45b60db195e1de": {
       "workers": {
         "app/admin/about/page": {
           "moduleId": 36166,
@@ -1344,7 +1344,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "deleteEvent"
     },
-    "00b4c0ca877f99410e7346e3e91d098e32231db57c": {
+    "00777748a3f977aef0cf243ee96edf56c3e7228849": {
       "workers": {
         "app/events/[id]/page": {
           "moduleId": 56986,
@@ -1362,7 +1362,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "getEvents"
     },
-    "40263f99cb9ded85b1b0bb76e65086f7add4c4ea66": {
+    "40ff159153294858eac49d1dda7a8f925df5bfcc6f": {
       "workers": {
         "app/events/[id]/page": {
           "moduleId": 56986,
@@ -1380,7 +1380,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "getEventById"
     },
-    "6060feda27c616033f2585e8fb4457ad9f62355a2e": {
+    "605873f2b110100cedf70dfb0f4934ed0529614115": {
       "workers": {
         "app/events/[id]/page": {
           "moduleId": 56986,
@@ -1398,7 +1398,7 @@
       "filename": "app/actions/events.ts",
       "exportedName": "getEventsByMonth"
     },
-    "60fa2e80dcd9ac1a35eed05404ef2c6fcb1b0eb18a": {
+    "6088cf50d0ba5f87fb1c1375e083ba614592315081": {
       "workers": {
         "app/sponsors/apply/page": {
           "moduleId": 44587,
@@ -1410,7 +1410,7 @@
       "filename": "app/actions/sponsors.ts",
       "exportedName": "submitSponsorApplication"
     },
-    "00683982f1590a42b3fe0a2b32b438ce264c9cfed9": {
+    "000f3dc7ba99f1d955cbef8bc53f4caeb0ca0b3f5a": {
       "workers": {
         "app/vendors/page": {
           "moduleId": 78446,
@@ -1422,7 +1422,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "getApprovedVendors"
     },
-    "008b80e0f512a09f44f1dae9cf91d28d84d06cc302": {
+    "0018a5e6e8a9820a6a9505ee6cba9fe76612eab71e": {
       "workers": {
         "app/vendors/page": {
           "moduleId": 78446,
@@ -1434,7 +1434,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "getApprovedVendorsAdmin"
     },
-    "00ece8eb0ad0828ff99d63f8f7f42ba63a84359f11": {
+    "008c35a80cfed7cff9e1c85928bbb1269618eb438d": {
       "workers": {
         "app/vendors/page": {
           "moduleId": 78446,
@@ -1446,7 +1446,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "getPendingVendors"
     },
-    "605a995e13486fbfba95e609ec646c33a515477229": {
+    "6061247d53f5a258ddac9d82be4d1577583eb724f5": {
       "workers": {
         "app/vendors/apply/page": {
           "moduleId": 4585,
@@ -1464,7 +1464,7 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "submitVendorApplication"
     },
-    "600fab8d1ef40c254749edfc95f4e56678bfc66437": {
+    "60c2e9104f778e4d6c7f4fb25ddd87e7b242f2ced4": {
       "workers": {
         "app/volunteers/apply/page": {
           "moduleId": 96254,
@@ -1478,5 +1478,5 @@
     }
   },
   "edge": {},
-  "encryptionKey": "F4PyED0x7p4hisZAghMMkf7XEB0ZgXYlEw6uotj87zg="
+  "encryptionKey": "L9K1EZ0VsBzd7gHgcnkHt3jADFf5GEJT62dLF2mP5i8="
 }

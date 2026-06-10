@@ -17,7 +17,7 @@ const tags = [
         <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
       </svg>
     ),
-    label: 'Meet Fellow Fans',
+    label: 'Connect with Collectors',
   },
   {
     icon: (
@@ -38,10 +38,10 @@ const tags = [
 ];
 
 const slides = [
-  { src: '/videos/vlog-1.mp4', alt: 'Event experience at Collector\'s Paradise' },
-  { src: '/videos/vlog-2.mp4', alt: 'Meet fellow fans and collectors' },
-  { src: '/videos/vlog-3.mp4', alt: 'Culture and fun at the event' },
-  { src: '/videos/vlog-4.mp4', alt: 'Live deal evaluations' },
+  { src: '/videos/1.mp4', alt: 'Event experience at Collector\'s Paradise' },
+  { src: '/videos/2.mp4', alt: 'Meet fellow fans and collectors' },
+  { src: '/videos/3.mp4', alt: 'Culture and fun at the event' },
+  { src: '/videos/4.mp4', alt: 'Live deal evaluations' },
 ];
 
 const Experience = () => {
@@ -49,21 +49,25 @@ const Experience = () => {
   const bgVideoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
   const slideVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
+  const activeVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const next = useCallback(() => setCurrent(c => (c + 1) % slides.length), []);
   const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), []);
 
-  // Play/pause slide videos based on active index
+  // Play/pause slide videos based on active index — only active video plays
   useEffect(() => {
-    slideVideoRefs.current.forEach((video, i) => {
-      if (!video) return;
-      if (i === current) {
-        video.currentTime = 0;
-        video.play().catch(() => {});
-      } else {
-        video.pause();
-      }
-    });
+    const prevVideo = activeVideoRef.current;
+    if (prevVideo) {
+      prevVideo.pause();
+      prevVideo.currentTime = 0;
+    }
+
+    const nextVideo = slideVideoRefs.current[current];
+    if (nextVideo) {
+      nextVideo.currentTime = 0;
+      nextVideo.play().catch(() => {});
+      activeVideoRef.current = nextVideo;
+    }
   }, [current]);
 
   // Auto-advance every 8s (longer for video content)
@@ -140,7 +144,7 @@ const Experience = () => {
                   loop
                   playsInline
                   preload="metadata"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', pointerEvents: 'none' }}
                 />
               </div>
             ))}

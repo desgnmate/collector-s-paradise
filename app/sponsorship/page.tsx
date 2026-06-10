@@ -36,58 +36,6 @@ export default function SponsorshipPage() {
         </div>
       </section>
 
-      {/* Sponsorship Tiers */}
-      <section className="vendors-grid-section">
-        <div className="container">
-          <div className="sponsorship-tiers-grid">
-            {/* Platinum Tier */}
-            <div className="sponsorship-tier-card platinum">
-              <div className="tier-header">
-                <span className="tier-badge">PLATINUM</span>
-                <h2 className="tier-title">$5,000+</h2>
-              </div>
-              <ul className="tier-benefits">
-                <li>Premium booth location (high-traffic area)</li>
-                <li>Logo on all event marketing materials</li>
-                <li>Featured social media posts (3x)</li>
-                <li>Stage announcement recognition</li>
-                <li>Exclusive email newsletter feature</li>
-                <li>Complimentary vendor table</li>
-              </ul>
-            </div>
-
-            {/* Gold Tier */}
-            <div className="sponsorship-tier-card gold">
-              <div className="tier-header">
-                <span className="tier-badge">GOLD</span>
-                <h2 className="tier-title">$2,500+</h2>
-              </div>
-              <ul className="tier-benefits">
-                <li>Priority booth selection</li>
-                <li>Logo on event website</li>
-                <li>Social media mention (2x)</li>
-                <li>Stage announcement recognition</li>
-                <li>10% discount on additional tables</li>
-              </ul>
-            </div>
-
-            {/* Silver Tier */}
-            <div className="sponsorship-tier-card silver">
-              <div className="tier-header">
-                <span className="tier-badge">SILVER</span>
-                <h2 className="tier-title">$1,000+</h2>
-              </div>
-              <ul className="tier-benefits">
-                <li>Standard booth location</li>
-                <li>Name listed on event website</li>
-                <li>Social media mention (1x)</li>
-                <li>5% discount on additional tables</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Why Sponsor CTA */}
       <section className="vendors-cta-section">
         <div className="container">

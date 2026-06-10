@@ -104,7 +104,7 @@ main, .homepage {
 
 html {
   scroll-padding-top: 80px;
-  height: 100%;
+  min-height: 100%;
   background-color: var(--color-blue-primary);
   color-scheme: light;
   -webkit-font-smoothing: antialiased;
@@ -142,13 +142,23 @@ body {
   color: var(--color-dark);
   background-color: var(--color-cream);
   line-height: 1.6;
-  overflow-x: hidden;
   margin: 0;
   padding: 0;
   border: none;
   min-height: 100vh;
   min-height: -webkit-fill-available;
-  width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Lenis smooth scroll fix */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
 }
 
 img {
@@ -254,6 +264,14 @@ ol {
   .brands-section .section-title {
     font-size: 1.5rem;
   }
+}
+
+.brands-section .section-subtitle {
+  font-size: 0.95rem;
+  opacity: 0.7;
+  margin-top: 0.75rem;
+  font-weight: 400;
+  color: var(--color-white);
 }
 
 .section-subtitle {
@@ -1834,7 +1852,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .hero-bg img,
 .hero-video {
   position: absolute;
-  top: 50%;
+  top: 46%;
   left: 50%;
   transform: translate(-50%, -50%) scale(1.05);
   min-width: 100%;
@@ -1987,110 +2005,322 @@ button.login-dropdown-item:hover .login-item-desc {
   }
 }
 
-/* Cards fan at the bottom - Group Scaling */
-.hero-cards-fan {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-  width: 90%;
-  max-width: 800px;
-  /* Restored to original max-width */
-  height: clamp(240px, 35vw, 420px);
-}
+/* ========================================
+   DEVICE-SPECIFIC CARD CONFIGURATIONS
+   Balanced sizing across all devices
+   ======================================== */
 
-/* Bigger size for Laptop view with option C overlap design */
-@media (min-width: 1024px) and (max-width: 1439px) {
+/* 1. iPhone / Mobile phones */
+@media (max-width: 640px) {
   .hero-cards-fan {
-    max-width: 580px;
-    height: clamp(160px, 20vw, 250px);
-    bottom: -20px;
+    max-width: 264px !important;
+    height: clamp(84px, 20vw, 126px) !important;
+    bottom: -15px !important;
   }
 
   .hero-card-left {
-    left: 6% !important;
-    width: 30% !important;
-    bottom: 8% !important;
-  }
-
-  .hero-card-right {
-    right: 6% !important;
-    width: 30% !important;
-    bottom: 8% !important;
+    left: 8% !important;
+    width: 28.8% !important;
+    bottom: 2% !important;
   }
 
   .hero-card-center {
     width: 36% !important;
-    bottom: 12% !important;
-  }
-}
-
-/* Short viewport heights (e.g. laptops, landscape tablets) - larger cards under option C */
-@media (max-height: 800px) and (min-width: 768px) {
-  .hero {
-    padding-top: 80px;
-  }
-
-  .hero-content {
-    padding-top: 1rem;
-  }
-
-  .hero-title {
-    font-size: clamp(1.8rem, 5.5vh, 3.2rem) !important;
-    margin-bottom: 0.5rem !important;
-  }
-
-  .hero-subtitle {
-    font-size: clamp(0.75rem, 2.5vh, 0.95rem) !important;
-    margin-bottom: 1rem !important;
-  }
-
-  .hero-cards-fan {
-    max-width: 520px !important;
-    height: clamp(140px, 22vh, 210px) !important;
-    bottom: -20px !important;
-  }
-
-  .hero-card-left {
-    left: 6% !important;
-    width: 30% !important;
-    bottom: 8% !important;
+    bottom: 5% !important;
   }
 
   .hero-card-right {
-    right: 6% !important;
-    width: 30% !important;
-    bottom: 8% !important;
-  }
-
-  .hero-card-center {
-    width: 36% !important;
-    bottom: 12% !important;
+    right: 8% !important;
+    width: 28.8% !important;
+    bottom: 2% !important;
   }
 }
 
-/* Extra small cards for mobile to prevent overlap */
-@media (max-width: 767px) {
+/* Fallback for general tablet/laptop if not caught by specific breakpoints */
+@media (min-width: 768px) and (max-width: 1799px) {
   .hero-cards-fan {
-    max-width: 380px;
-    height: clamp(120px, 30vw, 180px);
-    bottom: -5px;
+    max-width: 420px !important;
+    height: clamp(110px, 12vw, 170px) !important;
   }
 
   .hero-card-left {
     width: 28% !important;
-    bottom: 8% !important;
-  }
-
-  .hero-card-right {
-    width: 28% !important;
-    bottom: 8% !important;
   }
 
   .hero-card-center {
     width: 34% !important;
-    bottom: 12% !important;
+  }
+
+  .hero-card-right {
+    width: 28% !important;
+  }
+}
+
+/* 2. iPad (768×1024) - Tablet Portrait */
+@media (min-width: 768px) and (max-width: 819px) and (min-height: 1024px) {
+  .hero-cards-fan {
+    max-width: 266px !important;
+    height: clamp(70px, 9.1vw, 105px) !important;
+    bottom: -35px !important;
+  }
+
+  .hero-card-left {
+    left: 20% !important;
+    width: 19.6% !important;
+    bottom: 0% !important;
+  }
+
+  .hero-card-center {
+    width: 23.8% !important;
+    bottom: 3% !important;
+  }
+
+  .hero-card-right {
+    right: 20% !important;
+    width: 19.6% !important;
+    bottom: 0% !important;
+  }
+}
+
+/* 3. iPad Air (820×1180) - Tablet Landscape */
+@media (min-width: 820px) and (max-width: 1023px) and (min-height: 1180px) {
+  .hero-cards-fan {
+    max-width: 490px !important;
+    height: clamp(137px, 15.7vw, 216px) !important;
+    bottom: -40px !important;
+  }
+
+  .hero-card-left {
+    left: 10% !important;
+    width: 28% !important;
+    bottom: 0% !important;
+  }
+
+  .hero-card-center {
+    width: 33.6% !important;
+    bottom: 3% !important;
+  }
+
+  .hero-card-right {
+    right: 10% !important;
+    width: 28% !important;
+    bottom: 0% !important;
+  }
+
+  .hero-content {
+    max-width: 700px;
+    padding-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+  }
+
+  .hero {
+    justify-content: center;
+    padding-top: 60px;
+    padding-bottom: 80px;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+    text-align: center;
+  }
+
+  .hero-subtitle {
+    font-size: 0.85rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
+  .btn-hero-ticket {
+    font-size: 1rem;
+    padding: 0.9rem 2.4rem;
+  }
+}
+
+/* 4a. MacBook Pro 13"-14" (1240×800 - 1440×900) - 10-20% reduction */
+@media (min-width: 1240px) and (max-width: 1439px) {
+  .hero-cards-fan {
+    max-width: 200px !important;
+    height: clamp(50px, 4.5vw, 65px) !important;
+    bottom: -150px !important;
+  }
+
+  .hero-card-left {
+    left: 30% !important;
+    width: 14% !important;
+    bottom: -3% !important;
+  }
+
+  .hero-card-center {
+    width: 16% !important;
+    bottom: -3% !important;
+  }
+
+  .hero-card-right {
+    right: 30% !important;
+    width: 14% !important;
+    bottom: -3% !important;
+  }
+}
+
+/* 4b. MacBook Pro 14" (1340×864 - 1440×900) - 10% reduction */
+@media (min-width: 1340px) and (max-width: 1439px) {
+  .hero-cards-fan {
+    max-width: 210px !important;
+    height: clamp(52px, 4.8vw, 66px) !important;
+    bottom: -155px !important;
+  }
+
+  .hero-card-left {
+    left: 30% !important;
+    width: 15% !important;
+    bottom: -3% !important;
+  }
+
+  .hero-card-center {
+    width: 17% !important;
+    bottom: -3% !important;
+  }
+
+  .hero-card-right {
+    right: 30% !important;
+    width: 15% !important;
+    bottom: -3% !important;
+  }
+}
+
+/* 4c. MacBook Pro 14" (1440×900 / 1440×990) - Laptop */
+@media (min-width: 1440px) and (max-width: 1799px) and (max-height: 990px) {
+  .hero-cards-fan {
+    max-width: 140px !important;
+    height: clamp(36px, 3.4vw, 54px) !important;
+    bottom: -160px !important;
+  }
+
+  .hero-card-left {
+    left: 30% !important;
+    width: 12.8% !important;
+    bottom: -3% !important;
+  }
+
+  .hero-card-center {
+    width: 16% !important;
+    bottom: -3% !important;
+  }
+
+  .hero-card-right {
+    right: 30% !important;
+    width: 12.8% !important;
+    bottom: -3% !important;
+  }
+}
+
+/* 4d. MacBook Pro 16" (1512×982 / 1728×1134) - Larger Laptop */
+@media (min-width: 1440px) and (max-width: 1919px) and (min-height: 991px) {
+  .hero-cards-fan {
+    max-width: 200px !important;
+    height: clamp(50px, 4.5vw, 70px) !important;
+    bottom: -150px !important;
+  }
+
+  .hero-card-left {
+    left: 30% !important;
+    width: 15% !important;
+    bottom: -4% !important;
+  }
+
+  .hero-card-center {
+    width: 18% !important;
+    bottom: -4% !important;
+  }
+
+  .hero-card-right {
+    right: 30% !important;
+    width: 15% !important;
+    bottom: -4% !important;
+  }
+}
+
+/* 5. Desktop 1920px - Base (optimized for Mac viewable height) */
+@media (min-width: 1920px) {
+  .hero-cards-fan {
+    max-width: 200px !important;
+    height: clamp(80px, 10vh, 120px) !important;
+    bottom: -50px !important;
+  }
+
+  .hero-card-left {
+    left: 35% !important;
+    width: 13% !important;
+    bottom: -6% !important;
+  }
+
+  .hero-card-center {
+    width: 15% !important;
+    bottom: -4% !important;
+  }
+
+  .hero-card-right {
+    right: 35% !important;
+    width: 13% !important;
+    bottom: -6% !important;
+  }
+}
+
+/* 6. Desktop (1921px–2559px) - Optimized for Mac viewable height */
+@media (min-width: 1921px) and (max-width: 2559px) {
+  .hero-cards-fan {
+    max-width: 220px !important;
+    height: clamp(85px, 10.5vh, 130px) !important;
+    bottom: -45px !important;
+  }
+
+  .hero-card-left {
+    left: 35% !important;
+    width: 12% !important;
+    bottom: -6% !important;
+  }
+
+  .hero-card-center {
+    width: 14% !important;
+    bottom: -4% !important;
+  }
+
+  .hero-card-right {
+    right: 35% !important;
+    width: 12% !important;
+    bottom: -6% !important;
+  }
+}
+
+/* 7. Ultrawide (2560px+) - 20% smaller than base */
+@media (min-width: 2560px) {
+  .hero-cards-fan {
+    max-width: 224px !important;
+    height: clamp(56px, 4.8vw, 84px) !important;
+    bottom: -170px !important;
+  }
+
+  .hero-card-left {
+    left: 27% !important;
+    width: 14% !important;
+    bottom: -6% !important;
+  }
+
+  .hero-card-center {
+    width: 16% !important;
+    bottom: -4% !important;
+  }
+
+  .hero-card-right {
+    right: 27% !important;
+    width: 14% !important;
+    bottom: -6% !important;
   }
 }
 
@@ -2108,7 +2338,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 /* Left card — Charizard */
 .hero-card-left {
-  width: 33%;
+  width: 38%;
   left: 2%;
   bottom: -15%;
   transform: rotate(-8deg);
@@ -2122,7 +2352,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 /* Center card — Arcanine V (larger) */
 .hero-card-center {
-  width: 40%;
+  width: 44%;
   left: 50%;
   bottom: -10%;
   transform: translateX(-50%);
@@ -2136,7 +2366,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 /* Right card — Pikachu ex */
 .hero-card-right {
-  width: 33%;
+  width: 38%;
   right: 2%;
   bottom: -15%;
   transform: rotate(8deg);
@@ -2146,6 +2376,16 @@ button.login-dropdown-item:hover .login-item-desc {
 .hero-card-right:hover {
   transform: rotate(5deg) translateY(-10px) scale(1.03);
   z-index: 10;
+}
+
+@media (min-width: 1600px) {
+  .hero-card-left {
+    width: 22%;
+  }
+
+  .hero-card-center {
+    width: 26%;
+  }
 }
 
 @keyframes float {
@@ -2448,11 +2688,26 @@ button.login-dropdown-item:hover .login-item-desc {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity 0.4s ease;
+  will-change: opacity;
+  pointer-events: none;
 }
 
 .exp-carousel-slide.active {
   opacity: 1;
+  will-change: opacity;
+  pointer-events: auto;
+}
+
+.exp-carousel-slide video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.exp-carousel-slide:not(.active) video {
+  preload: none;
 }
 
 /* Prev / Next buttons */
@@ -2521,7 +2776,11 @@ button.login-dropdown-item:hover .login-item-desc {
 .highlights-section {
   background: var(--color-cream);
   padding: var(--space-4xl) 0;
-  text-align: center;
+}
+
+.highlights-header {
+  margin-bottom: var(--space-2xl);
+  text-align: left;
 }
 
 .highlights-header {
@@ -2879,6 +3138,38 @@ button.login-dropdown-item:hover .login-item-desc {
   transform: translateY(-2px);
 }
 
+/* Desktop: Ensure card height has gap for CTA button */
+@media (min-width: 1440px) {
+  .highlight-card {
+    min-height: 420px;
+  }
+  
+  .highlight-image-wrapper {
+    height: 180px !important;
+  }
+  
+  .highlight-content {
+    min-height: 200px;
+    padding-bottom: var(--space-lg);
+  }
+  
+  .highlight-title {
+    font-size: 1.1rem;
+    margin-bottom: var(--space-md);
+  }
+  
+  .highlight-desc {
+    font-size: 0.8rem;
+    margin-bottom: var(--space-md);
+  }
+  
+  .btn-highlight {
+    padding: 0.5rem 1.3rem;
+    font-size: 0.75rem;
+  }
+}
+
+
 /* ==============================
    BRANDS (SECTION 5)
    ============================== */
@@ -2952,9 +3243,32 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .about-hero-container {
-  max-width: 800px;
+  max-width: 1200px;
   width: 100%;
-  text-align: center;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: start;
+}
+
+.about-hero-left {
+  text-align: left;
+}
+
+.about-hero-right img {
+  width: 100%;
+  height: 600px;
+  object-fit: cover;
+  border-radius: 20px;
+  border: 4px solid var(--color-dark);
+  margin-top: 0;
+}
+
+.about-hero-right {
+  display: flex;
+  align-items: flex-start;
+  padding-top: calc(8rem + 10px);
 }
 
 .about-hero-content {
@@ -2994,7 +3308,28 @@ button.login-dropdown-item:hover .login-item-desc {
   color: #555;
   line-height: 1.7;
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0;
+  text-align: justify;
+  margin-bottom: var(--space-lg);
+}
+
+.about-description:last-of-type {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .about-hero-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-xl);
+  }
+
+  .about-hero-left {
+    text-align: center;
+  }
+
+  .about-description {
+    max-width: 100%;
+  }
 }
 
 .stat-number {
@@ -3573,7 +3908,6 @@ button.login-dropdown-item:hover .login-item-desc {
   display: flex;
   flex-direction: column;
   padding-top: var(--space-4xl);
-  overflow: hidden;
 }
 
 /* Cream blend at the bottom of the background image */
@@ -3711,8 +4045,8 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .polaroid {
   position: absolute;
-  background: #fff;
-  padding: 8px;
+  background: transparent;
+  padding: 0;
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
   pointer-events: auto;
   border-radius: 6px;
@@ -3721,15 +4055,17 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .polaroid img {
   width: 150px;
-  height: 150px;
+  height: auto;
+  aspect-ratio: 2.5 / 3.5;
   object-fit: cover;
   border-radius: 4px;
+  display: block;
 }
 
 @media (min-width: 1024px) and (max-width: 1439px) {
   .polaroid img {
     width: 120px;
-    height: 120px;
+    height: auto;
   }
 
   .polaroid.p-1 {
@@ -3779,6 +4115,7 @@ button.login-dropdown-item:hover .login-item-desc {
   top: 70%;
   transform: rotate(-6deg);
   z-index: 2;
+  padding: 4px;
 }
 
 .polaroid.p-1:hover {
@@ -4134,7 +4471,7 @@ button.login-dropdown-item:hover .login-item-desc {
     bottom: -1px;
     left: 0;
     right: 0;
-    height: 120px; 
+    height: 60px; 
     background: linear-gradient(to bottom, transparent 0%, var(--color-cream) 100%);
     z-index: 4; /* Above card fan (z-1) to create crop effect */
     pointer-events: none;
@@ -4161,21 +4498,24 @@ button.login-dropdown-item:hover .login-item-desc {
   }
 
   .hero-cards-fan {
-    max-width: 500px;
-    height: 270px;
-    bottom: -5px;
+    max-width: 400px;
+    height: 220px;
+    bottom: 20px;
   }
 
   .hero-card-left {
-    width: 160px;
+    width: 120px;
+    bottom: 5%;
   }
 
   .hero-card-center {
-    width: 190px;
+    width: 145px;
+    bottom: 8%;
   }
 
   .hero-card-right {
-    width: 160px;
+    width: 120px;
+    bottom: 5%;
   }
 
   .highlight-card {
@@ -4845,6 +5185,243 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 /* ==============================
+   EVENT CARDS
+   ============================== */
+.ec-grid-wrapper {
+  margin-top: var(--space-xl);
+}
+
+.ec-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-xl);
+}
+
+/* Event Card */
+.ec-card {
+  background: var(--color-white);
+  border: 4px solid var(--color-dark);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+  cursor: pointer;
+}
+
+.ec-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 8px 8px 0 var(--color-yellow);
+}
+
+/* Card Image */
+.ec-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background: var(--color-cream);
+  overflow: hidden;
+}
+
+.ec-image-wrapper img {
+  transition: transform var(--transition-normal);
+}
+
+.ec-card:hover .ec-image-wrapper img {
+  transform: scale(1.05);
+}
+
+/* Date Chip */
+.ec-date-chip {
+  position: absolute;
+  top: var(--space-md);
+  right: var(--space-md);
+  background: var(--color-yellow);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+  min-width: 44px;
+}
+
+.ec-date-day {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--color-dark);
+}
+
+.ec-date-month {
+  font-family: var(--font-heading);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  letter-spacing: 0.05em;
+}
+
+/* Card Content */
+.ec-content {
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+/* Status Badge */
+.ec-status-badge {
+  display: inline-block;
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  width: fit-content;
+}
+
+/* Title */
+.ec-title {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  line-height: 1.2;
+  margin: 0;
+  text-align: left;
+}
+
+/* Meta Row */
+.ec-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: auto;
+  padding-top: var(--space-sm);
+  border-top: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.ec-venue {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ec-venue svg {
+  flex-shrink: 0;
+}
+
+.ec-price {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--color-dark);
+  flex-shrink: 0;
+}
+
+/* Footer */
+.ec-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-sm);
+}
+
+.ec-tickets {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-gray);
+  text-transform: uppercase;
+}
+
+.ec-sold-out {
+  color: var(--color-red);
+  font-weight: 700;
+}
+
+.ec-cta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: gap var(--transition-fast);
+}
+
+.ec-card:hover .ec-cta {
+  gap: 8px;
+}
+
+/* Empty State */
+.ec-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-4xl) var(--space-xl);
+  background: var(--color-white);
+  border: 4px dashed var(--color-dark);
+  border-radius: var(--radius-md);
+}
+
+.ec-empty p {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-gray);
+  text-transform: uppercase;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .ec-grid {
+    gap: var(--space-md);
+    grid-template-columns: 1fr;
+  }
+
+  .ec-card {
+    border-width: 3px;
+  }
+
+  .ec-image-wrapper {
+    height: 140px;
+  }
+
+  .ec-content {
+    padding: var(--space-md);
+    gap: var(--space-xs);
+  }
+
+  .ec-title {
+    font-size: 1rem;
+  }
+
+  .ec-meta {
+    gap: 0.5rem;
+  }
+}
+
+/* ==============================
    VENDOR CARDS
    ============================== */
 .vendor-list-grid {
@@ -5454,228 +6031,483 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 /* ==============================
-   EVENT DETAIL PAGE
-   ============================== */
-/* ── Event Detail – Hero Banner ── */
-.ed-hero {
-  position: relative;
-  width: 100%;
-  min-height: 50vh;
-  display: flex;
-  align-items: flex-end;
-  overflow: hidden;
-  background: var(--gradient-hero);
-}
-
-.ed-hero img {
-  z-index: 1;
-}
-
-.ed-hero-overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.4) 0%,
-    transparent 40%,
-    transparent 60%,
-    var(--color-dark) 100%
-  );
-}
-
-.ed-hero-content {
-  position: relative;
-  z-index: 3;
-  width: 100%;
-  padding-top: var(--space-3xl);
-  padding-bottom: clamp(2.5rem, 5vw, 4rem);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
-
-.ed-hero-title {
-  font-family: var(--font-baloo), var(--font-heading);
-  font-size: clamp(1.6rem, 4.5vw, 3rem);
-  font-weight: 800;
-  text-transform: uppercase;
-  color: var(--color-white);
-  line-height: 1.15;
-  margin-bottom: var(--space-sm);
-}
-
-.ed-hero-subtitle {
-  font-size: clamp(0.8rem, 1.5vw, 0.95rem);
-  color: rgba(255, 255, 255, 0.85);
-  line-height: 1.6;
-  max-width: 520px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-}
-
-/* ── Event Detail – Dark Info Section ── */
-.ed-info-section {
+    EVENT DETAIL PAGE (PROFESSIONAL)
+    ============================== */
+.edp-header {
   background: var(--color-dark);
-  padding: clamp(2rem, 4vw, 3.5rem) 0;
+  padding: var(--space-lg) 0;
+  border-bottom: 3px solid var(--color-yellow);
 }
 
-.ed-info-inner {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xl);
+.edp-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-white);
+  text-decoration: none;
+  transition: color var(--transition-fast);
 }
 
-@media (min-width: 900px) {
-  .ed-info-inner {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-3xl);
+.edp-back-link:hover {
+  color: var(--color-yellow);
+}
+
+.edp-main {
+  background: var(--color-cream);
+  padding: clamp(6rem, 8vw, 7rem) 0 clamp(3rem, 6vw, 5rem);
+}
+
+.edp-layout {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: clamp(2rem, 4vw, 3rem);
+  align-items: start;
+}
+
+.edp-content {
+  align-self: start;
+}
+
+.edp-sidebar {
+  align-self: start;
+}
+
+@media (max-width: 1024px) {
+  .edp-layout {
+    grid-template-columns: 1fr;
   }
 }
 
-.ed-details {
-  flex: 1;
+.edp-content {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2rem, 4vw, 3rem);
+}
+
+.edp-cover {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 4px solid var(--color-dark);
+}
+
+.edp-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.edp-date-badge {
+  position: absolute;
+  top: var(--space-lg);
+  left: var(--space-lg);
+  background: var(--color-white);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--radius-md);
+  padding: var(--space-sm) var(--space-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.edp-date-month {
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-poke-red);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.edp-date-day {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--color-dark);
+  line-height: 1;
+}
+
+.edp-date-weekday {
+  font-family: var(--font-heading);
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: var(--color-gray);
+  text-transform: uppercase;
+}
+
+.edp-details {
   display: flex;
   flex-direction: column;
   gap: var(--space-xl);
 }
 
-.ed-detail-block {
+.edp-title {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 800;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.edp-description {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  color: var(--color-dark);
+  line-height: 1.7;
+  margin: 0;
+  opacity: 0.85;
+}
+
+.edp-info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-lg);
+}
+
+.edp-info-card {
+  display: flex;
+  gap: var(--space-md);
+  background: var(--color-white);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+}
+
+.edp-info-card-icon {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  background: var(--color-yellow);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-dark);
+}
+
+.edp-info-card-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
-.ed-detail-label {
-  font-family: var(--font-body);
+.edp-info-card-label {
+  font-family: var(--font-heading);
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: capitalize;
-  letter-spacing: 0.03em;
-}
-
-.ed-detail-value {
-  font-family: var(--font-heading);
-  font-size: clamp(0.95rem, 2vw, 1.15rem);
-  font-weight: 800;
-  color: var(--color-white);
-  text-transform: uppercase;
-  line-height: 1.3;
-  margin: 0;
-}
-
-.ed-detail-value--sm {
-  font-size: clamp(0.85rem, 1.5vw, 1rem);
   font-weight: 700;
-}
-
-.ed-detail-address {
-  font-family: var(--font-heading);
-  font-size: clamp(0.85rem, 1.5vw, 1rem);
-  font-weight: 800;
-  color: var(--color-white);
+  color: var(--color-gray);
   text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.edp-info-card-value {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-dark);
   line-height: 1.3;
-  margin: 0;
 }
 
-.ed-detail-row {
-  display: flex;
-  gap: clamp(2rem, 5vw, 4rem);
+.edp-info-card-sub {
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--color-dark);
+  opacity: 0.7;
 }
 
-/* ── Event Detail – Ticket Card ── */
-.ed-ticket-card {
+.edp-info-card-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-poke-blue);
+  text-decoration: none;
+  margin-top: 4px;
+  transition: color var(--transition-fast);
+}
+
+.edp-info-card-link:hover {
+  color: var(--color-dark);
+}
+
+.edp-highlights {
   background: var(--color-white);
+  border: 3px solid var(--color-dark);
   border-radius: var(--radius-lg);
-  padding: clamp(1.5rem, 3vw, 2rem);
-  min-width: 280px;
-  max-width: 340px;
-  width: 100%;
-  flex-shrink: 0;
+  padding: var(--space-xl);
+}
+
+.edp-section-title {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  margin: 0 0 var(--space-lg);
+}
+
+.edp-highlights-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-md);
+}
+
+.edp-highlight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  background: var(--color-cream);
+  border-radius: var(--radius-sm);
+  text-align: center;
+}
+
+.edp-highlight-icon {
+  font-size: 1.5rem;
+}
+
+.edp-highlight span:last-child {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  text-transform: uppercase;
+}
+
+.edp-map {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
 }
 
-@media (max-width: 899px) {
-  .ed-ticket-card {
-    max-width: 100%;
+.edp-map-container {
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 3px solid var(--color-dark);
+}
+
+.edp-map-container iframe {
+  display: block;
+  width: 100%;
+}
+
+.edp-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  position: relative;
+  top: 0;
+  align-self: start;
+}
+
+@media (max-width: 1024px) {
+  .edp-sidebar {
+    position: static;
   }
 }
 
-.ed-ticket-row {
+.edp-booking-card {
+  background: var(--color-white);
+  border: 4px solid var(--color-dark);
+  border-radius: var(--radius-lg);
+  padding: var(--space-xl);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.edp-booking-header {
+  display: flex;
   align-items: center;
-}
-
-.ed-ticket-type {
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  color: var(--color-dark);
-  font-weight: 500;
-}
-
-.ed-ticket-price {
+  gap: var(--space-sm);
   font-family: var(--font-heading);
-  font-size: 1.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding-bottom: var(--space-md);
+  border-bottom: 2px dashed var(--color-dark);
+  opacity: 0.7;
+}
+
+.edp-booking-header svg {
+  color: var(--color-dark);
+}
+
+.edp-booking-price {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 2.5rem;
   font-weight: 800;
   color: var(--color-dark);
+  line-height: 1;
 }
 
-.ed-ticket-btn {
-  width: 100%;
-  padding: 0.9rem 1.5rem;
-  font-family: var(--font-heading);
+.edp-booking-price-unit {
+  font-family: var(--font-body);
   font-size: 0.9rem;
+  font-weight: 400;
+  color: var(--color-gray);
+  margin-left: var(--space-xs);
+}
+
+.edp-booking-urgency {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-poke-red);
+  background: #FFF3F3;
+  border: 2px solid var(--color-poke-red);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm) var(--space-md);
+}
+
+.edp-booking-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-family: var(--font-heading);
+  font-size: 1rem;
   font-weight: 700;
-  text-transform: none;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
   color: var(--color-dark);
   background: var(--color-yellow);
-  border: 2px solid var(--color-yellow);
+  border: 3px solid var(--color-dark);
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: all var(--transition-fast);
-  letter-spacing: 0.01em;
+  text-decoration: none;
 }
 
-.ed-ticket-btn:hover {
-  background: #e5b83a;
-  border-color: #e5b83a;
-}
-
-.ed-ticket-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* ── Event Detail – Map Section ── */
-.ed-map-section {
+.edp-booking-btn:hover:not(.edp-booking-btn-disabled) {
   background: var(--color-dark);
-  padding: 0 0 clamp(2rem, 4vw, 3.5rem);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--color-yellow);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 var(--color-dark);
 }
 
-.ed-map-title {
+.edp-booking-btn-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #e0e0e0;
+  border-color: #bbb;
+  color: #666;
+}
+
+.edp-booking-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
   font-family: var(--font-heading);
-  font-size: 0.9rem;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--color-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.edp-booking-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  padding-top: var(--space-md);
+  border-top: 2px dashed var(--color-dark);
+  opacity: 0.8;
+}
+
+.edp-booking-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+}
+
+.edp-booking-detail-row span:first-child {
+  color: var(--color-gray);
+}
+
+.edp-booking-detail-row span:last-child {
   font-weight: 600;
-  color: var(--color-white);
-  text-align: center;
-  padding: var(--space-xl) 0;
+  color: var(--color-dark);
 }
 
-.ed-map-container {
-  width: 100%;
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  border: 3px solid var(--color-yellow);
+.edp-status-available {
+  color: #2E7D32 !important;
 }
 
-/* ── Venue Map – Matching reference layout ── */
+.edp-status-soldout {
+  color: var(--color-poke-red) !important;
+}
+
+.edp-share-card {
+  background: var(--color-white);
+  border: 3px solid var(--color-dark);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.edp-share-label {
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.edp-share-buttons {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.edp-share-btn {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-cream);
+  border: 2px solid var(--color-dark);
+  border-radius: var(--radius-sm);
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+}
+
+.edp-share-btn:hover {
+  background: var(--color-yellow);
+  transform: translateY(-2px);
+}
+
+/* ── Event Detail – old styles removed ── */
+/* (keeping venue-map-container for backward compat) */
 .venue-map-container {
   width: 100%;
   overflow-x: auto;
@@ -8268,7 +9100,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .bg-red-50 { background: rgba(239, 68, 68, 0.06); }
 .border-red-200 { border-color: rgba(239, 68, 68, 0.15); }
 .rounded-lg { border-radius: 10px; }
-.p-4 { padding: 16px; }
+.p-4-override { padding: 16px; }
 .text-red-800 { color: #fca5a5; }
 .font-medium { font-weight: 500; }
 .text-red-600 { color: rgba(252, 165, 165, 0.7); }
@@ -10421,19 +11253,9 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .badges-section {
   position: relative;
-  background: var(--color-dark);
+  background: var(--color-cream);
   padding: var(--space-4xl) 0;
-  overflow: hidden;
-}
-
-.badges-bg-grid {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
-  pointer-events: none;
+  overflow: clip;
 }
 
 .badges-container {
@@ -10450,25 +11272,11 @@ button.login-dropdown-item:hover .login-item-desc {
   margin: 0 auto 5rem;
 }
 
-.section-eyebrow-dark {
-  display: inline-block;
-  font-family: var(--font-heading);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 3px;
-  color: var(--color-yellow);
-  margin-bottom: var(--space-md);
-  padding: 0.5rem 1.25rem;
-  border: 1px solid rgba(244, 197, 66, 0.3);
-  border-radius: var(--radius-pill);
-}
-
 .section-heading-dark {
   font-family: var(--font-baloo), var(--font-heading);
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 800;
-  color: var(--color-white);
+  color: var(--color-dark);
   text-transform: uppercase;
   line-height: 1.2;
   margin-bottom: var(--space-lg);
@@ -10476,14 +11284,6 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .heading-yellow {
   color: var(--color-yellow);
-}
-
-.section-desc-dark {
-  font-family: var(--font-body);
-  font-size: clamp(0.9rem, 1.2vw, 1rem);
-  color: rgba(255, 255, 255, 0.5);
-  line-height: 1.7;
-  margin: 0 0 var(--space-xl) 0;
 }
 
 .badges-grid {
@@ -10521,10 +11321,10 @@ button.login-dropdown-item:hover .login-item-desc {
   align-items: center;
   text-align: center;
   padding: 2rem 1.5rem 1.5rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 2px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-white);
+  border: 4px solid var(--color-dark);
   border-radius: var(--radius-lg);
-  transition: border-color 0.3s ease, background 0.3s ease;
+  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
   position: relative;
   overflow: hidden;
   height: 100%;
@@ -10536,21 +11336,16 @@ button.login-dropdown-item:hover .login-item-desc {
   top: 0;
   left: 0;
   right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-yellow), var(--color-blue-light));
+  height: 4px;
+  background: var(--color-yellow);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-/* Badge Cards - Simple Lift Hover */
-.badge-card-inner {
-  transition: border-color 0.3s ease, background 0.3s ease, transform 0.3s ease;
-}
-
 .badge-card:hover .badge-card-inner {
   border-color: var(--color-yellow);
-  background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-3px);
+  transform: translate(-4px, -4px);
+  box-shadow: 4px 4px 0 var(--color-dark);
 }
 
 .badge-card:hover .badge-card-inner::before {
@@ -10572,8 +11367,8 @@ button.login-dropdown-item:hover .login-item-desc {
   font-family: var(--font-heading);
   font-size: 0.6rem;
   font-weight: 700;
-  color: var(--color-yellow);
-  background: rgba(244, 197, 66, 0.15);
+  color: var(--color-dark);
+  background: var(--color-yellow);
   padding: 0.2rem 0.6rem;
   border-radius: var(--radius-pill);
   letter-spacing: 1px;
@@ -10585,17 +11380,18 @@ button.login-dropdown-item:hover .login-item-desc {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border: 3px dashed var(--color-dark);
   border-radius: 50%;
   margin-bottom: var(--space-md);
   position: relative;
+  background: var(--color-cream);
 }
 
 .badge-icon-ring::after {
   content: '';
   position: absolute;
   inset: -4px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 2px solid var(--color-dark);
   border-radius: 50%;
 }
 
@@ -10606,8 +11402,8 @@ button.login-dropdown-item:hover .login-item-desc {
   align-items: center;
   justify-content: center;
   font-size: 1.75rem;
-  background: rgba(255, 255, 255, 0.08);
-  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: var(--color-white);
+  border: 3px solid var(--color-dark);
   border-radius: 50%;
 }
 
@@ -10615,7 +11411,7 @@ button.login-dropdown-item:hover .login-item-desc {
   font-family: var(--font-baloo), var(--font-heading);
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--color-white);
+  color: var(--color-dark);
   text-transform: uppercase;
   margin-bottom: 0.5rem;
   letter-spacing: 0.5px;
@@ -10624,7 +11420,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .badge-desc {
   font-family: var(--font-body);
   font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.45);
+  color: #666;
   line-height: 1.5;
   margin: 0;
   flex: 1;
@@ -10636,8 +11432,9 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .badge-progress {
   width: 100%;
-  height: 3px;
-  background: rgba(255, 255, 255, 0.08);
+  height: 4px;
+  background: var(--color-cream);
+  border: 1px solid var(--color-dark);
   border-radius: 2px;
   margin-top: auto;
   overflow: hidden;
@@ -10646,7 +11443,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .badge-progress-bar {
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, var(--color-yellow), var(--color-blue-light));
+  background: var(--color-yellow);
   border-radius: 2px;
   transition: width 0.6s ease;
 }
@@ -10658,7 +11455,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .badges-cta {
   margin-top: 6rem;
   padding-top: 5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 4px solid var(--color-dark);
 }
 
 .cta-content {
@@ -10671,7 +11468,7 @@ button.login-dropdown-item:hover .login-item-desc {
   font-family: var(--font-baloo), var(--font-heading);
   font-size: clamp(1.5rem, 3vw, 2.25rem);
   font-weight: 800;
-  color: var(--color-white);
+  color: var(--color-dark);
   text-transform: uppercase;
   letter-spacing: 1px;
   margin-bottom: var(--space-md);
@@ -10681,7 +11478,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .cta-subtitle {
   font-family: var(--font-body);
   font-size: clamp(0.9rem, 1.2vw, 1rem);
-  color: rgba(255, 255, 255, 0.5);
+  color: #666;
   line-height: 1.6;
   margin: 0 auto var(--space-xl);
   max-width: 400px;
@@ -10693,7 +11490,7 @@ button.login-dropdown-item:hover .login-item-desc {
   gap: 0.75rem;
   padding: 1rem 2.5rem;
   background: var(--color-yellow);
-  border: 3px solid var(--color-cream);
+  border: 4px solid var(--color-dark);
   border-radius: var(--radius-pill);
   font-family: var(--font-heading);
   font-size: 0.9rem;
@@ -10706,7 +11503,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .cta-button:hover {
   transform: translate(-4px, -4px);
-  box-shadow: 4px 4px 0 var(--color-cream);
+  box-shadow: 4px 4px 0 var(--color-dark);
 }
 
 .cta-arrow {
@@ -10746,4 +11543,73 @@ button.login-dropdown-item:hover .login-item-desc {
     padding: 0.85rem 2rem;
     font-size: 0.85rem;
   }
+}
+
+/* Browse Other Events Section */
+.browse-other-events {
+  background: var(--color-cream);
+  padding: var(--space-4xl) 0;
+}
+
+.browse-other-events-title {
+  font-family: var(--font-baloo), var(--font-heading);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--color-dark);
+  text-transform: uppercase;
+  margin-bottom: var(--space-xl);
+  text-align: left;
+}
+
+.browse-other-events-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+@media (max-width: 1024px) {
+  .browse-other-events-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .browse-other-events-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Smaller event cards in browse section */
+.browse-other-events-grid .ec-card {
+  max-width: 280px;
+}
+
+.browse-other-events-grid .ec-image-wrapper {
+  height: 140px;
+}
+
+.browse-other-events-grid .ec-content {
+  padding: 0.75rem;
+}
+
+.browse-other-events-grid .ec-title {
+  font-size: 0.85rem;
+  margin-bottom: 0.4rem;
+}
+
+.browse-other-events-grid .ec-meta {
+  font-size: 0.7rem;
+}
+
+.browse-other-events-grid .ec-date-chip {
+  width: 40px;
+  height: 40px;
+}
+
+.browse-other-events-grid .ec-date-day {
+  font-size: 0.9rem;
+}
+
+.browse-other-events-grid .ec-date-month {
+  font-size: 0.5rem;
 }

@@ -2,7 +2,7 @@
 
 import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import Link from 'next/link';
+
 
 const badges = [
   {
@@ -18,7 +18,7 @@ const badges = [
     level: 'Lv.2',
   },
   {
-    icon: '🤝',
+    icon: '',
     title: 'Trader',
     desc: 'Completed your first trade with another collector',
     level: 'Lv.3',
@@ -73,13 +73,10 @@ const BadgeCard = ({ badge, index }: { badge: typeof badges[0]; index: number })
 
 const GymBadges = () => {
   const headerRef = useRef(null);
-  const ctaRef = useRef(null);
   const isHeaderInView = useInView(headerRef, { once: true, margin: '-50px' });
-  const isCtaInView = useInView(ctaRef, { once: true, margin: '-50px' });
 
   return (
     <section className="badges-section">
-      <div className="badges-bg-grid" />
       <div className="badges-container">
         <motion.div
           ref={headerRef}
@@ -88,11 +85,11 @@ const GymBadges = () => {
           animate={isHeaderInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6 }}
         >
-          <span className="section-eyebrow-dark">Your Journey Awaits</span>
-          <h2 className="section-heading-dark">
+          <span className="section-eyebrow">Your Journey Awaits</span>
+          <h2 className="section-title">
             Earn <span className="heading-yellow">Gym Badges</span>
           </h2>
-          <p className="section-desc-dark">
+          <p className="section-subtitle" style={{ color: '#666', maxWidth: '600px', margin: '0 auto' }}>
             Every event is a chance to earn new badges. Collect them all and become a true Champion of Collector&apos;s Paradise.
           </p>
         </motion.div>
@@ -103,22 +100,7 @@ const GymBadges = () => {
           ))}
         </div>
 
-        <motion.div
-          ref={ctaRef}
-          className="badges-cta"
-          initial={{ opacity: 0, y: 20 }}
-          animate={isCtaInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, delay: 0.3 }}
-        >
-          <div className="cta-content">
-            <h3 className="cta-title">Ready to Start Your Collection?</h3>
-            <p className="cta-subtitle">Join our next event and begin earning your first badge today.</p>
-            <Link href="/events" className="cta-button">
-              <span>View Upcoming Events</span>
-              <span className="cta-arrow">→</span>
-            </Link>
-          </div>
-        </motion.div>
+
       </div>
 
     </section>

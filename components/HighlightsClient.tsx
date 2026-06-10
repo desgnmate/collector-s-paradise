@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
+import EventCard from './events/EventCard';
 import EventCalendar from './EventCalendar';
 import type { Event } from '@/app/actions/events';
 
@@ -14,7 +14,6 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
   const [viewMode, setViewMode] = useState<'card' | 'calendar'>('card');
   const [eventType, setEventType] = useState<'upcoming' | 'past'>('upcoming');
 
-  // Combine all events for the calendar view
   const allEvents = [...upcomingEvents, ...pastEvents];
   const filteredEvents = eventType === 'upcoming' ? upcomingEvents : pastEvents;
 
@@ -27,7 +26,7 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
         {!isCalendarDateSelected && (
           <div className="highlights-header" data-aos="fade-up">
             <span className="eyebrow-badge">PREVIOUS &amp; UPCOMING EVENTS</span>
-            <h2 className="section-title">EVENT HIGHLIGHTS</h2>
+            <h2 className="section-title">COLLECTOR'S CALENDAR</h2>
             <p className="section-subtitle">
               Discover everything happening at the event, from trading zones to exclusive finds.
             </p>
@@ -76,32 +75,18 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
         </div>
 
         {viewMode === 'card' ? (
-          <div className="highlights-grid-wrapper">
-            <div className="highlights-grid-2rows">
+          <div className="ec-grid-wrapper">
+            <div className="ec-grid">
               {filteredEvents.length > 0 ? (
-                filteredEvents.map((event) => {
-                  const dateObj = new Date(event.event_date);
-                  const displayDate = dateObj.toLocaleDateString('en-AU', { month: 'short', day: 'numeric' });
-                  
-                  return (
-                    <div 
-                      className="highlight-card" 
-                      key={event.id}
-                    >
-                      <div className="highlight-image-wrapper">
-                        <Image src={event.cover_image_url || '/images/placeholder-event.png'} alt={event.title} width={400} height={250} loading="lazy" style={{ objectFit: 'cover' }} />
-                        <div className="highlight-date-tag">{displayDate}</div>
-                      </div>
-                      <div className="highlight-content">
-                        <h3 className="highlight-title">{event.title}</h3>
-                        <p className="highlight-desc">{event.description || ''}</p>
-                        <button className="btn-highlight">{eventType === 'upcoming' ? 'BOOK NOW' : 'VIEW GALLERY'}</button>
-                      </div>
-                    </div>
-                  );
-                })
+                filteredEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    variant={eventType}
+                  />
+                ))
               ) : (
-                <div className="no-events-message">
+                <div className="ec-empty">
                   <p>No {eventType} events available at the moment.</p>
                 </div>
               )}

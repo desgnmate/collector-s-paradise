@@ -17,7 +17,6 @@ export default function Navbar() {
   const [isSolid, setIsSolid] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [initials, setInitials] = useState('');
-  const [isAtFooter, setIsAtFooter] = useState(false);
   
   const pathname = usePathname();
   const isHomePage = pathname === '/';
@@ -40,17 +39,11 @@ export default function Navbar() {
 
     const handleScroll = () => {
       const scrollPos = window.scrollY;
-      const windowHeight = window.innerHeight;
-      const totalHeight = document.documentElement.scrollHeight;
       
-      // Transparent in the first 100px (Hero) or last 500px (Footer)
       const isTop = scrollPos <= 80;
-      const footerThreshold = totalHeight - 800; // Trigger slightly before footer
-      const isBottom = scrollPos + windowHeight >= footerThreshold;
       
       setScrolled(scrollPos > 50);
-      setIsSolid(!isTop && !isBottom);
-      setIsAtFooter(isBottom);
+      setIsSolid(!isTop);
       
       
       setProfileDropdownOpen(false);
@@ -184,7 +177,7 @@ export default function Navbar() {
           {/* Hamburger Menu (Icon only) */}
           <div className="navbar-menu-wrapper" style={{ position: 'relative' }}>
             <button
-              className={`navbar-menu-icon ${menuOpen ? 'active' : ''} ${(pathname.startsWith('/events/') && !isAtFooter) ? 'nav-icon-yellow' : (['/about'].includes(pathname)) ? 'nav-icon-gray' : ''}`}
+              className={`navbar-menu-icon ${menuOpen ? 'active' : ''}`}
               onClick={toggleMenu}
               aria-label="Toggle menu"
             >

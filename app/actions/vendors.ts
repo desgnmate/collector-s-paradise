@@ -41,7 +41,7 @@ const vendorApplicationSchema = z.object({
   phone: z.string().optional(),
   description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
   categories: z.array(z.string()).min(1, 'Please select at least one category'),
-  social_links: z.string().optional(),
+  social_links: z.string().min(1, 'Social media link is required').url('Please enter a valid URL'),
   tables_requested: z.string().min(1, 'Please select the number of tables'),
   power_requirements: z.string().optional(),
   additional_notes: z.string().optional(),

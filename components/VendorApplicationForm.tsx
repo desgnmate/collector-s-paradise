@@ -250,11 +250,12 @@ export default function VendorApplicationForm() {
         <h3 className="vendor-form-section-title">Social Media & Online Presence</h3>
         <div className="vendor-form-grid">
           <div className="vendor-form-group vendor-form-group-wide">
-            <label htmlFor="social_links">Instagram / Social Links</label>
+            <label htmlFor="social_links">Instagram / Social Links *</label>
             <input
               id="social_links"
               name="social_links"
               type="url"
+              required
               placeholder="https://instagram.com/yourbusiness"
               defaultValue={state.fields?.social_links || ''}
             />

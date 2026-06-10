@@ -24,7 +24,7 @@ const About = () => {
           </button>
           
           <button className="about-pill" data-aos="fade-up" data-aos-delay="200">
-            <span className="about-pill-text">GUEST SIGNINGS</span>
+            <span className="about-pill-text">GIVEAWAYS</span>
             <div className="about-pill-icon">
               <svg viewBox="0 0 24 24">
                 <polyline points="9 18 15 12 9 6"></polyline>
@@ -33,7 +33,7 @@ const About = () => {
           </button>
           
           <button className="about-pill" data-aos="fade-up" data-aos-delay="300">
-            <span className="about-pill-text">PSA CARD EVALUATIONS</span>
+            <span className="about-pill-text">COLLABORATION</span>
             <div className="about-pill-icon">
               <svg viewBox="0 0 24 24">
                 <polyline points="9 18 15 12 9 6"></polyline>

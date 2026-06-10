@@ -3,10 +3,10 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { AdminSecretAccess } from './AdminSecretAccess';
 import logo from '@/public/images/logo.png';
-import polaroid1 from '@/public/images/meet-fans.png';
-import polaroid2 from '@/public/images/event-experience.png';
-import polaroid3 from '@/public/images/culture-fun.png';
-import polaroid4 from '@/public/images/browse-collections.png';
+import polaroid1 from '@/public/images/footer-card-1.jpg';
+import polaroid2 from '@/public/images/footer-card-2.jpg';
+import polaroid3 from '@/public/images/footer-card-3.jpg';
+import polaroid4 from '@/public/images/footer-card-4.jpg';
 import footerLogo from '@/public/images/footer-logo.png';
 
 export default function Footer() {
@@ -15,24 +15,24 @@ export default function Footer() {
       <div className="new-footer-container">
         {/* CTA Top Half */}
         <div className="footer-cta-part">
-          <p className="footer-eyebrow">JOIN THE COMMUNITY</p>
+          <p className="footer-eyebrow">Join Collector&apos;s Club</p>
           <h2 className="footer-cta-title">BE PART OF THE<br />EXPERIENCE</h2>
           <p className="footer-cta-subtitle">Connect with collectors, share the passion,<br />and be part of something bigger.</p>
-          <Link href="/events" className="btn btn-yellow footer-cta-btn">Buy Tickets</Link>
+          <Link href="#" className="btn btn-yellow footer-cta-btn">Subscribe</Link>
 
           {/* Floating Polaroids */}
           <div className="polaroid-cards-wrapper">
             <div className="polaroid p-1">
-              <Image src={polaroid1} alt="Collectors meeting at a Pokémon trading card event" width={220} height={220} loading="lazy" />
+              <Image src={polaroid1} alt="Collectors meeting at a Pokémon trading card event" width={150} height={210} loading="lazy" />
             </div>
             <div className="polaroid p-2">
-              <Image src={polaroid2} alt="Live event experience at Collector's Paradise" width={220} height={220} loading="lazy" />
+              <Image src={polaroid2} alt="Live event experience at Collector's Paradise" width={150} height={210} loading="lazy" />
             </div>
             <div className="polaroid p-3">
-              <Image src={polaroid3} alt="Fun and culture at the collector community" width={220} height={220} loading="lazy" />
+              <Image src={polaroid3} alt="Fun and culture at the collector community" width={150} height={210} loading="lazy" />
             </div>
             <div className="polaroid p-4">
-              <Image src={polaroid4} alt="Browsing rare Pokémon card collections" width={220} height={220} loading="lazy" />
+              <Image src={polaroid4} alt="Browsing rare Pokemon card collections" width={150} height={210} loading="lazy" />
             </div>
           </div>
         </div>
