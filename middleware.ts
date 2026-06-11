@@ -4,38 +4,85 @@ import { NextResponse, type NextRequest } from 'next/server';
 export const runtime = 'experimental-edge';
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  // Fast path: public pages don't need Supabase auth.
+  // The previous version called getUser() on every request, which
+  // added a network round-trip (and cold-start latency) to every
+  // navigation. Auth is only required for /admin and /admin-login.
+  const needsAuth = pathname === '/admin-login' || pathname.startsWith('/admin');
+
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
+  if (needsAuth) {
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return request.cookies.getAll();
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+            supabaseResponse = NextResponse.next({
+              request,
+            });
+            cookiesToSet.forEach(({ name, value, options }) =>
+              supabaseResponse.cookies.set(name, value, options)
+            );
+          },
         },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          supabaseResponse = NextResponse.next({
-            request,
-          });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
+      }
+    );
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    // 1. Admin login page — allow access without auth check
+    if (pathname === '/admin-login') {
+      if (user) {
+        const { data: adminRecord } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+        if (adminRecord) {
+          const url = request.nextUrl.clone();
+          url.pathname = '/admin';
+          return NextResponse.redirect(url);
+        }
+      }
+      return supabaseResponse;
     }
-  );
 
-  // Refresh user session – important for keeping tokens active
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+    // 2. Protect /admin - redirect to /admin-login if unauthenticated or not admin
+    if (pathname.startsWith('/admin')) {
+      if (!user) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin-login';
+        return NextResponse.redirect(url);
+      }
 
-  const pathname = request.nextUrl.pathname;
+      const { data: adminRecord } = await supabase
+        .from('admin_users')
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
+      if (!adminRecord) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/admin-login';
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  // Security headers — applied to every response (cheap, in-memory)
   const securityHeaders = new Map<string, string>([
     ['X-Frame-Options', 'DENY'],
     ['X-Content-Type-Options', 'nosniff'],
@@ -70,46 +117,6 @@ export async function middleware(request: NextRequest) {
       "frame-ancestors 'none'",
     ].join('; ')
   );
-
-  // 1. Admin login page — allow access without auth check
-  if (pathname === '/admin-login') {
-    // If already authenticated as admin, redirect to admin dashboard
-    if (user) {
-      const { data: adminRecord } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (adminRecord) {
-        const url = request.nextUrl.clone();
-        url.pathname = '/admin';
-        return NextResponse.redirect(url);
-      }
-    }
-    return supabaseResponse;
-  }
-
-  // 3. Protect /admin - redirect to /admin-login if unauthenticated or not admin
-  if (pathname.startsWith('/admin')) {
-    if (!user) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/admin-login';
-      return NextResponse.redirect(url);
-    }
-
-    const { data: adminRecord } = await supabase
-      .from('admin_users')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (!adminRecord) {
-      const url = request.nextUrl.clone();
-      url.pathname = '/admin-login';
-      return NextResponse.redirect(url);
-    }
-  }
 
   return supabaseResponse;
 }

@@ -115,11 +115,26 @@ export default function Navbar() {
     }
   };
 
+  /**
+   * Logo = Home button. When already on the homepage, scroll to the top
+   * instead of relying on Next.js to re-render the route (which is a no-op
+   * and the user perceives the click as "broken" or "delayed").
+   */
+  const handleLogoClick = (e: React.MouseEvent) => {
+    setMenuOpen(false);
+    setProfileDropdownOpen(false);
+
+    if (isHomePage) {
+      e.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
   return (
     <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''} ${isSolid ? 'navbar-solid' : ''}`}>
       <div className="navbar-inner">
-        {/* Left: Logo */}
-        <Link href="/" className="navbar-logo-link">
+        {/* Left: Logo (acts as Home button — scrolls to top when on home) */}
+        <Link href="/" className="navbar-logo-link" onClick={handleLogoClick} prefetch>
           <Image src={logo} alt="Collector's Paradise" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
         </Link>
 
@@ -144,7 +159,7 @@ export default function Navbar() {
                     <span className="login-item-title" style={{ fontSize: '0.8rem', color: '#666', marginBottom: '0' }}>Logged in as</span>
                     <span className="login-item-desc" style={{ fontWeight: 700, color: 'var(--color-dark)', fontSize: '0.9rem' }}>{user.email}</span>
                   </div>
-                  <Link href="/events" className="login-dropdown-item" onClick={() => setProfileDropdownOpen(false)}>
+                  <Link href="/events" className="login-dropdown-item" onClick={() => setProfileDropdownOpen(false)} prefetch>
                     <span className="login-item-title">My Tickets</span>
                     <span className="login-item-desc">Track orders & passes</span>
                   </Link>
@@ -169,7 +184,7 @@ export default function Navbar() {
             </div>
           ) : (
             /* GUEST: APPLY AS VENDOR (direct link, no dropdown) */
-            <Link href="/vendors/apply" className="navbar-join-pill">
+            <Link href="/vendors/apply" className="navbar-join-pill" prefetch>
               APPLY AS VENDOR
             </Link>
           )}
@@ -191,26 +206,29 @@ export default function Navbar() {
             {/* Dropdown menu (Positioned below MENU button) */}
             <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
               <div className="navbar-dropdown-inner">
-                <Link href="/about" onClick={() => setMenuOpen(false)}>
+                <Link href="/" onClick={handleLogoClick} prefetch>
+                  <span className="menu-item-text">Home</span>
+                </Link>
+                <Link href="/about" onClick={() => setMenuOpen(false)} prefetch>
                   <span className="menu-item-text">About</span>
                 </Link>
-                <Link href="/events" onClick={() => setMenuOpen(false)}>
+                <Link href="/events" onClick={() => setMenuOpen(false)} prefetch>
                   <span className="menu-item-text">Events</span>
                 </Link>
-                <Link href="/vendors" onClick={() => setMenuOpen(false)}>
+                <Link href="/vendors" onClick={() => setMenuOpen(false)} prefetch>
                   <span className="menu-item-text">Vendors</span>
                 </Link>
-                <Link href="/sponsorship" onClick={() => setMenuOpen(false)}>
+                <Link href="/sponsorship" onClick={() => setMenuOpen(false)} prefetch>
                   <span className="menu-item-text">Sponsorship</span>
                 </Link>
-                <Link href="/volunteers" onClick={() => setMenuOpen(false)}>
+                <Link href="/volunteers" onClick={() => setMenuOpen(false)} prefetch>
                   <span className="menu-item-text">Volunteers</span>
                 </Link>
+              </div>
             </div>
+          </div>
         </div>
       </div>
-      </div>
-    </div>
-  </nav>
+    </nav>
   );
 }

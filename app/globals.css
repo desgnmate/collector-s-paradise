@@ -9342,13 +9342,13 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .vendor-form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-md);
 }
 
-@media (max-width: 600px) {
+@media (min-width: 768px) {
   .vendor-form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -9452,6 +9452,35 @@ button.login-dropdown-item:hover .login-item-desc {
 .vendor-category-chip.selected .vendor-chip-check {
   background: var(--color-dark);
   color: var(--color-yellow);
+}
+
+/* Phone-specific tweaks for the vendor apply page */
+@media (max-width: 600px) {
+  .vendor-apply-section {
+    padding-top: 100px;
+    padding-bottom: var(--space-3xl);
+  }
+
+  .vendor-apply-header {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .vendor-apply-form {
+    padding: var(--space-lg);
+    border-width: 2px;
+    border-radius: var(--radius-lg);
+  }
+
+  .vendor-form-section {
+    margin-bottom: var(--space-xl);
+  }
+
+  .vendor-form-group input,
+  .vendor-form-group textarea,
+  .vendor-form-group select {
+    padding: 10px 14px;
+    font-size: 16px; /* prevents iOS zoom on focus */
+  }
 }
 
 .sr-only {
