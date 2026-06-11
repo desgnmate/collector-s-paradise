@@ -4,8 +4,8 @@ import React, { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Image, { StaticImageData } from 'next/image';
 import exp1 from '@/public/images/3rd-section-card-image.jpg';
-import exp2 from '@/public/images/meet-fans.png';
-import exp3 from '@/public/images/event-experience.png';
+import exp2 from '@/public/images/giveaways.jpeg';
+import exp3 from '@/public/images/buy-sell-trade.jpeg';
 
 const experiences = [
   {

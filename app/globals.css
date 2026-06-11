@@ -3397,6 +3397,9 @@ button.login-dropdown-item:hover .login-item-desc {
   font-size: clamp(0.9rem, 1.2vw, 1rem);
   color: #666;
   line-height: 1.7;
+  /* Match the heading's width so the wrapped lines line up with
+     the heading above instead of hugging a narrower 600px block. */
+  max-width: none;
   margin: 0;
 }
 
@@ -3426,6 +3429,9 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .experience-card-image img {
   transition: transform 0.4s ease;
+  /* Shift the crop upward so subjects' heads/torsos are visible
+     instead of the card slicing through the middle of the photo. */
+  object-position: center 20%;
 }
 
 .experience-card:hover .experience-card-image img {
