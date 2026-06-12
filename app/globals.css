@@ -795,6 +795,201 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 /* ==============================
+   FULLSCREEN MOBILE MENU OVERLAY
+   ============================== */
+.mobile-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px 40px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+  overflow-y: auto;
+}
+
+.mobile-menu-overlay.open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.mobile-menu-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--color-dark);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.mobile-menu-close:hover,
+.mobile-menu-close:focus-visible {
+  background: var(--color-yellow);
+  transform: rotate(90deg);
+  outline: none;
+}
+
+.mobile-menu-nav {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(8px, 2vw, 16px);
+  width: 100%;
+  max-width: 480px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.mobile-menu-link {
+  display: block;
+  width: 100%;
+  text-align: center;
+  text-decoration: none;
+  color: var(--color-dark);
+  font-family: var(--font-baloo), var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(2rem, 7.5vw, 3.25rem);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  padding: 4px 0;
+  position: relative;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.mobile-menu-link::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 0;
+  height: 4px;
+  background: var(--color-red);
+  transition: width 0.25s ease, left 0.25s ease;
+}
+
+.mobile-menu-link:hover,
+.mobile-menu-link:focus-visible {
+  color: var(--color-red);
+  outline: none;
+}
+
+.mobile-menu-link:hover::after,
+.mobile-menu-link:focus-visible::after {
+  width: 60%;
+  left: 20%;
+}
+
+.mobile-menu-link:active {
+  transform: scale(0.97);
+}
+
+.mobile-menu-link-text {
+  display: inline-block;
+}
+
+/* Apply-as-vendor CTA inside the overlay — matches the desktop pill */
+.mobile-menu-cta {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 14px 36px;
+  background: var(--color-yellow);
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 0.9rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 3px solid var(--color-dark);
+  border-radius: var(--radius-pill);
+  box-shadow: 4px 4px 0 var(--color-dark);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.mobile-menu-cta:hover,
+.mobile-menu-cta:focus-visible {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--color-dark);
+  background: var(--color-yellow);
+  outline: none;
+}
+
+.mobile-menu-cta:active {
+  transform: translate(0, 0);
+  box-shadow: 2px 2px 0 var(--color-dark);
+}
+
+.mobile-menu-footer {
+  margin-top: 40px;
+  text-align: center;
+  color: #666;
+}
+
+.mobile-menu-email {
+  display: inline-block;
+  color: var(--color-red);
+  text-decoration: none;
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  transition: color 0.2s ease;
+}
+
+.mobile-menu-email:hover {
+  color: var(--color-dark);
+}
+
+.mobile-menu-address {
+  font-size: 0.85rem;
+  margin: 0;
+  font-style: normal;
+  color: #666;
+}
+
+/* On desktop the fullscreen overlay is hidden — desktop uses the
+   dropdown that pops out from the hamburger button instead. */
+@media (min-width: 901px) {
+  .mobile-menu-overlay {
+    display: none;
+  }
+}
+
+/* On mobile (≤900px) the small popout dropdown is replaced by the
+   fullscreen overlay, so hide the popout entirely. */
+@media (max-width: 900px) {
+  .navbar-dropdown {
+    display: none;
+  }
+
+  /* Apply-as-vendor pill moves into the overlay on mobile. */
+  .navbar-join-pill-mobile-only {
+    display: none;
+  }
+
+  /* Defensive: if any join-pill shows on mobile, hide it. */
+  .navbar-join-pill-desktop {
+    display: none;
+  }
+}
+
+/* ==============================
    AUTH & PROFILE
    ============================== */
 .auth-section {
@@ -5220,6 +5415,17 @@ button.login-dropdown-item:hover .login-item-desc {
   box-shadow: 8px 8px 0 var(--color-yellow);
 }
 
+/* Past event card — muted so users don't mistake it for upcoming */
+.ec-card.ec-card-past {
+  opacity: 0.85;
+  border-color: rgba(0, 0, 0, 0.4);
+  background: #FAFAFA;
+}
+
+.ec-card.ec-card-past:hover {
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.2);
+}
+
 /* Card Image */
 .ec-image-wrapper {
   position: relative;
@@ -5650,8 +5856,6 @@ button.login-dropdown-item:hover .login-item-desc {
   outline: none;
   background: #FFF9E6;
   border-color: var(--color-yellow);
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0px var(--color-dark);
 }
 
 .vendor-form-error {
@@ -5685,8 +5889,6 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .vendor-category-chip:hover {
   background: var(--color-cream);
-  transform: translate(-2px, -2px);
-  box-shadow: 4px 4px 0px var(--color-dark);
 }
 
 .vendor-category-chip.selected {
@@ -9520,24 +9722,34 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 /* Phone-specific tweaks for the vendor apply page */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .vendor-apply-section {
-    padding-top: 90px;
+    padding-top: 80px;
     padding-bottom: var(--space-3xl);
   }
 
   .vendor-apply-header {
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  .vendor-apply-header .section-title {
+    font-size: 1.75rem;
+  }
+
+  .vendor-apply-header .section-subtitle {
+    font-size: 0.9rem;
+  }
+
+  .vendor-apply-layout {
+    max-width: 100%;
+    padding: 0;
   }
 
   .vendor-apply-form {
     padding: var(--space-md);
     border-width: 2px;
     border-radius: var(--radius-md);
-  }
-
-  .vendor-apply-form {
-    gap: var(--space-xl);
+    gap: var(--space-lg);
   }
 
   .vendor-form-section {
@@ -9545,9 +9757,19 @@ button.login-dropdown-item:hover .login-item-desc {
   }
 
   .vendor-form-section-title {
-    font-size: 1.15rem;
+    font-size: 1rem;
     border-left-width: 4px;
     padding-left: 0.75rem;
+    word-wrap: break-word;
+  }
+
+  .vendor-form-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .vendor-form-group {
+    gap: 0.4rem;
   }
 
   .vendor-form-group input,
@@ -9555,10 +9777,20 @@ button.login-dropdown-item:hover .login-item-desc {
   .vendor-form-group select {
     padding: 12px 14px;
     font-size: 16px; /* prevents iOS zoom on focus */
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .vendor-form-group label {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
+    word-wrap: break-word;
+  }
+
+  .vendor-form-group input:focus,
+  .vendor-form-group textarea:focus,
+  .vendor-form-group select:focus {
+    transform: none;
   }
 
   .vendor-category-grid {
@@ -9569,36 +9801,62 @@ button.login-dropdown-item:hover .login-item-desc {
   .vendor-category-chip {
     padding: 10px 14px;
     font-size: 0.78rem;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .vendor-submit-btn {
     padding: 14px;
     font-size: 0.95rem;
+    width: 100%;
   }
 
-  /* Upload zone: shrink the preview thumb + tighten the icon */
+  /* Upload zone: shrink padding, ensure children don't overflow */
   .upload-zone {
     padding: 1rem !important;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  /* Inline-styled spans inside the upload zone (logo + helper text)
+     need to wrap instead of getting clipped at the right edge. */
+  .upload-zone > div,
+  .upload-zone > div > div,
+  .upload-zone span {
+    max-width: 100%;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;
   }
 
   .vendor-form-alert {
     padding: var(--space-sm) var(--space-md);
     font-size: 0.85rem;
   }
+
+  .vendor-form-disclaimer {
+    font-size: 0.7rem;
+  }
 }
 
 /* Very small phones (≤380px) — extra aggressive shrink */
 @media (max-width: 380px) {
   .vendor-apply-section {
-    padding-top: 80px;
+    padding-top: 72px;
   }
 
   .vendor-apply-form {
     padding: 12px;
+    gap: var(--space-md);
+  }
+
+  .vendor-apply-header .section-title {
+    font-size: 1.5rem;
   }
 
   .vendor-form-section-title {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 }
 

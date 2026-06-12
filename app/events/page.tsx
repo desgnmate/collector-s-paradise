@@ -30,16 +30,25 @@ export const metadata: Metadata = {
 
 export default async function EventsPage() {
   const events = await getEvents();
-  const now = new Date().toISOString().split('T')[0];
-  const upcomingEvents = events.filter(e => e.event_date >= now && e.status === 'upcoming');
-  const pastEvents = events.filter(e => e.event_date < now || e.status === 'completed');
+  // Local AU date for "today" so a 7 June event in Melbourne doesn't
+  // get classified as past because UTC has already rolled forward.
+  const today = new Date();
+  const now = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  // Upcoming = event is today/future AND not cancelled. Past date wins
+  // over the DB status — same logic used in EventCard.
+  const upcomingEvents = events.filter(
+    (e) => e.event_date >= now && e.status !== 'cancelled' && e.status !== 'completed'
+  );
+  const pastEvents = events.filter(
+    (e) => e.event_date < now || e.status === 'completed'
+  );
 
   return (
     <main>
       <Navbar />
       {/* Structured data for each event — invisible to users, consumed by search engines */}
       {events
-        .filter(e => e.status === 'upcoming')
+        .filter((e) => e.event_date >= now && e.status !== 'cancelled' && e.status !== 'completed')
         .map(event => (
           <EventSchema
             key={event.id}

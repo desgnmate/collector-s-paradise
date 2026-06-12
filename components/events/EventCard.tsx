@@ -20,6 +20,14 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
     year: 'numeric',
   });
 
+  // Compute "today" in the same YYYY-MM-DD shape as event_date so
+  // the comparison is timezone-safe. If the date is in the past,
+  // the event is past — regardless of the DB status field (which
+  // admins may not have updated yet).
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const isPast = event.event_date < todayStr;
+
   const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     upcoming: { label: 'UPCOMING', color: '#2E7D32', bg: '#E8F5E9' },
     active: { label: 'ACTIVE', color: '#1565C0', bg: '#E3F2FD' },
@@ -27,12 +35,19 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
     cancelled: { label: 'CANCELLED', color: '#C62828', bg: '#FFEBEE' },
   };
 
-  const status = statusConfig[event.status] || statusConfig.upcoming;
+  // Past date wins over the DB status — that's the whole point of
+  // this guard. Cancelled events stay cancelled.
+  const effectiveKey = isPast && event.status !== 'cancelled' ? 'completed' : event.status;
+  const status = statusConfig[effectiveKey] || statusConfig.upcoming;
+
+  // If the card is rendered in the "upcoming" group but the date has
+  // actually passed, switch the variant so the CTA says "VIEW GALLERY".
+  const effectiveVariant = isPast ? 'past' : variant;
 
   return (
     <Link
       href={`/events/${event.id}`}
-      className="ec-card"
+      className={`ec-card ${isPast ? 'ec-card-past' : ''}`}
       style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
     >
       {/* Cover Image with Date Chip */}
@@ -86,7 +101,7 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
         {/* Footer row: CTA */}
         <div className="ec-footer">
           <span className="ec-cta">
-            {variant === 'upcoming' ? 'VIEW EVENT' : 'VIEW GALLERY'}
+            {effectiveVariant === 'upcoming' ? 'VIEW EVENT' : 'VIEW GALLERY'}
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />

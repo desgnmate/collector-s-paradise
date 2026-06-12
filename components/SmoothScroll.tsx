@@ -59,8 +59,12 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
     return () => document.removeEventListener('click', onLinkClick, { capture: true } as any);
   }, []);
 
-  // Hide ChatWidget (Pokeball) on admin pages
+  // Hide ChatWidget (Pokeball) on admin pages and on the vendor
+  // application form — the floating button overlaps the form fields
+  // and "Submit" CTA on small screens.
   const isAdminRoute = pathname?.startsWith('/admin') || pathname === '/admin-login';
+  const isVendorApply = pathname === '/vendors/apply';
+  const hideChatWidget = isAdminRoute || isVendorApply;
 
   useEffect(() => {
     if (isAdminRoute) return;
@@ -114,7 +118,7 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
   return (
     <>
       {children}
-      {!isAdminRoute && <ChatWidget />}
+      {!hideChatWidget && <ChatWidget />}
     </>
   );
 }

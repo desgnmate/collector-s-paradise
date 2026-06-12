@@ -5,7 +5,10 @@ import type { Event } from '@/app/actions/events';
 export default async function Highlights() {
   const supabase = await createSupabaseServerClient();
 
-  const today = new Date().toISOString().split('T')[0];
+  // Local date (AU) so an event on the current calendar day isn't
+  // mis-classified as past because UTC has rolled forward.
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
   // Upcoming = event is today or in the future AND not cancelled/completed.
   // Past = event was before today OR explicitly marked completed.
