@@ -18,11 +18,18 @@ type EventCalendarProps = {
 
 export default function EventCalendar({ events, onDateSelect }: EventCalendarProps) {
   const today = new Date();
+  // YYYY-MM-DD string for "today" in local time, so date comparisons
+  // work regardless of timezone. Without this, comparing event_date
+  // strings (which are also YYYY-MM-DD) against `new Date()` would
+  // mis-classify events as past/upcoming near midnight.
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
 
-  // Group events by date string (YYYY-MM-DD)
+  // Group events by date string (YYYY-MM-DD), tagging each with a
+  // boolean so the cell can render past events as disabled/muted
+  // instead of letting them masquerade as Upcoming.
   const eventsByDate = useMemo(() => {
     const map: Record<string, Event[]> = {};
     events.forEach((event) => {
@@ -33,6 +40,9 @@ export default function EventCalendar({ events, onDateSelect }: EventCalendarPro
     });
     return map;
   }, [events]);
+
+  const isPastDate = (dateStr: string) => dateStr < todayStr;
+  const isUpcomingDate = (dateStr: string) => dateStr >= todayStr;
 
   // Generate calendar grid
   const calendarDays = useMemo(() => {
@@ -129,22 +139,23 @@ export default function EventCalendar({ events, onDateSelect }: EventCalendarPro
           const hasEvents = !!eventsByDate[dateStr];
           const isSelected = selectedDate === dateStr;
           const isTodayCell = isToday(day);
+          const isPast = isPastDate(dateStr);
 
           return (
             <button
               key={dateStr}
-              className={`calendar-cell ${hasEvents ? 'has-events' : ''} ${isSelected ? 'selected' : ''} ${isTodayCell ? 'is-today' : ''}`}
+              className={`calendar-cell ${hasEvents ? 'has-events' : ''} ${isSelected ? 'selected' : ''} ${isTodayCell ? 'is-today' : ''} ${isPast && hasEvents ? 'is-past' : ''}`}
               onClick={() => {
                 const newDate = isSelected ? null : dateStr;
                 setSelectedDate(newDate);
                 if (onDateSelect) onDateSelect(newDate);
               }}
               disabled={!hasEvents}
-              aria-label={`${MONTH_NAMES[currentMonth]} ${day}${hasEvents ? ' — has events' : ''}`}
+              aria-label={`${MONTH_NAMES[currentMonth]} ${day}${hasEvents ? (isPast ? ' — past event' : ' — upcoming event') : ''}`}
             >
               <span className="calendar-cell-day">{day}</span>
               {hasEvents && (
-                <span className="calendar-cell-dot">EVENT</span>
+                <span className="calendar-cell-dot">{isPast ? 'PAST' : 'EVENT'}</span>
               )}
             </button>
           );
@@ -167,33 +178,55 @@ export default function EventCalendar({ events, onDateSelect }: EventCalendarPro
             <p className="calendar-no-events">No events on this date.</p>
           ) : (
             <div className="calendar-events-list">
-              {selectedEvents.map((event) => (
-                <Link
-                  key={event.id}
-                  href={`/events/${event.id}`}
-                  className="calendar-event-card"
-                >
-                  <div className="calendar-event-time">
-                    {formatTime(event.start_time)} — {formatTime(event.end_time)}
-                  </div>
-                  <h5 className="calendar-event-title">{event.title}</h5>
-                  {event.venue && (
-                    <p className="calendar-event-venue">📍 {event.venue}</p>
-                  )}
-                  <div className="calendar-event-footer">
-                    <span className="calendar-event-price">
-                      {event.ticket_price > 0
-                        ? `$${event.ticket_price.toFixed(2)}`
-                        : ''}
-                    </span>
-                    <span className="calendar-event-availability">
-                      {event.capacity - event.tickets_sold > 0
-                        ? `${event.capacity - event.tickets_sold} spots left`
-                        : ''}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+              {selectedEvents.map((event) => {
+                const isPastEvent = isPastDate(selectedDate);
+                if (isPastEvent) {
+                  return (
+                    <div
+                      key={event.id}
+                      className="calendar-event-card calendar-event-card-past"
+                    >
+                      <div className="calendar-event-time">
+                        {formatTime(event.start_time)} — {formatTime(event.end_time)}
+                      </div>
+                      <h5 className="calendar-event-title">{event.title}</h5>
+                      {event.venue && (
+                        <p className="calendar-event-venue">📍 {event.venue}</p>
+                      )}
+                      <div className="calendar-event-footer">
+                        <span className="calendar-event-past-badge">PAST EVENT</span>
+                      </div>
+                    </div>
+                  );
+                }
+                return (
+                  <Link
+                    key={event.id}
+                    href={`/events/${event.id}`}
+                    className="calendar-event-card"
+                  >
+                    <div className="calendar-event-time">
+                      {formatTime(event.start_time)} — {formatTime(event.end_time)}
+                    </div>
+                    <h5 className="calendar-event-title">{event.title}</h5>
+                    {event.venue && (
+                      <p className="calendar-event-venue">📍 {event.venue}</p>
+                    )}
+                    <div className="calendar-event-footer">
+                      <span className="calendar-event-price">
+                        {event.ticket_price > 0
+                          ? `$${event.ticket_price.toFixed(2)}`
+                          : ''}
+                      </span>
+                      <span className="calendar-event-availability">
+                        {event.capacity - event.tickets_sold > 0
+                          ? `${event.capacity - event.tickets_sold} spots left`
+                          : ''}
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

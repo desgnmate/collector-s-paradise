@@ -4,11 +4,19 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Volunteers',
-  description: 'Join the Collector\'s Paradise volunteer team! Help run Melbourne\'s premier Pokémon TCG events, meet fellow collectors, and be part of the community.',
+  title: 'Volunteer at Melbourne Pokémon TCG Events | Collector\'s Paradise',
+  description:
+    "Volunteer at Collector's Paradise trading card events in Melbourne. Help run Pokémon TCG, Yu-Gi-Oh!, and One Piece events, meet the community, and gain event experience.",
+  keywords: [
+    'volunteer Melbourne events',
+    'event volunteer Victoria',
+    'Pokemon TCG volunteer Australia',
+    'community events Melbourne',
+  ],
   openGraph: {
-    title: "Volunteers | Collector's Paradise",
-    description: "Join the Collector's Paradise volunteer team and be part of Melbourne's premier Pokémon TCG events.",
+    title: "Volunteer With Us | Collector's Paradise Melbourne",
+    description:
+      "Help run Melbourne's biggest trading card events. Volunteer roles include setup, registration, floor guides, and breakdown.",
   },
   alternates: {
     canonical: 'https://collectorsparadise.com.au/volunteers',

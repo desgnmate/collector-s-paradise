@@ -3,7 +3,12 @@ import { Montserrat, Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import SmoothScroll from "@/components/SmoothScroll";
-import { OrganizationSchema } from "@/components/StructuredData";
+import {
+  OrganizationSchema,
+  LocalBusinessSchema,
+  FAQSchema,
+  EventSeriesSchema,
+} from "@/components/StructuredData";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -36,39 +41,65 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://collectorsparadise.com.au"),
   title: {
-    default: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
+    default: "Collector's Paradise | Pokémon Trading Card Events in Melbourne, Australia",
     template: "%s | Collector's Paradise",
   },
   description:
-    "Melbourne's premier Pokémon trading card event. Buy, sell, trade rare cards. Meet vendors, discover collections, and connect with the collector community.",
+    "Melbourne's premier Pokémon trading card and collectibles event. Buy, sell, trade rare cards, meet vendors, and connect with the Australian collector community. Tickets available now.",
   keywords: [
-    "Pokemon cards",
-    "trading cards",
-    "Melbourne events",
-    "card collecting",
-    "TCG",
-    "Pokemon TCG",
-    "card trading",
-    "rare cards",
-    "collector events",
-    "Pokemon Melbourne",
+    "Pokemon cards Melbourne",
+    "Pokemon TCG Melbourne",
+    "trading card events Melbourne",
     "card show Melbourne",
+    "trading card events Australia",
+    "Pokemon cards Victoria",
+    "Yu-Gi-Oh Melbourne",
+    "One Piece TCG Australia",
+    "Magic the Gathering Melbourne",
+    "sports cards Melbourne",
+    "graded cards PSA CGC",
+    "rare Pokemon cards Australia",
+    "card vendor Melbourne",
+    "collector community Australia",
+    "TCG tournament Melbourne",
+    "Pokemon card show",
+    "trading card vendor application",
+    "Melbourne hobby store events",
+    "Australian TCG events",
   ],
+  authors: [{ name: "Collector's Paradise" }],
+  creator: "Collector's Paradise",
+  publisher: "Collector's Paradise",
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
+  category: "Events",
+  classification: "Trading Card & Collectibles Events",
   openGraph: {
-    title: "Collector's Paradise | Pokémon Trading Card Events",
+    title: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
     description:
-      "Where collectors meet, trade & connect. Join Melbourne's most exciting trading card event.",
+      "Melbourne's premier trading card and collectibles event. Buy, sell, trade rare Pokémon cards, meet vendors, and join Australia's most passionate collector community.",
     type: "website",
     siteName: "Collector's Paradise",
     locale: "en_AU",
     url: "https://collectorsparadise.com.au",
-    images: [{ url: '/og-image.png', width: 1200, height: 630, alt: "Collector's Paradise - Pokemon TCG Events" }],
+    countryName: "Australia",
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: "Collector's Paradise - Pokémon Trading Card Events in Melbourne, Australia",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Collector's Paradise | Pokémon Trading Card Events",
+    title: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
     description:
-      "Where collectors meet, trade & connect. Join Melbourne's most exciting trading card event.",
+      "Where Melbourne collectors meet, trade & connect. Buy tickets to the next trading card event.",
     images: ['/og-image.png'],
   },
   robots: {
@@ -84,6 +115,23 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://collectorsparadise.com.au",
+    languages: {
+      "en-AU": "https://collectorsparadise.com.au",
+      "en-GB": "https://collectorsparadise.com.au",
+      "en-US": "https://collectorsparadise.com.au",
+    },
+  },
+  other: {
+    "geo.region": "AU-VIC",
+    "geo.placename": "Melbourne",
+    "geo.position": "-37.8136;144.9631",
+    ICBM: "-37.8136, 144.9631",
+    "distribution": "global",
+    "rating": "general",
+    "revisit-after": "3 days",
+  },
+  verification: {
+    google: "googleee7ef25e2b145100",
   },
 };
 
@@ -93,13 +141,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${montserrat.variable} ${inter.variable} ${baloo.variable}`}>
+    <html lang="en-AU" dir="ltr" className={`${montserrat.variable} ${inter.variable} ${baloo.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body>
         <OrganizationSchema />
+        <LocalBusinessSchema />
+        <EventSeriesSchema />
+        <FAQSchema />
         <SmoothScroll>
           {children}
         </SmoothScroll>

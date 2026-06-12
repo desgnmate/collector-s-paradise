@@ -135,7 +135,7 @@ export default function Navbar() {
       <div className="navbar-inner">
         {/* Left: Logo (acts as Home button — scrolls to top when on home) */}
         <Link href="/" className="navbar-logo-link" onClick={handleLogoClick} prefetch>
-          <Image src={logo} alt="Collector's Paradise" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
+          <Image src={logo} alt="Collector's Paradise — Melbourne Pokémon TCG & Trading Card Events" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
         </Link>
 
         {/* Right: Actions Group */}

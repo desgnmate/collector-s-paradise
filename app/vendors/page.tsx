@@ -8,11 +8,20 @@ import { getApprovedVendors } from '@/app/actions/vendors';
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'Our Vendors',
-  description: 'Explore the amazing vendors joining Collector\'s Paradise. Discover rare cards, vintage collectibles, and more from our approved sellers.',
+  title: 'Trading Card Vendors Melbourne | Pokémon TCG Sellers Australia',
+  description:
+    "Meet approved trading card vendors at Collector's Paradise Melbourne. Rare Pokémon TCG, Yu-Gi-Oh!, One Piece, sports cards, graded cards, and vintage collectibles from Australian sellers.",
+  keywords: [
+    'trading card vendors Melbourne',
+    'Pokemon TCG sellers Australia',
+    'rare card vendors Victoria',
+    'vintage collectibles Melbourne',
+    'graded cards Australia',
+  ],
   openGraph: {
-    title: "Our Vendors | Collector's Paradise",
-    description: "Discover rare cards, vintage collectibles, and more from our approved sellers.",
+    title: "Approved Vendors | Collector's Paradise Melbourne",
+    description:
+      "Discover approved Australian trading card vendors — rare Pokémon, Yu-Gi-Oh!, One Piece, sports cards, and graded cards.",
   },
   alternates: {
     canonical: 'https://collectorsparadise.com.au/vendors',

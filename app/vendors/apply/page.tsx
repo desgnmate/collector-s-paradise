@@ -3,12 +3,20 @@ import Navbar from '@/components/Navbar';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
 
 export const metadata: Metadata = {
-  title: 'Apply as Vendor',
+  title: 'Apply as Vendor | Sell at Pokémon TCG Events in Melbourne',
   description:
-    'Join Collector\'s Paradise as a vendor. Apply to showcase your trading cards, collectibles, and merchandise at Melbourne\'s top collector events.',
+    "Apply to become a vendor at Collector's Paradise Melbourne. Sell trading cards, Pokémon TCG, Yu-Gi-Oh!, One Piece, sports cards, graded cards, and collectibles to Australia's largest collector audience.",
+  keywords: [
+    'vendor application Melbourne',
+    'sell trading cards Australia',
+    'Pokemon TCG vendor',
+    'card show vendor application',
+    'trading card booth rental Melbourne',
+  ],
   openGraph: {
-    title: "Apply as Vendor | Collector's Paradise",
-    description: "Apply to showcase your trading cards and collectibles at Melbourne's top collector events.",
+    title: "Apply as Vendor | Collector's Paradise Melbourne",
+    description:
+      "Sell your trading cards and collectibles at Melbourne's biggest Pokémon TCG and trading card events.",
   },
   alternates: {
     canonical: 'https://collectorsparadise.com.au/vendors/apply',

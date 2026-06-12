@@ -5919,6 +5919,40 @@ button.login-dropdown-item:hover .login-item-desc {
   text-underline-offset: 3px;
 }
 
+/* Past event cells — muted so they don't read as Upcoming */
+.calendar-cell.has-events.is-past {
+  background: rgba(0, 0, 0, 0.04);
+  border-color: rgba(0, 0, 0, 0.12);
+  opacity: 0.55;
+}
+
+.calendar-cell.has-events.is-past:hover {
+  transform: none;
+  background: rgba(0, 0, 0, 0.06);
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.calendar-cell.has-events.is-past .calendar-cell-day {
+  background: rgba(0, 0, 0, 0.08);
+  color: #666;
+  border-color: rgba(0, 0, 0, 0.2);
+}
+
+.calendar-cell.has-events.is-past .calendar-cell-dot {
+  color: #666;
+}
+
+.calendar-cell.has-events.is-past.selected {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: var(--color-dark);
+  opacity: 1;
+}
+
+.calendar-cell.has-events.is-past.selected .calendar-cell-day {
+  background: var(--color-dark);
+  color: var(--color-white);
+}
+
 /* Event label under the date number */
 .calendar-cell-dot {
   font-family: var(--font-heading);
@@ -5972,6 +6006,31 @@ button.login-dropdown-item:hover .login-item-desc {
   background: var(--color-yellow);
   transform: translate(-2px, -2px);
   box-shadow: 4px 4px 0px var(--color-dark);
+}
+
+/* Past event card — non-interactive, muted */
+.calendar-event-card-past {
+  cursor: default;
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.15);
+}
+
+.calendar-event-card-past:hover {
+  background: rgba(0, 0, 0, 0.02);
+  transform: none;
+  box-shadow: none;
+}
+
+.calendar-event-past-badge {
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #999;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
 }
 
 .calendar-event-time {
@@ -9463,29 +9522,83 @@ button.login-dropdown-item:hover .login-item-desc {
 /* Phone-specific tweaks for the vendor apply page */
 @media (max-width: 600px) {
   .vendor-apply-section {
-    padding-top: 100px;
+    padding-top: 90px;
     padding-bottom: var(--space-3xl);
   }
 
   .vendor-apply-header {
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-xl);
   }
 
   .vendor-apply-form {
-    padding: var(--space-lg);
+    padding: var(--space-md);
     border-width: 2px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-md);
+  }
+
+  .vendor-apply-form {
+    gap: var(--space-xl);
   }
 
   .vendor-form-section {
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-lg);
+  }
+
+  .vendor-form-section-title {
+    font-size: 1.15rem;
+    border-left-width: 4px;
+    padding-left: 0.75rem;
   }
 
   .vendor-form-group input,
   .vendor-form-group textarea,
   .vendor-form-group select {
-    padding: 10px 14px;
+    padding: 12px 14px;
     font-size: 16px; /* prevents iOS zoom on focus */
+  }
+
+  .vendor-form-group label {
+    font-size: 0.78rem;
+  }
+
+  .vendor-category-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .vendor-category-chip {
+    padding: 10px 14px;
+    font-size: 0.78rem;
+  }
+
+  .vendor-submit-btn {
+    padding: 14px;
+    font-size: 0.95rem;
+  }
+
+  /* Upload zone: shrink the preview thumb + tighten the icon */
+  .upload-zone {
+    padding: 1rem !important;
+  }
+
+  .vendor-form-alert {
+    padding: var(--space-sm) var(--space-md);
+    font-size: 0.85rem;
+  }
+}
+
+/* Very small phones (≤380px) — extra aggressive shrink */
+@media (max-width: 380px) {
+  .vendor-apply-section {
+    padding-top: 80px;
+  }
+
+  .vendor-apply-form {
+    padding: 12px;
+  }
+
+  .vendor-form-section-title {
+    font-size: 1rem;
   }
 }
 

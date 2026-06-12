@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EventCard from '@/components/events/EventCard';
+import { EventSchema } from '@/components/StructuredData';
 
 import { getEventById, getEvents } from '@/app/actions/events';
 import Image from 'next/image';
@@ -20,18 +21,49 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return { title: "Event Not Found | Collector's Paradise" };
   }
 
+  const dateStr = new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+
   return {
-    title: event.title,
-    description: event.description || `Join us for ${event.title} at ${event.venue}.`,
+    title: `${event.title} — ${dateStr} | Melbourne Trading Card Event`,
+    description:
+      event.description ||
+      `Join ${event.title} on ${dateStr} at ${event.venue}, Melbourne. Buy tickets, meet vendors, trade Pokémon TCG, Yu-Gi-Oh!, One Piece and more.`,
+    keywords: [
+      event.title,
+      `${event.title} Melbourne`,
+      'Pokemon TCG event Melbourne',
+      'trading card event Australia',
+      `${event.venue} event`,
+    ],
     openGraph: {
-      title: `${event.title} | Collector's Paradise`,
-      description: event.description || `Join us for ${event.title} at ${event.venue}.`,
+      title: `${event.title} | Collector's Paradise Melbourne`,
+      description:
+        event.description ||
+        `${event.title} — ${dateStr} at ${event.venue}, Melbourne. Buy tickets now.`,
+      type: 'website',
+      locale: 'en_AU',
       ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
         images: [{ url: event.cover_image_url, width: 1200, height: 630, alt: event.title }],
       } : {}),
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${event.title} — ${dateStr}`,
+      description: event.description || `Trading card event in Melbourne on ${dateStr}.`,
+      ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
+        images: [event.cover_image_url],
+      } : {}),
+    },
     alternates: {
       canonical: `https://collectorsparadise.com.au/events/${id}`,
+    },
+    other: {
+      'geo.region': 'AU-VIC',
+      'geo.placename': event.venue || 'Melbourne',
     },
   };
 }
@@ -72,6 +104,19 @@ export default async function EventDetailPage({ params }: Props) {
   return (
     <main>
       <Navbar />
+
+      <EventSchema
+        name={event.title}
+        description={event.description || `${event.title} — trading card event in Melbourne, Australia.`}
+        startDate={`${event.event_date}T${event.start_time || '09:00'}:00`}
+        endDate={`${event.event_date}T${event.end_time || '17:00'}:00`}
+        venue={event.venue || 'Melbourne'}
+        venueAddress={event.venue_address || undefined}
+        ticketPrice={event.ticket_price ?? undefined}
+        ticketUrl={`https://collectorsparadise.com.au/events/${event.id}`}
+        imageUrl={event.cover_image_url || undefined}
+        status={(event.status as 'upcoming' | 'completed' | 'cancelled') || 'upcoming'}
+      />
 
       <section className="edp-main">
         <div className="container">

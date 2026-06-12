@@ -7,11 +7,21 @@ import type { Metadata } from 'next';
 export const revalidate = 3600; // Cache for 1 hour to improve navigation speed
 
 export const metadata: Metadata = {
-  title: "Events",
-  description: 'Browse upcoming Pokémon TCG events in Melbourne. Buy tickets, meet vendors, and join the collector community.',
+  title: "Pokémon TCG & Trading Card Events in Melbourne | Upcoming & Past",
+  description:
+    "Browse upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic: The Gathering, and sports card events in Melbourne, Australia. Buy tickets, meet vendors, and join Australia's largest collector community.",
+  keywords: [
+    'Pokemon events Melbourne',
+    'trading card events Australia',
+    'TCG tournament Melbourne',
+    'card show Melbourne 2026',
+    'upcoming Pokemon events Victoria',
+    'past Pokemon events Australia',
+  ],
   openGraph: {
-    title: "Events | Collector's Paradise",
-    description: 'Browse upcoming Pokémon TCG events in Melbourne. Buy tickets and join the community.',
+    title: "Melbourne Trading Card Events | Collector's Paradise",
+    description:
+      "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events in Melbourne. Buy tickets, meet vendors.",
   },
   alternates: {
     canonical: 'https://collectorsparadise.com.au/events',

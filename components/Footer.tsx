@@ -46,9 +46,19 @@ export default function Footer() {
           <nav className="footer-nav" aria-label="Footer navigation">
             <Link href="/events">EVENTS</Link>
             <Link href="/vendors/apply">VENDOR APPLICATION</Link>
+            <Link href="/sponsorship">SPONSORSHIP</Link>
+            <Link href="/volunteers">VOLUNTEER</Link>
             <Link href="/about">ABOUT</Link>
             <Link href="/about#contact">CONTACT</Link>
           </nav>
+
+          {/* Address block — supports Local SEO NAP consistency */}
+          <address className="footer-address" style={{ fontStyle: 'normal', textAlign: 'center', marginTop: '1rem', color: 'var(--color-dark)', fontSize: '0.85rem', lineHeight: 1.6 }}>
+            Collector's Paradise<br />
+            Melbourne, Victoria 3000<br />
+            Australia<br />
+            <a href="mailto:hello@collectorsparadise.com.au" style={{ color: 'inherit' }}>hello@collectorsparadise.com.au</a>
+          </address>
         </div>
 
         {/* Bottom Contact / Legal Bar */}

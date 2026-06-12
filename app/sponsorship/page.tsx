@@ -4,11 +4,20 @@ import Footer from '@/components/Footer';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Sponsorship',
-  description: 'Partner with Collector\'s Paradise — Melbourne\'s premier Pokémon trading card event. Reach thousands of collectors and showcase your brand to the TCG community.',
+  title: 'Event Sponsorship Melbourne | Partner with Pokémon TCG Events',
+  description:
+    "Become a sponsor of Collector's Paradise — Melbourne's biggest Pokémon TCG and trading card event. Reach 2,000+ Australian collectors per event. Platinum, Gold, Silver and custom packages available.",
+  keywords: [
+    'event sponsorship Melbourne',
+    'Pokemon TCG sponsorship Australia',
+    'trading card event partner',
+    'Melbourne hobby sponsorship',
+    'youth market sponsorship Australia',
+  ],
   openGraph: {
-    title: "Sponsorship | Collector's Paradise",
-    description: "Partner with Collector's Paradise and reach thousands of collectors and TCG enthusiasts.",
+    title: "Event Sponsorship | Collector's Paradise Melbourne",
+    description:
+      "Reach 2,000+ Australian collectors per event. Partner with Melbourne's biggest trading card event series.",
   },
   alternates: {
     canonical: 'https://collectorsparadise.com.au/sponsorship',
