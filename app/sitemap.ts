@@ -7,33 +7,56 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 export const revalidate = 3600;
 export const dynamic = 'force-dynamic';
 
+/**
+ * Resolve a usable absolute image URL for a sitemap entry.
+ *
+ * Rejects:
+ *  - data: URIs (invalid in sitemaps — would render as e.g.
+ *    `https://site.com.audata:image/png;base64,...` which is not a URL)
+ *  - empty / missing values
+ *  - relative paths that don't start with `/`
+ *
+ * Returns `null` for any invalid value so the caller can omit the
+ * `images` field entirely instead of publishing a broken URL.
+ */
+function resolveSitemapImage(url: string | null | undefined, fallback: string): string | null {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  // Reject any inline / data URI — these break image sitemaps.
+  if (trimmed.startsWith('data:')) return null;
+  // Only absolute http(s) URLs are valid in a sitemap image entry.
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  return null;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://collectorsparadise.com.au';
+  const baseUrl = 'https://collectorsparadise.au';
   const ogImage = `${baseUrl}/og-image.png`;
   const logoImage = `${baseUrl}/images/logo.png`;
 
-  // Static pages
+  // Static pages — only attach an `images` field when we have a valid URL.
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 1,
-      images: [ogImage],
+      ...(resolveSitemapImage(ogImage, '') ? { images: [ogImage] } : {}),
     },
     {
       url: `${baseUrl}/about`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: 0.8,
-      images: [logoImage],
+      ...(resolveSitemapImage(logoImage, '') ? { images: [logoImage] } : {}),
     },
     {
       url: `${baseUrl}/events`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
-      images: [ogImage],
+      ...(resolveSitemapImage(ogImage, '') ? { images: [ogImage] } : {}),
     },
     {
       url: `${baseUrl}/vendors`,
@@ -73,7 +96,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Dynamic event pages
+  // Dynamic event pages — skip any event whose cover image is invalid
+  // (e.g. stored as a data URI) so we never publish a malformed entry.
   let eventPages: MetadataRoute.Sitemap = [];
   try {
     const supabase = await createSupabaseServerClient();
@@ -84,20 +108,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .order('event_date', { ascending: false });
 
     if (events) {
-      eventPages = events.map((event) => {
-        const imageUrl = event.cover_image_url
-          ? event.cover_image_url.startsWith('http')
-            ? event.cover_image_url
-            : `${baseUrl}${event.cover_image_url}`
-          : ogImage;
-        return {
-          url: `${baseUrl}/events/${event.id}`,
-          lastModified: new Date(event.updated_at),
-          changeFrequency: 'weekly' as const,
-          priority: 0.7,
-          images: [imageUrl],
-        };
-      });
+      eventPages = events
+        .map((event) => {
+          const imageUrl = resolveSitemapImage(event.cover_image_url, ogImage) ?? ogImage;
+          return {
+            url: `${baseUrl}/events/${event.id}`,
+            lastModified: new Date(event.updated_at),
+            changeFrequency: 'weekly' as const,
+            priority: 0.7,
+            images: [imageUrl],
+          };
+        })
+        // Final safety net: drop anything that still has a bad URL.
+        .filter((entry) => Array.isArray(entry.images) && entry.images.length > 0);
     }
   } catch (error) {
     // Fail silently — static pages still get indexed

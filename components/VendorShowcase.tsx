@@ -36,7 +36,7 @@ const VendorShowcase = () => {
                 <Image src={s1} alt="Vendors Showcase Silhouette" width={800} height={700} loading="lazy" className="silhouette-img" />
                 <Image src={t1} alt="Vendors Showcase revealed" width={800} height={700} loading="lazy" className="reveal-img" />
               </div>
-              <Link href="/vendors" className="vendor-card-btn">VIEW VENDOR LIST</Link>
+              <Link href="/vendors" className="vendor-card-btn" prefetch>VIEW VENDOR LIST</Link>
             </div>
           </div>
 
@@ -55,7 +55,7 @@ const VendorShowcase = () => {
                 <Image src={s2} alt="Singles Showcase Silhouette" width={800} height={700} loading="lazy" className="silhouette-img" />
                 <Image src={v2} alt="Singles Showcase revealed" width={800} height={700} loading="lazy" className="reveal-img" />
               </div>
-              <Link href="/vendors/apply" className="vendor-card-btn">JOIN AS VENDOR</Link>
+              <Link href="/vendors/apply" className="vendor-card-btn" prefetch>JOIN AS VENDOR</Link>
             </div>
           </div>
 

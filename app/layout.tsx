@@ -39,7 +39,7 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://collectorsparadise.com.au"),
+  metadataBase: new URL("https://collectorsparadise.au"),
   title: {
     default: "Collector's Paradise | Pokémon Trading Card Events in Melbourne, Australia",
     template: "%s | Collector's Paradise",
@@ -84,7 +84,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Collector's Paradise",
     locale: "en_AU",
-    url: "https://collectorsparadise.com.au",
+    url: "https://collectorsparadise.au",
     countryName: "Australia",
     images: [
       {
@@ -114,11 +114,11 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://collectorsparadise.com.au",
+    canonical: "https://collectorsparadise.au",
     languages: {
-      "en-AU": "https://collectorsparadise.com.au",
-      "en-GB": "https://collectorsparadise.com.au",
-      "en-US": "https://collectorsparadise.com.au",
+      "en-AU": "https://collectorsparadise.au",
+      "en-GB": "https://collectorsparadise.au",
+      "en-US": "https://collectorsparadise.au",
     },
   },
   other: {

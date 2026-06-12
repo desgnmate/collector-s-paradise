@@ -18,7 +18,7 @@ const supabase = createClient(
 );
 
 async function createAdmin() {
-  const email = 'admin@collectorsparadise.com';
+  const email = 'admin@collectorsparadise.au';
   const password = '@Collectors2026!23';
 
   // Step 1: Create the auth user

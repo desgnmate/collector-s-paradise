@@ -56,7 +56,7 @@ export default function AdminLoginClient() {
               name="email"
               type="email"
               className="admin-login-input"
-              placeholder="admin@collectorsparadise.com"
+              placeholder="admin@collectorsparadise.au"
               required
               autoComplete="email"
             />

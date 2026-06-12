@@ -59,7 +59,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       } : {}),
     },
     alternates: {
-      canonical: `https://collectorsparadise.com.au/events/${id}`,
+      canonical: `https://collectorsparadise.au/events/${id}`,
     },
     other: {
       'geo.region': 'AU-VIC',
@@ -113,7 +113,7 @@ export default async function EventDetailPage({ params }: Props) {
         venue={event.venue || 'Melbourne'}
         venueAddress={event.venue_address || undefined}
         ticketPrice={event.ticket_price ?? undefined}
-        ticketUrl={`https://collectorsparadise.com.au/events/${event.id}`}
+        ticketUrl={`https://collectorsparadise.au/events/${event.id}`}
         imageUrl={event.cover_image_url || undefined}
         status={(event.status as 'upcoming' | 'completed' | 'cancelled') || 'upcoming'}
       />

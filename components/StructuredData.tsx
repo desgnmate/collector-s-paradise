@@ -16,14 +16,14 @@ export function LocalBusinessSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': ['LocalBusiness', 'EventVenue'],
-    '@id': 'https://collectorsparadise.com.au/#localbusiness',
+    '@id': 'https://collectorsparadise.au/#localbusiness',
     name: "Collector's Paradise",
     alternateName: "Collector's Paradise Melbourne",
     description:
       "Melbourne's premier Pokémon trading card and collectibles event. Buy, sell, trade rare cards, meet vendors, and connect with the collector community at our live events.",
-    url: 'https://collectorsparadise.com.au',
-    logo: 'https://collectorsparadise.com.au/images/logo.png',
-    image: 'https://collectorsparadise.com.au/og-image.png',
+    url: 'https://collectorsparadise.au',
+    logo: 'https://collectorsparadise.au/images/logo.png',
+    image: 'https://collectorsparadise.au/og-image.png',
     telephone: '+61-400-000-000',
     priceRange: '$$',
     address: {
@@ -135,11 +135,11 @@ export function EventSeriesSchema() {
     name: "Collector's Paradise Melbourne Trading Card Events",
     description:
       "Recurring Pokémon TCG and trading card collector events in Melbourne, Australia. Featuring buy/sell/trade floors, tournaments, giveaways, and vendor halls.",
-    url: 'https://collectorsparadise.com.au/events',
+    url: 'https://collectorsparadise.au/events',
     organizer: {
       '@type': 'Organization',
       name: "Collector's Paradise",
-      url: 'https://collectorsparadise.com.au',
+      url: 'https://collectorsparadise.au',
     },
     location: {
       '@type': 'Place',
@@ -168,8 +168,8 @@ export function EventSeriesSchema() {
  */
 export function OrganizationSchema({
   name = "Collector's Paradise",
-  url = 'https://collectorsparadise.com.au',
-  logo = 'https://collectorsparadise.com.au/images/logo.png',
+  url = 'https://collectorsparadise.au',
+  logo = 'https://collectorsparadise.au/images/logo.png',
   description = "Melbourne's premier Pokémon trading card event. Buy, sell, trade rare cards and connect with the collector community.",
 }: OrganizationSchemaProps) {
   const orgSchema = {
@@ -186,7 +186,7 @@ export function OrganizationSchema({
     },
     contactPoint: {
       '@type': 'ContactPoint',
-      email: 'hello@collectorsparadise.com.au',
+      email: 'hello@collectorsparadise.au',
       contactType: 'customer service',
     },
   };
@@ -238,7 +238,7 @@ export function EventSchema({
   venue,
   venueAddress,
   ticketPrice,
-  ticketUrl = 'https://collectorsparadise.com.au/events',
+  ticketUrl = 'https://collectorsparadise.au/events',
   imageUrl,
   status = 'upcoming',
 }: EventSchemaProps) {
@@ -271,13 +271,13 @@ export function EventSchema({
     organizer: {
       '@type': 'Organization',
       name: "Collector's Paradise",
-      url: 'https://collectorsparadise.com.au',
+      url: 'https://collectorsparadise.au',
     },
   };
 
   if (imageUrl) {
     schema.image = imageUrl.startsWith('/')
-      ? `https://collectorsparadise.com.au${imageUrl}`
+      ? `https://collectorsparadise.au${imageUrl}`
       : imageUrl;
   }
 

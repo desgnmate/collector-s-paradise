@@ -21,7 +21,7 @@ export default function robots(): MetadataRoute.Robots {
       // Block scrapers we don't want indexing draft/admin routes
       { userAgent: '*', disallow: ['/admin/', '/admin-login'] },
     ],
-    sitemap: 'https://collectorsparadise.com.au/sitemap.xml',
-    host: 'https://collectorsparadise.com.au',
+    sitemap: 'https://collectorsparadise.au/sitemap.xml',
+    host: 'https://collectorsparadise.au',
   };
 }

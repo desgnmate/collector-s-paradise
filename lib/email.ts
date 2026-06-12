@@ -4,7 +4,7 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@collectorsparadise.com';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@collectorsparadise.au';
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
 
 // Helper to check if Resend is configured

@@ -26,7 +26,7 @@ const FAQS = [
   {
     id: 'contact',
     question: 'How do I contact you?',
-    answer: "You can reach us at hello@collectorsparadise.com.au. We typically respond within 1–2 business days. For urgent event enquiries, please email us directly.",
+    answer: "You can reach us at hello@collectorsparadise.au. We typically respond within 1–2 business days. For urgent event enquiries, please email us directly.",
   },
   {
     id: 'refund',

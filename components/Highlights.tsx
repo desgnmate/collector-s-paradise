@@ -2,6 +2,11 @@ import HighlightsClient from './HighlightsClient';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import type { Event } from '@/app/actions/events';
 
+// Cache the events query for 10 minutes so repeated navigations to
+// the home page don't hit Supabase on every visit. Background
+// revalidation keeps the data fresh.
+export const revalidate = 600;
+
 export default async function Highlights() {
   const supabase = await createSupabaseServerClient();
 

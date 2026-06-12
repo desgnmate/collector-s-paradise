@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       "Sell your trading cards and collectibles at Melbourne's biggest Pokémon TCG and trading card events.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/vendors/apply',
+    canonical: 'https://collectorsparadise.au/vendors/apply',
   },
 };
 

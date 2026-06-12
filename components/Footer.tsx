@@ -44,12 +44,12 @@ export default function Footer() {
           </AdminSecretAccess>
 
           <nav className="footer-nav" aria-label="Footer navigation">
-            <Link href="/events">EVENTS</Link>
-            <Link href="/vendors/apply">VENDOR APPLICATION</Link>
-            <Link href="/sponsorship">SPONSORSHIP</Link>
-            <Link href="/volunteers">VOLUNTEER</Link>
-            <Link href="/about">ABOUT</Link>
-            <Link href="/about#contact">CONTACT</Link>
+            <Link href="/events" prefetch>EVENTS</Link>
+            <Link href="/vendors/apply" prefetch>VENDOR APPLICATION</Link>
+            <Link href="/sponsorship" prefetch>SPONSORSHIP</Link>
+            <Link href="/volunteers" prefetch>VOLUNTEER</Link>
+            <Link href="/about" prefetch>ABOUT</Link>
+            <Link href="/about#contact" prefetch>CONTACT</Link>
           </nav>
 
           {/* Address block — supports Local SEO NAP consistency */}
@@ -57,7 +57,7 @@ export default function Footer() {
             Collector's Paradise<br />
             Melbourne, Victoria 3000<br />
             Australia<br />
-            <a href="mailto:hello@collectorsparadise.com.au" style={{ color: 'inherit' }}>hello@collectorsparadise.com.au</a>
+            <a href="mailto:hello@collectorsparadise.au" style={{ color: 'inherit' }}>hello@collectorsparadise.au</a>
           </address>
         </div>
 

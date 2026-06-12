@@ -19,7 +19,7 @@ export const metadata: Metadata = {
       "Help run Melbourne's biggest trading card events. Volunteer roles include setup, registration, floor guides, and breakdown.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/volunteers',
+    canonical: 'https://collectorsparadise.au/volunteers',
   },
 };
 

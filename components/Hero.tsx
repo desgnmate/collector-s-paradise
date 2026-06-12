@@ -34,7 +34,7 @@ export default function Hero() {
           most passionate collector community.
         </p>
         <div className="hero-buttons">
-          <Link href="/events" className="btn btn-hero-ticket">
+          <Link href="/events" className="btn btn-hero-ticket" prefetch>
             Buy Tickets
           </Link>
         </div>

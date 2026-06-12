@@ -21,7 +21,7 @@ export const metadata: Metadata = {
       "Melbourne's leading trading card and Pokémon TCG event organisers. Meet the team behind Australia's most passionate collector events.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/about',
+    canonical: 'https://collectorsparadise.au/about',
   },
 };
 

@@ -20,7 +20,7 @@
       "jsx",
       "js"
     ],
-    "poweredByHeader": true,
+    "poweredByHeader": false,
     "compress": true,
     "images": {
       "deviceSizes": [
@@ -200,7 +200,7 @@
       "removeUncaughtErrorAndRejectionListeners": false,
       "validateRSCRequestHeaders": false,
       "staleTimes": {
-        "dynamic": 0,
+        "dynamic": 60,
         "static": 300
       },
       "reactDebugChannel": true,
@@ -226,6 +226,7 @@
       },
       "optimizePackageImports": [
         "lucide-react",
+        "framer-motion",
         "date-fns",
         "lodash-es",
         "ramda",

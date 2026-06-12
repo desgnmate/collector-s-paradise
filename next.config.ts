@@ -5,6 +5,15 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+    // Cache client-side navigations for 5 minutes. Combined with
+    // Next.js's built-in Link prefetch, this means the back/forward
+    // buttons and re-visits to pages feel instant.
+    staleTimes: {
+      dynamic: 60,
+      static: 300,
+    },
+    // Tree-shake unused exports from heavy libraries
+    optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   images: {
     unoptimized: true,
@@ -13,6 +22,11 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   compress: true,
+  // Don't ship source maps to clients in production (smaller bundles
+  // = faster navigation transitions)
+  productionBrowserSourceMaps: false,
+  // Reduce server response time for navigation requests
+  poweredByHeader: false,
 };
 
 export default nextConfig;

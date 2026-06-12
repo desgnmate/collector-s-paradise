@@ -24,7 +24,7 @@ export const metadata: Metadata = {
       "Discover approved Australian trading card vendors — rare Pokémon, Yu-Gi-Oh!, One Piece, sports cards, and graded cards.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/vendors',
+    canonical: 'https://collectorsparadise.au/vendors',
   },
 };
 

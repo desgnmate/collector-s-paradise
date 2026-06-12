@@ -20,7 +20,7 @@ export const metadata: Metadata = {
       "Reach 2,000+ Australian collectors per event. Partner with Melbourne's biggest trading card event series.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/sponsorship',
+    canonical: 'https://collectorsparadise.au/sponsorship',
   },
 };
 

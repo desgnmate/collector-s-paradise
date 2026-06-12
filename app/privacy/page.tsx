@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     description: "How Collector's Paradise collects, uses, and protects your personal information.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/privacy',
+    canonical: 'https://collectorsparadise.au/privacy',
   },
 };
 
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
               <div className="legal-contact-card">
                 <p><strong>Collector's Paradise</strong></p>
                 <p>Melbourne, Australia</p>
-                <p>Email: <a href="mailto:hello@collectorsparadise.com.au">hello@collectorsparadise.com.au</a></p>
+                <p>Email: <a href="mailto:hello@collectorsparadise.au">hello@collectorsparadise.au</a></p>
               </div>
             </div>
 

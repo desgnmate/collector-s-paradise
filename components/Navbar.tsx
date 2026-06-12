@@ -280,8 +280,8 @@ export default function Navbar() {
 
         {/* Contact / address block — supports local SEO NAP */}
         <div className="mobile-menu-footer">
-          <a href="mailto:hello@collectorsparadise.com.au" className="mobile-menu-email">
-            hello@collectorsparadise.com.au
+          <a href="mailto:hello@collectorsparadise.au" className="mobile-menu-email">
+            hello@collectorsparadise.au
           </a>
           <p className="mobile-menu-address">
             Melbourne, Victoria, Australia

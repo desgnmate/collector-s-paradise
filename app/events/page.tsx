@@ -24,7 +24,7 @@ export const metadata: Metadata = {
       "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events in Melbourne. Buy tickets, meet vendors.",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.com.au/events',
+    canonical: 'https://collectorsparadise.au/events',
   },
 };
 
