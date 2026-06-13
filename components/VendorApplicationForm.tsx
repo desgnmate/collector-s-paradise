@@ -324,15 +324,14 @@ export default function VendorApplicationForm() {
       {/* Agreement */}
       <div className="vendor-form-section">
         <div className="vendor-form-group vendor-form-group-wide">
-          <label className="vendor-agreement-label" style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', cursor: 'pointer' }}>
+          <label className="vendor-agreement-label">
             <input
               type="checkbox"
               name="agreement"
               required
-              style={{ marginTop: '0.25rem', accentColor: 'var(--color-dark)' }}
             />
-            <span style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
-              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline', color: 'var(--color-dark)' }}>Terms and Conditions</a> and confirm that all information provided is accurate. I understand that submission of this application does not guarantee vendor acceptance. *
+            <span>
+              I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms and Conditions</a> and confirm that all information provided is accurate. I understand that submission of this application does not guarantee vendor acceptance. *
             </span>
           </label>
           {state.errors?.agreement && (

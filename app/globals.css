@@ -5874,23 +5874,27 @@ button.login-dropdown-item:hover .login-item-desc {
 .vendor-agreement-label input[type="checkbox"] {
   flex-shrink: 0;
   margin-top: 0.25rem;
+  width: 1.1rem;
+  height: 1.1rem;
   accent-color: var(--color-dark);
+  cursor: pointer;
 }
 
-.vendor-agreement-label > span,
-.vendor-agreement-label > a {
-  flex: 1;
+.vendor-agreement-label > span {
+  flex: 1 1 0%;
   min-width: 0;
   font-size: 0.9rem;
   line-height: 1.5;
   color: var(--color-dark);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .vendor-agreement-label a {
   text-decoration: underline;
   color: var(--color-dark);
+  font-weight: 600;
 }
 
 .vendor-form-error {
