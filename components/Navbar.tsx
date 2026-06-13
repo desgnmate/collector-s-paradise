@@ -224,6 +224,30 @@ export default function Navbar() {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
+
+            {/* Desktop dropdown — hidden on mobile (≤900px) via CSS */}
+            <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
+              <div className="navbar-dropdown-inner">
+                <Link href="/" className="dropdown-item" onClick={handleLogoClick} prefetch>
+                  <span className="menu-item-text">Home</span>
+                </Link>
+                <Link href="/about" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
+                  <span className="menu-item-text">About</span>
+                </Link>
+                <Link href="/events" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
+                  <span className="menu-item-text">Events</span>
+                </Link>
+                <Link href="/vendors" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
+                  <span className="menu-item-text">Vendors</span>
+                </Link>
+                <Link href="/sponsorship" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
+                  <span className="menu-item-text">Sponsorship</span>
+                </Link>
+                <Link href="/volunteers" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
+                  <span className="menu-item-text">Volunteers</span>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -280,8 +304,8 @@ export default function Navbar() {
 
         {/* Contact / address block — supports local SEO NAP */}
         <div className="mobile-menu-footer">
-          <a href="mailto:hello@collectorsparadise.au" className="mobile-menu-email">
-            hello@collectorsparadise.au
+          <a href="mailto:Collectorsinparadise@gmail.com" className="mobile-menu-email">
+            Collectorsinparadise@gmail.com
           </a>
           <p className="mobile-menu-address">
             Melbourne, Victoria, Australia

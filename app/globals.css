@@ -975,7 +975,7 @@ button.login-dropdown-item:hover .login-item-desc {
    fullscreen overlay, so hide the popout entirely. */
 @media (max-width: 900px) {
   .navbar-dropdown {
-    display: none;
+    display: none !important;
   }
 
   /* Apply-as-vendor pill moves into the overlay on mobile. */

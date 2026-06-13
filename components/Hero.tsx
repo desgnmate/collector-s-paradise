@@ -25,7 +25,7 @@ export default function Hero() {
       {/* Content */}
       <div className="hero-content">
         <h1 className="hero-title">
-          Where Melbourne Collectors<br />
+          Where Collectors<br />
           Meet, Trade &amp; Connect
         </h1>
         <p className="hero-subtitle">

@@ -57,7 +57,7 @@ export default function Footer() {
             Collector's Paradise<br />
             Melbourne, Victoria 3000<br />
             Australia<br />
-            <a href="mailto:hello@collectorsparadise.au" style={{ color: 'inherit' }}>hello@collectorsparadise.au</a>
+            <a href="mailto:Collectorsinparadise@gmail.com" style={{ color: 'inherit' }}>Collectorsinparadise@gmail.com</a>
           </address>
         </div>
 
