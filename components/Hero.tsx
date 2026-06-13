@@ -29,9 +29,9 @@ export default function Hero() {
           Meet, Trade &amp; Connect
         </h1>
         <p className="hero-subtitle">
-          Melbourne's biggest live trading card event. Buy, sell and trade
-          Pokémon cards, discover rare finds, and connect with Australia's
-          most passionate collector community.
+          Australia's home of trading card events. Buy, sell and trade your
+          favourite TCGs, discover rare finds, and connect with collectors
+          who are as obsessed as you are.
         </p>
         <div className="hero-buttons">
           <Link href="/events" className="btn btn-hero-ticket" prefetch>

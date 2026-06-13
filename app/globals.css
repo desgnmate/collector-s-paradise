@@ -5858,6 +5858,41 @@ button.login-dropdown-item:hover .login-item-desc {
   border-color: var(--color-yellow);
 }
 
+/* Agreement label: checkbox + multi-line text. The text span must
+   be allowed to shrink and wrap, otherwise flex children overflow
+   the container and the long sentence renders clipped to one
+   character per line on narrow viewports. */
+.vendor-agreement-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  width: 100%;
+  min-width: 0;
+}
+
+.vendor-agreement-label input[type="checkbox"] {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+  accent-color: var(--color-dark);
+}
+
+.vendor-agreement-label > span,
+.vendor-agreement-label > a {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--color-dark);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.vendor-agreement-label a {
+  text-decoration: underline;
+  color: var(--color-dark);
+}
+
 .vendor-form-error {
   font-size: 0.8rem;
   font-weight: 600;
@@ -11573,12 +11608,16 @@ button.login-dropdown-item:hover .login-item-desc {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xl);
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .legal-section {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .legal-section h2 {

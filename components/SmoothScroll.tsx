@@ -80,7 +80,11 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
   // and "Submit" CTA on small screens.
   const isAdminRoute = pathname?.startsWith('/admin') || pathname === '/admin-login';
   const isVendorApply = pathname === '/vendors/apply';
-  const hideChatWidget = isAdminRoute || isVendorApply;
+  // Legal pages don't need a sales chat widget — the floating
+  // Pokeball + open chat panel can overlap the long text and make
+  // it unreadable on small screens.
+  const isLegalPage = pathname === '/terms' || pathname === '/privacy';
+  const hideChatWidget = isAdminRoute || isVendorApply || isLegalPage;
 
   useEffect(() => {
     if (isAdminRoute) return;
