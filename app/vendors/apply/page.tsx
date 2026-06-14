@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
     title: "Apply as Vendor | Collector's Paradise Melbourne",
     description:
       "Sell your trading cards and collectibles at Melbourne's biggest Pokémon TCG and trading card events.",
+    url: "https://collectorsparadise.au/vendors/apply",
   },
   alternates: {
     canonical: 'https://collectorsparadise.au/vendors/apply',
@@ -48,6 +50,7 @@ export default function VendorApplyPage() {
           </div>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

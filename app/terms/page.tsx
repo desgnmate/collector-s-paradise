@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Terms & Conditions | Collector's Paradise",
     description: "Terms and Conditions governing your use of the Collector's Paradise website and services.",
+    url: "https://collectorsparadise.au/terms",
   },
   alternates: {
     canonical: 'https://collectorsparadise.au/terms',

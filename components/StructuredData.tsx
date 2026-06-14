@@ -24,7 +24,6 @@ export function LocalBusinessSchema() {
     url: 'https://collectorsparadise.au',
     logo: 'https://collectorsparadise.au/images/logo.png',
     image: 'https://collectorsparadise.au/og-image.png',
-    telephone: '+61-400-000-000',
     priceRange: '$$',
     address: {
       '@type': 'PostalAddress',
@@ -43,26 +42,11 @@ export function LocalBusinessSchema() {
       { '@type': 'State', name: 'Victoria' },
       { '@type': 'Country', name: 'Australia' },
     ],
-    openingHoursSpecification: [
-      {
-        '@type': 'OpeningHoursSpecification',
-        dayOfWeek: ['Saturday', 'Sunday'],
-        opens: '09:00',
-        closes: '17:00',
-      },
-    ],
     sameAs: [
       'https://www.instagram.com/collectorsparadisemelbourne',
       'https://www.facebook.com/collectorsparadisemelbourne',
       'https://twitter.com/collectorsparadise',
     ],
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: '4.9',
-      reviewCount: '128',
-      bestRating: '5',
-      worstRating: '1',
-    },
   };
   return (
     <script

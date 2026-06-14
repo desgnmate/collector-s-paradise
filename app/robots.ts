@@ -18,8 +18,6 @@ export default function robots(): MetadataRoute.Robots {
       { userAgent: 'Google-Extended', allow: '/', disallow: ['/admin/', '/admin-login'] },
       { userAgent: 'CCBot', allow: '/', disallow: ['/admin/', '/admin-login'] },
       { userAgent: 'Applebot-Extended', allow: '/', disallow: ['/admin/', '/admin-login'] },
-      // Block scrapers we don't want indexing draft/admin routes
-      { userAgent: '*', disallow: ['/admin/', '/admin-login'] },
     ],
     sitemap: 'https://collectorsparadise.au/sitemap.xml',
     host: 'https://collectorsparadise.au',

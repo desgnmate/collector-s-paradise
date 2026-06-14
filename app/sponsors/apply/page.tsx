@@ -4,6 +4,7 @@ import { useState, useActionState } from 'react';
 import { submitSponsorApplication } from '@/app/actions/sponsors';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const SPONSORSHIP_TIERS = [
   { id: 'platinum', name: 'Platinum ($5,000+)', description: 'Maximum visibility and premium benefits' },
@@ -110,6 +111,7 @@ export default function SponsorApplyPage() {
             </div>
           </div>
         </div>
+        <Footer />
       </main>
     );
   }
@@ -794,6 +796,7 @@ export default function SponsorApplyPage() {
           </form>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

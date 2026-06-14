@@ -2804,7 +2804,6 @@ button.login-dropdown-item:hover .login-item-desc {
 
   .experience-content .section-subtitle {
     font-size: 0.95rem;
-    max-width: 480px;
     /* Forces 4 lines for the description */
     line-height: 1.6;
     margin-left: 0;

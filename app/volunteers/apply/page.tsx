@@ -4,6 +4,7 @@ import { useState, useActionState } from 'react';
 import { submitVolunteerApplication } from '@/app/actions/volunteers';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const VOLUNTEER_ROLES = [
   { id: 'setup', name: 'Event Setup Crew', description: 'Help set up tables, chairs, and decorations (7:00 AM - 10:00 AM)' },
@@ -65,6 +66,7 @@ export default function VolunteerApplyPage() {
             </div>
           </div>
         </div>
+        <Footer />
       </main>
     );
   }
@@ -470,6 +472,7 @@ export default function VolunteerApplyPage() {
           </form>
         </div>
       </section>
+      <Footer />
     </main>
   );
 }

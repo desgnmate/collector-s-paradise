@@ -115,20 +115,6 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://collectorsparadise.au",
-    languages: {
-      "en-AU": "https://collectorsparadise.au",
-      "en-GB": "https://collectorsparadise.au",
-      "en-US": "https://collectorsparadise.au",
-    },
-  },
-  other: {
-    "geo.region": "AU-VIC",
-    "geo.placename": "Melbourne",
-    "geo.position": "-37.8136;144.9631",
-    ICBM: "-37.8136, 144.9631",
-    "distribution": "global",
-    "rating": "general",
-    "revisit-after": "3 days",
   },
   verification: {
     google: "googleee7ef25e2b145100",

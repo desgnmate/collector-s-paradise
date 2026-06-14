@@ -35,18 +35,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ogImage = `${baseUrl}/og-image.png`;
   const logoImage = `${baseUrl}/images/logo.png`;
 
-  // Static pages — only attach an `images` field when we have a valid URL.
+  // Static pages — use a fixed date to avoid false freshness signals.
+  const staticLastMod = new Date('2025-06-14');
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
       changeFrequency: 'weekly',
       priority: 1,
       ...(resolveSitemapImage(ogImage, '') ? { images: [ogImage] } : {}),
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.8,
       ...(resolveSitemapImage(logoImage, '') ? { images: [logoImage] } : {}),
@@ -66,31 +67,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     {
       url: `${baseUrl}/vendors/apply`,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${baseUrl}/sponsorship`,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
+      url: `${baseUrl}/sponsors/apply`,
+      lastModified: staticLastMod,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
       url: `${baseUrl}/volunteers`,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
+      changeFrequency: 'monthly',
+      priority: 0.5,
+    },
+    {
+      url: `${baseUrl}/volunteers/apply`,
+      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: new Date(),
+      lastModified: staticLastMod,
       changeFrequency: 'yearly',
       priority: 0.3,
     },

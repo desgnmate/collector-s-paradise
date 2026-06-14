@@ -19,6 +19,7 @@ export const metadata: Metadata = {
     title: "About Collector's Paradise | Melbourne Trading Card Events",
     description:
       "Melbourne's leading trading card and Pokémon TCG event organisers. Meet the team behind Australia's most passionate collector events.",
+    url: "https://collectorsparadise.au/about",
   },
   alternates: {
     canonical: 'https://collectorsparadise.au/about',

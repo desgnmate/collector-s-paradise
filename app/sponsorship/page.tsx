@@ -18,6 +18,7 @@ export const metadata: Metadata = {
     title: "Event Sponsorship | Collector's Paradise Melbourne",
     description:
       "Reach 2,000+ Australian collectors per event. Partner with Melbourne's biggest trading card event series.",
+    url: "https://collectorsparadise.au/sponsorship",
   },
   alternates: {
     canonical: 'https://collectorsparadise.au/sponsorship',

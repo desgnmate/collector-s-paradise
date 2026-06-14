@@ -8,6 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Privacy Policy | Collector's Paradise",
     description: "How Collector's Paradise collects, uses, and protects your personal information.",
+    url: "https://collectorsparadise.au/privacy",
   },
   alternates: {
     canonical: 'https://collectorsparadise.au/privacy',

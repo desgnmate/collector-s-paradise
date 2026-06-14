@@ -27,6 +27,29 @@ const nextConfig: NextConfig = {
   productionBrowserSourceMaps: false,
   // Reduce server response time for navigation requests
   poweredByHeader: false,
+  // Cache static assets for improved repeat-visit performance
+  async headers() {
+    return [
+      {
+        source: '/_next/static/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/images/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400' },
+        ],
+      },
+      {
+        source: '/videos/(.*)',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=86400' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
