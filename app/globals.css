@@ -4256,8 +4256,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .polaroid img {
   width: 150px;
   height: auto;
-  aspect-ratio: 2.5 / 3.5;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 4px;
   display: block;
 }
@@ -4471,7 +4470,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
   .polaroid img {
     width: 75px;
-    height: 75px;
+    height: auto;
   }
 
   .polaroid.p-1 {
@@ -4822,7 +4821,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
   .polaroid img {
     width: 60px;
-    height: 60px;
+    height: auto;
   }
 
   .polaroid {
@@ -4935,7 +4934,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
   .polaroid img {
     width: 50px;
-    height: 50px;
+    height: auto;
   }
 
   .polaroid {
