@@ -1,16 +1,12 @@
 import { Resend } from 'resend';
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+function getResend() {
+  if (!process.env.RESEND_API_KEY) return null;
+  return new Resend(process.env.RESEND_API_KEY);
+}
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@collectorsparadise.au';
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev';
-
-// Helper to check if Resend is configured
-function isResendConfigured() {
-  return !!resend;
-}
 
 // Email: New Vendor Application Submitted
 export async function sendNewApplicationEmail(
@@ -18,6 +14,7 @@ export async function sendNewApplicationEmail(
   businessName: string,
   contactName: string
 ) {
+  const resend = getResend();
   if (!resend) {
     console.warn('Resend not configured. Skipping email notifications.');
     return { success: false, error: 'Resend not configured' };
@@ -77,6 +74,7 @@ export async function sendApprovalEmail(
   businessName: string,
   contactName: string
 ) {
+  const resend = getResend();
   if (!resend) {
     console.warn('Resend not configured. Skipping approval email.');
     return { success: false, error: 'Resend not configured' };
@@ -116,6 +114,7 @@ export async function sendRejectionEmail(
   contactName: string,
   reason?: string
 ) {
+  const resend = getResend();
   if (!resend) {
     console.warn('Resend not configured. Skipping rejection email.');
     return { success: false, error: 'Resend not configured' };
