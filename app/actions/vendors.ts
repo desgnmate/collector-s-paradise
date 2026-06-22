@@ -115,6 +115,7 @@ export async function submitVendorApplication(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
+  try {
   const supabase = await createSupabaseServerClient();
 
   const categories = formData.getAll('categories') as string[];
@@ -280,6 +281,13 @@ export async function submitVendorApplication(
     message: 'Application submitted securely! We\'ll review your application and get back to you soon.',
     success: true,
   };
+  } catch (err) {
+    console.error('Vendor application error:', err);
+    return {
+      message: 'Something went wrong while submitting your application. Please try again or contact support.',
+      success: false,
+    };
+  }
 }
 
 /** Get all approved vendors (publicly accessible for vendor list) */
