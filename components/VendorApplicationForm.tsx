@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useState, useEffect } from 'react';
 import { submitVendorApplication } from '@/app/actions/vendors';
 
 const AUSTRALIAN_STATES = [
@@ -35,6 +35,12 @@ export default function VendorApplicationForm() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (state.success) {
+      window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
+    }
+  }, [state.success]);
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -59,8 +65,7 @@ export default function VendorApplicationForm() {
         <div className="vendor-success-icon">✓</div>
         <h2 className="vendor-success-title">Application Submitted!</h2>
         <p className="vendor-success-text">
-          Thanks for your interest in joining Collector&apos;s Paradise as a vendor.
-          We&apos;ll review your application and get back to you via email within 3–5 business days.
+          Thank you for your interest in joining Collector&apos;s Paradise as a vendor. We&apos;ve received your application and will be in touch via email once it has been reviewed.
         </p>
       </div>
     );
