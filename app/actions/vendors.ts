@@ -29,7 +29,7 @@ export type Vendor = {
 };
 
 // Column selection for admin queries - only fetch what's needed
-const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
+const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
 
 // ============================================
 // Validation Schema
@@ -39,6 +39,7 @@ const vendorApplicationSchema = z.object({
   contact_name: z.string().min(1, 'Contact name is required').max(200),
   email: z.string().email('Please enter a valid email address'),
   phone: z.string().optional(),
+  location_state: z.string().min(1, 'Please select your state'),
   description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
   categories: z.array(z.string()).min(1, 'Please select at least one category'),
   social_links: z.string().min(1, 'Social media link is required').url('Please enter a valid URL'),
@@ -59,6 +60,56 @@ type ActionState = {
 // Public Actions
 // ============================================
 
+async function sendToGoogleSheet(data: Record<string, unknown>) {
+  const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+  if (!webhookUrl) return; // silently skip if not configured
+
+  await fetch(webhookUrl, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export async function syncAllVendorsToSheet() {
+  'use server';
+  const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
+  if (!webhookUrl) return { success: false, message: 'Google Sheet webhook not configured.' };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: vendors, error } = await supabase
+    .from('vendors')
+    .select('*')
+    .order('applied_at', { ascending: false });
+
+  if (error || !vendors) {
+    return { success: false, message: 'Failed to fetch vendors.' };
+  }
+
+  for (const v of vendors) {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        business_name: v.business_name,
+        contact_name: v.contact_name,
+        email: v.email,
+        phone: v.phone || '',
+        location_state: v.location_state || '',
+        categories: v.categories || [],
+        tables_requested: v.tables_requested || '',
+        power_requirements: v.power_requirements || '',
+        social_links: v.social_links || '',
+        description: v.description || '',
+        logo_url: v.logo_url || '',
+        application_status: v.application_status,
+      }),
+    });
+  }
+
+  return { success: true, message: `${vendors.length} applications synced to spreadsheet.` };
+}
+
 /** Submit a vendor application (publicly accessible) */
 export async function submitVendorApplication(
   prevState: ActionState,
@@ -74,6 +125,7 @@ export async function submitVendorApplication(
     contact_name: formData.get('contact_name') as string || '',
     email: formData.get('email') as string || '',
     phone: formData.get('phone') as string || '',
+    location_state: formData.get('location_state') as string || '',
     description: formData.get('description') as string || '',
     social_links: formData.get('social_links') as string || '',
     tables_requested: formData.get('tables_requested') as string || '',
@@ -87,6 +139,7 @@ export async function submitVendorApplication(
     contact_name: fields.contact_name,
     email: fields.email,
     phone: fields.phone || undefined,
+    location_state: fields.location_state,
     description: fields.description,
     categories,
     social_links: fields.social_links || undefined,
@@ -175,6 +228,7 @@ export async function submitVendorApplication(
     contact_name: validatedFields.data.contact_name,
     email: validatedFields.data.email,
     phone: validatedFields.data.phone || null,
+    location_state: validatedFields.data.location_state,
     description: validatedFields.data.description,
     categories: validatedFields.data.categories,
     logo_url: logoUrl,
@@ -204,6 +258,22 @@ export async function submitVendorApplication(
     validatedFields.data.business_name,
     validatedFields.data.contact_name
   ).catch((err) => console.error('Failed to send application emails:', err));
+
+  // Push to Google Sheet (non-blocking)
+  sendToGoogleSheet({
+    business_name: validatedFields.data.business_name,
+    contact_name: validatedFields.data.contact_name,
+    email: validatedFields.data.email,
+    phone: validatedFields.data.phone || '',
+    location_state: validatedFields.data.location_state,
+    categories: validatedFields.data.categories,
+    tables_requested: validatedFields.data.tables_requested,
+    power_requirements: validatedFields.data.power_requirements || '',
+    social_links: validatedFields.data.social_links || '',
+    description: validatedFields.data.description,
+    logo_url: logoUrl,
+    application_status: 'pending',
+  }).catch((err) => console.error('Failed to push to Google Sheet:', err));
 
   revalidatePath('/admin');
   return {

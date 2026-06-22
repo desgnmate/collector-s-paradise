@@ -1,70 +1,186 @@
-# Collector's Paradise — Pokémon TCG Events
+# Collector's Paradise — Pokémon TCG & Collectibles Events
 
-> Melbourne's premier Pokémon trading card event. Where collectors meet, trade, and connect.
+> Melbourne's premier trading card event. Where collectors meet, trade, and connect.
 
-Collector's Paradise is a high-performance, modern web application for an exclusive Melbourne-based Pokémon TCG community event. The platform showcases event highlights, featured vendors, and provides an immersive experience for enthusiasts to buy, sell, and trade.
+Collector's Paradise is a modern, full-stack web platform for a Melbourne-based
+trading card and collectibles event (Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic:
+The Gathering, sports cards, and more). The public site showcases the event,
+vendors, and upcoming/past events, while a password-protected **admin panel**
+lets organisers review vendor, sponsor, and volunteer applications and manage
+events.
+
+- **Live site:** <https://collectorsparadise.au>
+- **Designed by:** [DesgnMate](https://desgnmate.com)
+
+---
 
 ## 🚀 Key Features
 
-- **Immersive 3D Experience**: Smooth scrolling and interactive elements.
-- **Vendor Showcase**: Discover the best in the TCG community.
-- **Dynamic Highlights**: Stay updated on the latest event cards and deals.
-- **Community Focused**: Integrated support and interactive "Pokeball" chat widget.
-- **Fully Responsive**: Optimized for high-end desktops down to mobile devices.
+- **Immersive landing page** — video hero, smooth momentum scrolling (Lenis), and scroll-reveal animations.
+- **Events** — upcoming & past event listings with detail pages, ticket/venue info, and structured data for search engines.
+- **Vendor directory** — approved vendors pulled live from the database.
+- **Public application forms** — vendors, sponsors, and volunteers can apply; submissions are validated (Zod) and stored in Supabase.
+- **Admin panel** — review and approve / reject / waitlist applications, create and edit events, with optimistic client-side caching.
+- **Transactional email** — automated applicant notifications (Resend).
+- **SEO & security** — dynamic sitemap & robots, JSON-LD structured data, strict CSP, HSTS, and route protection.
+- **Edge-deployed** — runs on Cloudflare via OpenNext.
+
+---
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: [Next.js 16](https://nextjs.org/) (App Router), [React 19](https://react.dev/)
-- **Styling**: Vanilla CSS (Custom Token System)
-- **Smooth Scroll**: [Lenis](https://github.com/darkroomengineering/lenis)
-- **Deployment**: [Cloudflare Pages](https://pages.cloudflare.com/) via [OpenNext](https://opennext.js.org/)
-- **Language**: [TypeScript](https://www.typescriptlang.org/)
+| Layer | Technology |
+|-------|-----------|
+| Framework | [Next.js 16](https://nextjs.org/) (App Router) |
+| UI | [React 19](https://react.dev/), [Framer Motion](https://www.framer.com/motion/), [lucide-react](https://lucide.dev/) |
+| Styling | Vanilla CSS with a centralised design-token system (`app/globals.css`) |
+| Smooth scroll | [Lenis](https://github.com/darkroomengineering/lenis) |
+| Backend / data | [Supabase](https://supabase.com/) (Postgres, Auth, Storage) via `@supabase/ssr` |
+| Validation | [Zod](https://zod.dev/) |
+| Email | [Resend](https://resend.com/) |
+| Image zoom | [react-zoom-pan-pinch](https://github.com/BetterTyped/react-zoom-pan-pinch) |
+| Language | [TypeScript](https://www.typescriptlang.org/) |
+| Deployment | [Cloudflare Pages](https://pages.cloudflare.com/) via [@opennextjs/cloudflare](https://opennext.js.org/cloudflare) |
+
+---
 
 ## 📦 Getting Started
 
 ### Prerequisites
 
-- Node.js 20+
-- npm or yarn
+- **Node.js 20+**
+- **npm**
+- A **Supabase** project (URL + anon key). See [docs/DATABASE.md](docs/DATABASE.md) for schema setup.
 
 ### Installation
 
-1. Clone the repository:
-   ```bash
-   git clone [repository-url]
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-## 🏗️ Project Structure
-
-- `app/`: Next.js App Router pages and global styles.
-- `components/`: Modular React components.
-- `public/`: Static assets (images, videos, fonts).
-- `docs/`: Detailed technical documentation.
-
-## 🚢 Deployment
-
-The project is deployed to Cloudflare Pages.
-
 ```bash
-# Build the project
-npm run build
+# 1. Clone the repository
+git clone <repository-url>
+cd collectors-paradise-web
 
-# Deploy via Wrangler
-npx wrangler pages deploy .open-next/assets
+# 2. Install dependencies
+npm install
+
+# 3. Configure environment variables
+cp .env.local.example .env.local
+#   then edit .env.local with your Supabase URL + anon key
+#   (see .env.local.example for the full list)
+
+# 4. Run the development server
+npm run dev
 ```
 
-For more details, see [docs/DEPLOYMENT.md](file:///Volumes/External/Desgnmate/Collectors%20Paradise/CP%20Landing%20page/collectors-paradise-web/docs/DEPLOYMENT.md).
+Open <http://localhost:3000> to view the site.
+
+> **Note:** `npm run dev` raises Node's memory limit (`--max-old-space-size=8192`) because the build is memory-hungry.
+
+### Environment variables
+
+Copy `.env.local.example` → `.env.local` and fill in the values. See
+[docs/DATABASE.md](docs/DATABASE.md) and [docs/BACKEND.md](docs/BACKEND.md) for
+what each controls.
+
+| Variable | Required | Purpose |
+|----------|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon (public) key |
+| `RESEND_API_KEY` | ✉️ optional | Enables transactional email. If unset, emails are skipped. |
+| `RESEND_FROM_EMAIL` | ✉️ optional | "From" address for outgoing email |
+| `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application notifications |
+| `NEXT_PUBLIC_APP_URL` | ✉️ optional | Public site URL (used in email links) |
+| `SUPABASE_SERVICE_ROLE_KEY` | 🔐 admin scripts only | Used by `create-admin.js`; never expose to the client |
+
+> **Never commit `.env.local`.** The service-role key in particular bypasses
+> RLS — keep it off the client.
 
 ---
 
-© 2026 Collector's Paradise. Designed with passion by DesgnMate.
+## 📁 Project Structure
+
+```text
+collectors-paradise-web/
+├── app/                 # Next.js App Router
+│   ├── (public pages)   #   /, /about, /events, /vendors, /sponsorship, ...
+│   ├── admin-login/     #   Admin login
+│   ├── admin/           #   Protected admin panel (vendors/sponsors/volunteers/events)
+│   ├── actions/         #   Server Actions (vendors, sponsors, volunteers, events, auth, dashboard)
+│   ├── globals.css      #   Design tokens + global styles
+│   ├── layout.tsx       #   Root layout, fonts, metadata, JSON-LD
+│   ├── sitemap.ts       #   Dynamic sitemap (events from Supabase)
+│   ├── robots.ts        #   Robots.txt (incl. AI crawler allowlist)
+│   └── manifest.ts      #   PWA web manifest
+├── components/          # React components (sections, forms, admin UI, structured data)
+├── contexts/            # Client providers (admin router + admin data cache)
+├── hooks/               # Custom hooks (e.g. useScrollReveal)
+├── lib/
+│   ├── email.ts         #   Resend email helpers
+│   └── supabase/        #   Supabase clients + SQL migrations/schema
+├── data/                # Static data (e.g. venue map)
+├── public/              # Static assets (fonts, images, videos)
+├── middleware.ts        # Auth gating + security headers (edge runtime)
+├── docs/                # ← This documentation
+└── next.config.ts       # Next.js config (caching, image, headers)
+```
+
+---
+
+## 🧭 Site Map (routes)
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page (Hero → About → Experience → Highlights → Brands → Vendors → Footer) |
+| `/about` | About the event |
+| `/events` | Upcoming & past events |
+| `/events/[id]` | Event detail (tickets, venue, gallery) |
+| `/vendors` | Approved vendor directory |
+| `/vendors/apply` | Vendor application form |
+| `/sponsorship` | Sponsorship info |
+| `/sponsors/apply` | Sponsor application form |
+| `/volunteers` | Volunteer info |
+| `/volunteers/apply` | Volunteer application form |
+| `/privacy`, `/terms` | Legal pages |
+| `/admin-login` | Admin login (redirects to `/admin` on success) |
+| `/admin/**` | Protected admin panel |
+
+---
+
+## 🚢 Deployment
+
+The site deploys to **Cloudflare Pages** via OpenNext. See
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full guide.
+
+```bash
+npm run build      # build the Cloudflare worker + assets into .open-next/
+npm run deploy     # build + deploy via @opennextjs/cloudflare
+npm run preview    # preview the Cloudflare build locally with wrangler
+```
+
+---
+
+## 📚 Documentation
+
+Full documentation lives in [`docs/`](docs/):
+
+| Document | What it covers |
+|----------|----------------|
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture, directory layout, route table, data flow |
+| [docs/DATABASE.md](docs/DATABASE.md) | Supabase setup, tables, RLS, storage buckets, migrations, creating an admin |
+| [docs/BACKEND.md](docs/BACKEND.md) | Server Actions reference, email, admin data caching |
+| [docs/ADMIN_PANEL.md](docs/ADMIN_PANEL.md) | Admin panel architecture **and** an owner's how-to guide |
+| [docs/SEO_SECURITY.md](docs/SEO_SECURITY.md) | Metadata, sitemap/robots, JSON-LD, security headers, route protection |
+| [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Design tokens (color, type, spacing), UI conventions |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Cloudflare / OpenNext build & deploy |
+
+---
+
+## 🤝 Using the admin panel
+
+The admin panel is at `/admin` and is gated behind Supabase Auth + an
+`admin_users` table membership. For a plain-language guide to approving vendors,
+managing events, and what each screen does, see
+[docs/ADMIN_PANEL.md](docs/ADMIN_PANEL.md).
+
+---
+
+© 2026 Collector's Paradise. Designed with passion by [DesgnMate](https://desgnmate.com).

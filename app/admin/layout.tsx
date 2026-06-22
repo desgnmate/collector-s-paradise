@@ -1,11 +1,14 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Image from 'next/image';
 import { adminSignOut } from '@/app/actions/auth';
 import { AdminSidebarNav } from '@/components/AdminSidebarNav';
 import { AdminRouterProvider } from '@/contexts/AdminRouterContext';
 import { AdminDataProvider } from '@/contexts/AdminDataContext';
 import AdminContentRouter from '@/components/AdminContentRouter';
 import AdminHeader from '@/components/AdminHeader';
+import AdminThemeToggle from '@/components/AdminThemeToggle';
+import logo from '@/public/images/logo.png';
 
 export const metadata: Metadata = {
   title: "Admin Panel | Collector's Paradise",
@@ -23,10 +26,14 @@ export default function AdminLayout({
         <div className="admin-layout">
           <aside className="admin-sidebar">
             <div className="admin-sidebar-header">
-              <h2 className="admin-sidebar-logo">CP Admin</h2>
+              <h2 className="admin-sidebar-logo">
+                <Image src={logo} alt="Collector's Paradise" height={32} style={{ width: 'auto' }} />
+                Admin
+              </h2>
             </div>
             <AdminSidebarNav />
             <div className="admin-sidebar-footer">
+              <AdminThemeToggle />
               <Link href="/" className="admin-nav-link admin-back-link">
                 ← Back to Site
               </Link>

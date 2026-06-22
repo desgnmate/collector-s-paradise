@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import { approveVendor, rejectVendor, waitlistVendor, deleteVendor } from '@/app/actions/vendors';
+import { approveVendor, rejectVendor, waitlistVendor, deleteVendor, syncAllVendorsToSheet } from '@/app/actions/vendors';
 import type { Vendor } from '@/app/actions/vendors';
 
 type TabType = 'all' | 'pending' | 'approved' | 'rejected' | 'waitlisted';
@@ -96,6 +96,51 @@ export default function AdminVendorsClient() {
     );
   };
 
+  const handleExportCSV = () => {
+    const exportData = activeTab === 'all' ? vendors : filteredVendors;
+
+    const headers = [
+      'Business Name', 'Contact Name', 'Email', 'Phone', 'State',
+      'Categories', 'Status', 'Tables', 'Power', 'Social Links',
+      'Description', 'Logo URL', 'Applied At',
+    ];
+
+    const escapeCsv = (val: unknown): string => {
+      const str = String(val ?? '');
+      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+
+    const rows = exportData.map((v) => [
+      escapeCsv(v.business_name),
+      escapeCsv(v.contact_name),
+      escapeCsv(v.email),
+      escapeCsv(v.phone),
+      escapeCsv((v as any).location_state),
+      escapeCsv((v.categories || []).join('; ')),
+      escapeCsv(v.application_status),
+      escapeCsv(v.tables_requested),
+      escapeCsv(v.power_requirements),
+      escapeCsv(v.social_links),
+      escapeCsv(v.description),
+      escapeCsv(v.logo_url),
+      escapeCsv(v.applied_at ? new Date(v.applied_at).toLocaleDateString('en-AU') : ''),
+    ]);
+
+    const bom = '\uFEFF';
+    const csv = bom + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vendor-applications-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="admin-content-panel">
@@ -127,8 +172,57 @@ export default function AdminVendorsClient() {
   return (
     <div className="admin-content-panel">
       <div className="vendor-page-header">
-        <h2 className="vendor-page-title">Vendor Applications</h2>
-        <p className="vendor-page-subtitle">Review and manage vendor applications</p>
+        <div>
+          <h2 className="vendor-page-title">Vendor Applications</h2>
+          <p className="vendor-page-subtitle">Review and manage vendor applications</p>
+        </div>
+        {vendors.length > 0 && (
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button
+              onClick={handleExportCSV}
+              className="admin-tab"
+              style={{ padding: '8px 16px', gap: '8px', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-sm)', cursor: 'pointer', background: 'var(--admin-surface)', color: 'var(--admin-text-secondary)', display: 'flex', alignItems: 'center', fontFamily: 'inherit', fontSize: '0.8125rem' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Export CSV
+            </button>
+            <button
+              onClick={async () => {
+                const result = await syncAllVendorsToSheet();
+                alert(result.message || 'Sync completed.');
+              }}
+              className="admin-tab"
+              style={{ padding: '8px 16px', gap: '8px', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-sm)', cursor: 'pointer', background: 'var(--admin-surface)', color: 'var(--admin-text-secondary)', display: 'flex', alignItems: 'center', fontFamily: 'inherit', fontSize: '0.8125rem' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Sync to Sheet
+            </button>
+            {process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL && (
+              <a
+                href={process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="admin-tab"
+                style={{ padding: '8px 16px', gap: '8px', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-sm)', cursor: 'pointer', background: 'var(--admin-surface)', color: 'var(--admin-text-secondary)', display: 'flex', alignItems: 'center', textDecoration: 'none', fontFamily: 'inherit', fontSize: '0.8125rem' }}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="3" y1="9" x2="21" y2="9" />
+                  <line x1="9" y1="21" x2="9" y2="9" />
+                </svg>
+                View Sheet
+              </a>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="admin-tabs">

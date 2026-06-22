@@ -2,7 +2,6 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AdminSecretAccess } from './AdminSecretAccess';
-import logo from '@/public/images/logo.png';
 import polaroid1 from '@/public/images/footer-card-1.jpg';
 import polaroid2 from '@/public/images/footer-card-2.jpg';
 import polaroid3 from '@/public/images/footer-card-3.jpg';

@@ -64,11 +64,8 @@ export default async function VendorsPage() {
               </div>
               <h3 className="vendors-empty-title">No Vendors Listed Yet</h3>
               <p className="vendors-empty-desc">
-                We are currently processing new applications. Check back soon or apply to become a vendor yourself!
+                We are currently processing new applications. Check back soon to see approved vendors.
               </p>
-              <Link href="/vendors/apply" className="btn-highlight">
-                Apply to Sell →
-              </Link>
             </div>
           ) : (
             <div className="vendors-cards-grid">

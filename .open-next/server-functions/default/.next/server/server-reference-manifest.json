@@ -804,6 +804,54 @@
       "filename": "app/actions/vendors.ts",
       "exportedName": "deleteVendor"
     },
+    "00181f635fcf2d8b23aaa6f1933e1b5830d4a3f84e": {
+      "workers": {
+        "app/admin/about/page": {
+          "moduleId": 36166,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/events/page": {
+          "moduleId": 63567,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/page": {
+          "moduleId": 12464,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/sponsors/page": {
+          "moduleId": 55999,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/vendors/page": {
+          "moduleId": 53156,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/admin/volunteers/page": {
+          "moduleId": 75096,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        },
+        "app/vendors/page": {
+          "moduleId": 78446,
+          "async": false,
+          "exportedName": "syncAllVendorsToSheet",
+          "filename": "app/actions/vendors.ts"
+        }
+      },
+      "filename": "app/actions/vendors.ts",
+      "exportedName": "syncAllVendorsToSheet"
+    },
     "4069910b5934742bbf5cd6f0d2170e7ebea0ae833c": {
       "workers": {
         "app/admin/about/page": {

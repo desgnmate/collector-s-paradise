@@ -3,6 +3,17 @@
 import { useActionState, useState } from 'react';
 import { submitVendorApplication } from '@/app/actions/vendors';
 
+const AUSTRALIAN_STATES = [
+  'New South Wales',
+  'Victoria',
+  'Queensland',
+  'Western Australia',
+  'South Australia',
+  'Tasmania',
+  'Australian Capital Territory',
+  'Northern Territory',
+];
+
 const VENDOR_CATEGORIES = [
   'Pokémon TCG',
   'Yu-Gi-Oh!',
@@ -87,7 +98,7 @@ export default function VendorApplicationForm() {
             <label 
               htmlFor="logo"
               className={`upload-zone ${logoPreview ? 'upload-zone-active' : ''}`}
-              style={{ cursor: 'pointer', display: 'block' }}
+              style={{ cursor: 'pointer', display: 'block', position: 'relative' }}
             >
               <input
                 id="logo"
@@ -96,7 +107,14 @@ export default function VendorApplicationForm() {
                 accept="image/*"
                 required
                 onChange={handleLogoChange}
-                className="sr-only"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                  width: '100%',
+                  height: '100%',
+                }}
               />
               
               {logoPreview ? (
@@ -167,6 +185,24 @@ export default function VendorApplicationForm() {
           </div>
 
           <div className="vendor-form-group">
+            <label htmlFor="location_state">State *</label>
+            <select
+              id="location_state"
+              name="location_state"
+              required
+              defaultValue={state.fields?.location_state || ''}
+            >
+              <option value="">Select a state...</option>
+              {AUSTRALIAN_STATES.map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+            {state.errors?.location_state && (
+              <span className="vendor-form-error">{state.errors.location_state[0]}</span>
+            )}
+          </div>
+
+          <div className="vendor-form-group">
             <label htmlFor="email">Email Address *</label>
             <input
               id="email"
@@ -203,6 +239,7 @@ export default function VendorApplicationForm() {
             <label
               key={cat}
               className={`vendor-category-chip ${selectedCategories.includes(cat) ? 'selected' : ''}`}
+              style={{ position: 'relative' }}
             >
               <input
                 type="checkbox"
@@ -210,7 +247,12 @@ export default function VendorApplicationForm() {
                 value={cat}
                 checked={selectedCategories.includes(cat)}
                 onChange={() => toggleCategory(cat)}
-                className="sr-only"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  opacity: 0,
+                  cursor: 'pointer',
+                }}
               />
               <span className="vendor-chip-check">
                 {selectedCategories.includes(cat) ? '✓' : '+'}
@@ -329,6 +371,7 @@ export default function VendorApplicationForm() {
               type="checkbox"
               name="agreement"
               required
+              defaultChecked={state.fields?.agreement === true}
             />
             <span>
               I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms and Conditions</a> and confirm that all information provided is accurate. I understand that submission of this application does not guarantee vendor acceptance. *
