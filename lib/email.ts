@@ -45,14 +45,17 @@ export async function sendNewApplicationEmail(
       to: vendorEmail,
       subject: 'Application Received — Collector\'s Paradise',
       html:
-        '<div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">' +
-        '<div style="background: #0f0f0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 32px;">' +
-        '<h1 style="color: #F4C542; margin: 0 0 8px 0; font-size: 24px;">Application Received 💛</h1>' +
-        '<p style="color: rgba(255,255,255,0.8); margin: 0 0 24px 0;">Hi ' + contactName + ',</p>' +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 16px 0;">Thank you for applying to become a vendor at <strong>Collector\'s Paradise</strong>! Your application for <strong>' + businessName + '</strong> has been successfully submitted.</p>' +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 24px 0;">Our team will review your application and get back to you within 24-48 hours. You\'ll receive another email once your application status is updated.</p>' +
-        '<p style="color: rgba(255,255,255,0.5); font-size: 14px; margin: 0;">If you have any questions, feel free to reach out to us.</p>' +
-        '</div></div>',
+        '<table border="0" width="100%" cellpadding="0" cellspacing="0" role="presentation" align="center">' +
+        '<tbody><tr><td style="background-color:#ffffff">' +
+        '<table align="left" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;color:#000000;background-color:#ffffff;border-radius:0px">' +
+        '<tbody><tr style="width:100%"><td style="padding:0">' +
+        '<br/>' +
+        '<img alt="" height="200" src="https://resend-attachments.s3.amazonaws.com/9a7b543b-93f0-4cce-8f42-44953ddf8572" style="display:block;outline:none;border:none;text-decoration:none;max-width:100%;height:auto" width="600"/>' +
+        '<br/>' +
+        '<p style="margin:0;padding:0">Hi ' + contactName + ',</p>' +
+        '<p style="margin:0;padding:0">Thank you for applying to become a vendor at Collector&#x27;s Paradise!<br/>Your application for ' + businessName + ' has been successfully submitted.</p>' +
+        '</td></tr></tbody></table>' +
+        '</td></tr></tbody></table>',
     });
 
     return { success: true };
