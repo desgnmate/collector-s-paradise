@@ -23,6 +23,8 @@ DROP POLICY IF EXISTS "Users can manage their own avatars" ON storage.objects;
 DROP POLICY IF EXISTS "Public can view vendor logos" ON storage.objects;
 DROP POLICY IF EXISTS "Vendors can manage their own logos" ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can upload logos" ON storage.objects;
+DROP POLICY IF EXISTS "Vendors can upload logos" ON storage.objects;
+DROP POLICY IF EXISTS "Anyone can upload vendor logos" ON storage.objects;
 
 -- 4. POLICIES FOR: avatars
 -- Allow anyone to see profile pictures
@@ -46,8 +48,10 @@ WITH CHECK (
 CREATE POLICY "Public can view vendor logos" ON storage.objects 
 FOR SELECT USING ( bucket_id = 'vendor_logos' );
 
--- Allow authenticated users to upload logos
-CREATE POLICY "Authenticated users can upload logos" ON storage.objects 
-FOR ALL TO authenticated 
-USING ( bucket_id = 'vendor_logos' )
-WITH CHECK ( bucket_id = 'vendor_logos' );
+-- Allow public vendor applications to upload logos.
+CREATE POLICY "Anyone can upload vendor logos" ON storage.objects
+FOR INSERT TO anon, authenticated
+WITH CHECK (
+  bucket_id = 'vendor_logos' AND
+  name ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo-[0-9]+\.(jpg|png|webp|gif)$'
+);

@@ -33,13 +33,15 @@ CREATE POLICY "Public can view vendor logos"
 ON storage.objects FOR SELECT
 USING ( bucket_id = 'vendor_logos' );
 
--- Allow authenticated users to upload their own logos
-CREATE POLICY "Vendors can upload logos"
+-- Allow public vendor applications to upload logos.
+-- The form is intentionally anonymous, so restricting this to authenticated users
+-- causes real applicants to fail storage RLS before their application is saved.
+CREATE POLICY "Anyone can upload vendor logos"
 ON storage.objects FOR INSERT
-TO authenticated
+TO anon, authenticated
 WITH CHECK (
   bucket_id = 'vendor_logos' AND
-  (storage.foldername(name))[1] = auth.uid()::text
+  name ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/logo-[0-9]+\.(jpg|png|webp|gif)$'
 );
 
 -- Allow authenticated users to update their own logos

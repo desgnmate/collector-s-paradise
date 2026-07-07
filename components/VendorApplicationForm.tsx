@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState, useState, useEffect } from 'react';
+import { useActionState, useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { submitVendorApplication } from '@/app/actions/vendors';
 
 const AUSTRALIAN_STATES = [
@@ -27,6 +28,9 @@ const VENDOR_CATEGORIES = [
   'Other Collectibles',
 ];
 
+const MAX_LOGO_SIZE = 5 * 1024 * 1024;
+const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+
 export default function VendorApplicationForm() {
   const [state, formAction, isPending] = useActionState(submitVendorApplication, {
     message: '',
@@ -34,6 +38,8 @@ export default function VendorApplicationForm() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (state.success) {
@@ -41,15 +47,49 @@ export default function VendorApplicationForm() {
     }
   }, [state.success]);
 
+  useEffect(() => {
+    return () => {
+      if (logoPreview) URL.revokeObjectURL(logoPreview);
+    };
+  }, [logoPreview]);
+
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (!ALLOWED_LOGO_TYPES.includes(file.type)) {
+        setLogoError('Please upload a JPG, PNG, WebP, or GIF image.');
+        setLogoName(null);
+        setLogoPreview(null);
+        e.target.value = '';
+        return;
+      }
+
+      if (file.size > MAX_LOGO_SIZE) {
+        setLogoError('Logo file size must be less than 5MB.');
+        setLogoName(null);
+        setLogoPreview(null);
+        e.target.value = '';
+        return;
+      }
+
+      setLogoError(null);
       setLogoName(file.name);
       const url = URL.createObjectURL(file);
       setLogoPreview(url);
     } else {
+      setLogoError(null);
       setLogoName(null);
       setLogoPreview(null);
+    }
+  };
+
+  const clearLogo = () => {
+    if (logoPreview) URL.revokeObjectURL(logoPreview);
+    setLogoPreview(null);
+    setLogoName(null);
+    setLogoError(null);
+    if (logoInputRef.current) {
+      logoInputRef.current.value = '';
     }
   };
 
@@ -106,10 +146,11 @@ export default function VendorApplicationForm() {
               style={{ cursor: 'pointer', display: 'block', position: 'relative' }}
             >
               <input
+                ref={logoInputRef}
                 id="logo"
                 name="logo"
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 required
                 onChange={handleLogoChange}
                 style={{
@@ -125,13 +166,20 @@ export default function VendorApplicationForm() {
               {logoPreview ? (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.75rem' }}>
                   <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', border: '3px solid var(--color-dark)' }}>
-                    <img src={logoPreview || ''} alt="Logo preview" loading="lazy" style={{ objectFit: 'cover' }} />
+                    <Image
+                      src={logoPreview}
+                      alt="Logo preview"
+                      fill
+                      unoptimized
+                      sizes="100px"
+                      style={{ objectFit: 'cover' }}
+                    />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
                     <span style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--color-dark)', textTransform: 'uppercase' }}>{logoName}</span>
                     <button 
                       type="button" 
-                      onClick={(e) => { e.preventDefault(); setLogoPreview(null); setLogoName(null); }}
+                      onClick={(e) => { e.preventDefault(); clearLogo(); }}
                       style={{ 
                         background: 'var(--color-red)', 
                         color: 'white', 
@@ -172,6 +220,9 @@ export default function VendorApplicationForm() {
                 </div>
               )}
             </label>
+            {logoError && (
+              <span className="vendor-form-error">{logoError}</span>
+            )}
           </div>
 
           <div className="vendor-form-group">

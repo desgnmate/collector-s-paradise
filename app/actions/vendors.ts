@@ -49,12 +49,45 @@ const vendorApplicationSchema = z.object({
   agreement: z.literal(true).refine((val) => val === true, { message: 'You must agree to the Terms and Conditions' }),
 });
 
+const MAX_LOGO_SIZE = 5 * 1024 * 1024;
+const ALLOWED_LOGO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
+const LOGO_EXTENSION_BY_TYPE: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+};
+
+type VendorApplicationFields = {
+  business_name: string;
+  contact_name: string;
+  email: string;
+  phone: string;
+  location_state: string;
+  description: string;
+  social_links: string;
+  tables_requested: string;
+  power_requirements: string;
+  additional_notes: string;
+  agreement: boolean;
+};
+
 type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
-  fields?: Record<string, any>;
+  fields?: Partial<VendorApplicationFields>;
 };
+
+function isStorageSetupError(message: string) {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes('security policy') ||
+    normalized.includes('row-level security') ||
+    normalized.includes('not found') ||
+    normalized.includes('bucket')
+  );
+}
 
 // ============================================
 // Public Actions
@@ -162,11 +195,11 @@ export async function submitVendorApplication(
   if (!logo || logo.size === 0) {
     return { message: 'A business logo or profile avatar is required.', fields };
   }
-  if (logo.size > 5 * 1024 * 1024) {
+  if (logo.size > MAX_LOGO_SIZE) {
     return { message: 'Logo file size must be less than 5MB.', fields };
   }
-  if (!logo.type.startsWith('image/')) {
-    return { message: 'Logo must be an image file.', fields };
+  if (!ALLOWED_LOGO_TYPES.has(logo.type)) {
+    return { message: 'Logo must be a JPG, PNG, WebP, or GIF image.', fields };
   }
 
   // 1. Check if business name is already taken (optimized: only select id)
@@ -193,7 +226,7 @@ export async function submitVendorApplication(
 
   // 3. Upload the logo
   const vendorId = crypto.randomUUID();
-  const fileExt = logo.name.split('.').pop();
+  const fileExt = LOGO_EXTENSION_BY_TYPE[logo.type];
   const filePath = `${vendorId}/logo-${Date.now()}.${fileExt}`;
 
   const arrayBuffer = await logo.arrayBuffer();
@@ -209,17 +242,17 @@ export async function submitVendorApplication(
 
   if (uploadError) {
     console.error('Upload error:', uploadError);
-    // Fallback: If storage bucket isn't properly configured or has RLS issues, 
-    // we save the image directly as a base64 string to prevent blocking registration.
-    if (uploadError.message.includes('security policy') || uploadError.message.includes('not found') || uploadError.message.includes('bucket')) {
-      console.warn('Storage upload failed, falling back to Base64 encoding.');
-      const base64String = Buffer.from(arrayBuffer).toString('base64');
-      logoUrl = `data:${logo.type};base64,${base64String}`;
+    if (isStorageSetupError(uploadError.message)) {
+      return {
+        message: 'We could not upload your logo right now. Please contact support so we can finish your application.',
+        fields,
+      };
     } else {
       return { message: 'Failed to upload the logo file. Please try submitting again or contact support.', fields };
     }
   } else {
-    logoUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/vendor_logos/${filePath}`;
+    const { data } = supabase.storage.from('vendor_logos').getPublicUrl(filePath);
+    logoUrl = data.publicUrl;
   }
 
   // 5. Save Vendor Record
@@ -242,11 +275,22 @@ export async function submitVendorApplication(
 
   if (dbError) {
     console.error('Error submitting vendor application:', JSON.stringify(dbError, null, 2));
+
+    if (logoUrl && !logoUrl.startsWith('data:')) {
+      await supabase.storage.from('vendor_logos').remove([filePath]);
+    }
     
     if (dbError.code === '42703') {
       return { 
         message: 'Database schema mismatch: One or more required columns are missing from the vendors table. Please run the provided SQL migration in lib/supabase/vendor_auth_update.sql in your Supabase SQL Editor.',
         fields
+      };
+    }
+
+    if (dbError.code === '23505') {
+      return {
+        message: 'This business name is already registered.',
+        fields,
       };
     }
     

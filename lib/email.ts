@@ -54,6 +54,8 @@ export async function sendNewApplicationEmail(
         '<br/>' +
         '<p style="margin:0;padding:0">Hi ' + contactName + ',</p>' +
         '<p style="margin:0;padding:0">Thank you for applying to become a vendor at Collector&#x27;s Paradise!<br/>Your application for ' + businessName + ' has been successfully submitted.</p>' +
+        '<br/>' +
+        '<p style="margin:0;padding:0;font-size:12px;color:#888">Collector\'s Paradise — Australia\'s home of trading card events.</p>' +
         '</td></tr></tbody></table>' +
         '</td></tr></tbody></table>',
     });
