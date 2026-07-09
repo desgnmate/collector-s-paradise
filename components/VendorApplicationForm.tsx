@@ -25,6 +25,7 @@ const VENDOR_CATEGORIES = [
   'Vintage / Retro Cards',
   'Card Accessories & Supplies',
   'Graded Cards',
+  'Art',
   'Other Collectibles',
 ];
 

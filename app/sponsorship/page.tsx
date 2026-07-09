@@ -6,7 +6,7 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Event Sponsorship Melbourne | Partner with Pokémon TCG Events',
   description:
-    "Become a sponsor of Collector's Paradise — Melbourne's biggest Pokémon TCG and trading card event. Reach 2,000+ Australian collectors per event. Platinum, Gold, Silver and custom packages available.",
+    "Become a sponsor of Collector's Paradise — Melbourne's biggest Pokémon TCG and trading card event. Reach 2,000+ Australian collectors per event. Custom packages available.",
   keywords: [
     'event sponsorship Melbourne',
     'Pokemon TCG sponsorship Australia',
@@ -18,48 +18,103 @@ export const metadata: Metadata = {
     title: "Event Sponsorship | Collector's Paradise Melbourne",
     description:
       "Reach 2,000+ Australian collectors per event. Partner with Melbourne's biggest trading card event series.",
-    url: "https://collectorsparadise.au/sponsorship",
+    url: 'https://collectorsparadise.au/sponsorship',
   },
   alternates: {
     canonical: 'https://collectorsparadise.au/sponsorship',
   },
 };
 
+const benefits = [
+  {
+    title: 'Targeted reach',
+    desc: 'Put your brand in front of 2,000+ engaged collectors, players, and hobbyists at every event.',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    title: 'On-site presence',
+    desc: 'Booth space, signage, stage mentions, and product placement options tailored to your goals.',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Digital & social',
+    desc: 'Logo placement across our website, event pages, and social channels before and after show day.',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+        <line x1="8" y1="21" x2="16" y2="21" />
+        <line x1="12" y1="17" x2="12" y2="21" />
+      </svg>
+    ),
+  },
+  {
+    title: 'Community goodwill',
+    desc: 'Support a growing Melbourne hobby scene and associate your brand with fun, inclusive collector culture.',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    ),
+  },
+];
+
 export default function SponsorshipPage() {
   return (
-    <main>
+    <main className="brand-page">
       <Navbar />
 
-      {/* Page Header */}
       <section className="vendors-page-header-section">
         <div className="container">
           <div className="vendors-page-header">
             <span className="eyebrow-badge">PARTNERSHIPS</span>
-            <h1 className="section-title">
-              SPONSORSHIP
-            </h1>
+            <h1 className="section-title">Sponsorship</h1>
             <p className="section-subtitle">
               Partner with Collector&apos;s Paradise and connect with Melbourne&apos;s most passionate
-              Pokémon TCG community. Reach thousands of collectors at our events.
+              Pokémon TCG and trading card community. Reach thousands of collectors at every show.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Why Sponsor CTA */}
+      <section className="brand-page-section">
+        <div className="container">
+          <div className="brand-benefits-grid">
+            {benefits.map((item) => (
+              <article key={item.title} className="brand-benefit-card">
+                <div className="brand-benefit-icon">{item.icon}</div>
+                <h3 className="brand-benefit-title">{item.title}</h3>
+                <p className="brand-benefit-desc">{item.desc}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="vendors-cta-section">
         <div className="container">
           <div className="vendors-cta-inner">
             <div className="vendors-cta-text">
               <div className="vendors-cta-badge">
-                <span>WHY SPONSOR</span>
+                <span>GET STARTED</span>
               </div>
               <h2 className="vendors-cta-title">
-                REACH 2,000+ COLLECTORS PER EVENT
+                Ready to reach 2,000+ collectors?
               </h2>
               <p className="vendors-cta-subtitle">
-                Our events attract serious collectors, players, and enthusiasts from across Melbourne and beyond.
-                Sponsorship gives your brand direct access to this engaged community.
+                Tell us about your brand and goals. We&apos;ll match you with the right package
+                and activation for the next Collector&apos;s Paradise event.
               </p>
             </div>
             <div className="vendors-cta-actions">

@@ -14,8 +14,10 @@ interface SmoothScrollProps {
 }
 
 export default function SmoothScroll({ children }: SmoothScrollProps) {
-  useScrollReveal();
   const pathname = usePathname();
+  // Pass pathname so reveals re-bind after client navigations, and so
+  // setup is deferred until after each route's hydration settles.
+  useScrollReveal(pathname);
 
   // Scroll the new page to the top INSTANTLY as soon as the route
   // changes. `force: true` interrupts any in-flight Lenis animation
