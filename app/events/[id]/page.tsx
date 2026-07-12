@@ -5,6 +5,7 @@ import { EventSchema } from '@/components/StructuredData';
 
 import { getEventById, getEvents } from '@/app/actions/events';
 import Image from 'next/image';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 export const revalidate = 3600;
@@ -100,6 +101,14 @@ export default async function EventDetailPage({ params }: Props) {
 
   const isSoldOut = (event.capacity - event.tickets_sold) <= 0;
   const ticketsRemaining = event.capacity - event.tickets_sold;
+  const today = new Date().toISOString().split('T')[0];
+  const effectiveStatus = event.event_date < today && event.status !== 'cancelled' ? 'completed' : event.status;
+  const statusLabels = {
+    upcoming: 'Upcoming event',
+    active: 'Happening now',
+    completed: 'Past event',
+    cancelled: 'Cancelled',
+  } as const;
 
   return (
     <main>
@@ -120,9 +129,42 @@ export default async function EventDetailPage({ params }: Props) {
 
       <section className="edp-main">
         <div className="container">
-          <div className="edp-layout">
-            <div className="edp-content">
-              <div className="edp-cover">
+          <Link href="/events" className="edp-back-link-light" prefetch>
+            <span aria-hidden="true">←</span>
+            All events
+          </Link>
+
+          <div className="edp-hero-grid">
+            <div className="edp-hero-copy">
+              <span className={`edp-status-pill edp-status-pill--${effectiveStatus}`}>
+                {statusLabels[effectiveStatus]}
+              </span>
+              <h1 className="edp-title">{event.title}</h1>
+
+              {event.description && (
+                <p className="edp-description">{event.description}</p>
+              )}
+
+              <div className="edp-decision-strip" aria-label="Essential event details">
+                <div className="edp-decision-item">
+                  <span className="edp-decision-label">When</span>
+                  <strong>{formattedDate}</strong>
+                  <small>{formatTime(event.start_time)} — {formatTime(event.end_time)}</small>
+                </div>
+                <div className="edp-decision-item">
+                  <span className="edp-decision-label">Where</span>
+                  <strong>{event.venue || 'Venue TBA'}</strong>
+                  <small>{event.venue_address || 'Address to be announced'}</small>
+                </div>
+                <div className="edp-decision-item">
+                  <span className="edp-decision-label">Entry</span>
+                  <strong>{event.ticket_price > 0 ? `$${event.ticket_price.toFixed(2)}` : 'Details soon'}</strong>
+                  <small>{event.ticket_price > 0 ? 'Per ticket' : 'Check back for pricing'}</small>
+                </div>
+              </div>
+            </div>
+
+            <div className="edp-cover">
                 <Image
                   src={event.cover_image_url || '/images/placeholder-event.png'}
                   alt={event.title}
@@ -136,15 +178,13 @@ export default async function EventDetailPage({ params }: Props) {
                   <span className="edp-date-day">{day}</span>
                   <span className="edp-date-weekday">{weekday}</span>
                 </div>
-              </div>
+            </div>
+          </div>
 
-              <div className="edp-details">
-                <h1 className="edp-title">{event.title}</h1>
-                
-                {event.description && (
-                  <p className="edp-description">{event.description}</p>
-                )}
-
+          <div className="edp-lower-grid">
+            <section className="edp-plan-panel" aria-labelledby="plan-your-visit">
+              <span className="eyebrow-badge">EVENT INFORMATION</span>
+              <h2 className="edp-plan-title" id="plan-your-visit">PLAN YOUR VISIT</h2>
                 <div className="edp-info-cards">
                   <div className="edp-info-card">
                     <div className="edp-info-card-icon">
@@ -175,6 +215,9 @@ export default async function EventDetailPage({ params }: Props) {
                       <span className="edp-info-card-label">Venue</span>
                       <span className="edp-info-card-value">{event.venue || 'TBA'}</span>
                       {event.venue_address && (
+                        <span className="edp-info-card-sub">{event.venue_address}</span>
+                      )}
+                      {event.venue_address && (
                         <a
                           href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.venue_address)}`}
                           target="_blank"
@@ -192,9 +235,7 @@ export default async function EventDetailPage({ params }: Props) {
                     </div>
                   </div>
                 </div>
-
-              </div>
-            </div>
+            </section>
 
             <aside className="edp-sidebar">
               <div className="edp-booking-card">
@@ -206,7 +247,7 @@ export default async function EventDetailPage({ params }: Props) {
                 </div>
 
                 <div className="edp-booking-price">
-                  {event.ticket_price > 0 ? `$${event.ticket_price.toFixed(2)}` : ''}
+                  {event.ticket_price > 0 ? `$${event.ticket_price.toFixed(2)}` : 'Pricing soon'}
                   {event.ticket_price > 0 && <span className="edp-booking-price-unit">/ ticket</span>}
                 </div>
 
@@ -242,6 +283,11 @@ export default async function EventDetailPage({ params }: Props) {
                   </button>
                 )}
 
+                <div className="edp-booking-summary">
+                  <span>{formattedDate}</span>
+                  <span>{event.venue || 'Venue TBA'}</span>
+                </div>
+
               </div>
 
             </aside>
@@ -249,10 +295,25 @@ export default async function EventDetailPage({ params }: Props) {
         </div>
       </section>
 
+      {event.booking_link && effectiveStatus !== 'completed' && effectiveStatus !== 'cancelled' && (
+        <div className="edp-mobile-ticket-bar">
+          <div>
+            <span>{event.ticket_price > 0 ? `$${event.ticket_price.toFixed(2)}` : 'Tickets'}</span>
+            <small>{event.venue || formattedDate}</small>
+          </div>
+          <a href={event.booking_link} target="_blank" rel="noopener noreferrer">
+            Get tickets
+          </a>
+        </div>
+      )}
+
       {otherEvents.length > 0 && (
         <section className="browse-other-events">
           <div className="container">
-            <h2 className="browse-other-events-title">Browse Other Events</h2>
+            <div className="browse-other-events-header">
+              <span className="eyebrow-badge">KEEP EXPLORING</span>
+              <h2 className="browse-other-events-title">Browse Other Events</h2>
+            </div>
             <div className="browse-other-events-grid">
               {otherEvents.map((otherEvent) => (
                 <EventCard key={otherEvent.id} event={otherEvent} variant="upcoming" />

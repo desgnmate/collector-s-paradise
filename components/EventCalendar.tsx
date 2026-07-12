@@ -203,6 +203,7 @@ export default function EventCalendar({ events, onDateSelect }: EventCalendarPro
                   <Link
                     key={event.id}
                     href={`/events/${event.id}`}
+                    prefetch
                     className="calendar-event-card"
                   >
                     <div className="calendar-event-time">

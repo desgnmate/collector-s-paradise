@@ -1,9 +1,13 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import EventCard from './EventCard';
-import EventCalendar from '../EventCalendar';
 import type { Event } from '@/app/actions/events';
+
+const EventCalendar = dynamic(() => import('../EventCalendar'), {
+  loading: () => <div className="events-calendar-loading" aria-label="Loading event calendar" />,
+});
 
 interface EventsPageClientProps {
   upcomingEvents: Event[];
@@ -11,34 +15,9 @@ interface EventsPageClientProps {
 }
 
 const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps) => {
-  const scrollRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'card' | 'calendar'>('card');
   const [eventType, setEventType] = useState<'upcoming' | 'past'>('upcoming');
   const [isCalendarDateSelected, setIsCalendarDateSelected] = useState(false);
-
-  const handleScroll = () => {
-    // No longer needed for grid view
-  };
-
-  useEffect(() => {
-    // No longer needed for grid view
-    return () => window.removeEventListener('resize', handleScroll);
-  }, []);
-
-  const scrollLeftFn = () => {
-    // No longer needed for grid view
-  };
-
-  const scrollRightFn = () => {
-    // No longer needed for grid view
-  };
-
-  useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollLeft = 0;
-      handleScroll();
-    }
-  }, [eventType]);
 
   const allEvents = [...upcomingEvents, ...pastEvents];
   const filteredEvents = eventType === 'upcoming' ? upcomingEvents : pastEvents;

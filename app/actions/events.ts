@@ -1,7 +1,8 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { createClient } from '@supabase/supabase-js';
+import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
 import { z } from 'zod';
 
 // ============================================
@@ -46,62 +47,107 @@ const createEventSchema = z.object({
 // Public Actions
 // ============================================
 
+const createPublicEventsClient = () => createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  }
+);
+
+// Legacy records may contain multi-megabyte base64 images. Sending those
+// inside an RSC payload makes transitions slow and exceeds Next.js's 2 MB
+// data-cache limit. Public pages use their existing placeholder for those
+// records; normal Storage/CDN URLs are preserved.
+const normalizePublicEventCover = (event: Event): Event => ({
+  ...event,
+  cover_image_url: event.cover_image_url?.startsWith('data:')
+    ? null
+    : event.cover_image_url,
+});
+
+const getCachedEvents = unstable_cache(
+  async (): Promise<Event[]> => {
+    const supabase = createPublicEventsClient();
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, created_at, updated_at')
+      .in('status', ['upcoming', 'active', 'completed'])
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching events:', error);
+      return [];
+    }
+
+    return (data as Event[]).map(normalizePublicEventCover);
+  },
+  ['public-events'],
+  { revalidate: 3600, tags: ['events'] }
+);
+
+const getCachedEventById = unstable_cache(
+  async (id: string): Promise<Event | null> => {
+    const supabase = createPublicEventsClient();
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) {
+      console.error('Error fetching event:', error);
+      return null;
+    }
+
+    return normalizePublicEventCover(data as Event);
+  },
+  ['public-event'],
+  { revalidate: 3600, tags: ['events'] }
+);
+
+const getCachedEventsByMonth = unstable_cache(
+  async (year: number, month: number): Promise<Event[]> => {
+    const supabase = createPublicEventsClient();
+    const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
+    const endDate = new Date(year, month, 0).toISOString().split('T')[0];
+
+    const { data, error } = await supabase
+      .from('events')
+      .select('id, title, event_date, start_time, end_time, status')
+      .gte('event_date', startDate)
+      .lte('event_date', endDate)
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching events by month:', error);
+      return [];
+    }
+
+    return data as unknown as Event[];
+  },
+  ['public-events-by-month'],
+  { revalidate: 3600, tags: ['events'] }
+);
+
 /** Fetch all upcoming/active events (publicly accessible) */
 export async function getEvents(): Promise<Event[]> {
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase
-    .from('events')
-    .select('id, title, event_date, start_time, end_time, venue, cover_image_url, status')
-    .in('status', ['upcoming', 'active'])
-    .order('event_date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching events:', error);
-    return [];
-  }
-
-  return data as unknown as Event[];
+  return getCachedEvents();
 }
 
 /** Fetch a single event by ID */
 export async function getEventById(id: string): Promise<Event | null> {
-  const supabase = await createSupabaseServerClient();
-
-  const { data, error } = await supabase
-    .from('events')
-    .select('*')
-    .eq('id', id)
-    .single();
-
-  if (error) {
-    console.error('Error fetching event:', error);
-    return null;
-  }
-
-  return data as Event;
+  return getCachedEventById(id);
 }
 
 /** Fetch events for a specific month (for the calendar) */
 export async function getEventsByMonth(year: number, month: number): Promise<Event[]> {
-  const supabase = await createSupabaseServerClient();
-
-  const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
-  const endDate = new Date(year, month, 0).toISOString().split('T')[0]; // Last day of month
-
-  const { data, error } = await supabase
-    .from('events')
-    .select('id, title, event_date, start_time, end_time, status')
-    .gte('event_date', startDate)
-    .lte('event_date', endDate)
-    .order('event_date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching events by month:', error);
-    return [];
-  }
-
-  return data as unknown as Event[];
+  return getCachedEventsByMonth(year, month);
 }
 
 // ============================================
@@ -232,6 +278,7 @@ export async function createEvent(
   }
 
   revalidatePath('/events');
+  revalidateTag('events', 'max');
   revalidatePath('/admin/events');
   return { message: 'Event created successfully!', success: true };
 }
@@ -326,6 +373,7 @@ export async function updateEvent(
   }
 
   revalidatePath('/events');
+  revalidateTag('events', 'max');
   revalidatePath('/admin/events');
   return { message: 'Event updated successfully!', success: true };
 }
@@ -347,6 +395,7 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
   }
 
   revalidatePath('/events');
+  revalidateTag('events', 'max');
   revalidatePath('/admin/events');
   return { message: 'Event deleted successfully!', success: true };
 }

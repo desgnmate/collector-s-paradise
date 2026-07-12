@@ -1,20 +1,23 @@
 'use client';
 
-import { useEffect, ReactNode } from 'react';
+import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import type Lenis from 'lenis';
 
-const ChatWidget = dynamic(() => import('@/components/ChatWidget'), {
-  ssr: false,
-});
+declare global {
+  interface Window {
+    __lenis?: Lenis;
+  }
+}
 
-interface SmoothScrollProps {
+interface ClientRuntimeProps {
   children: ReactNode;
 }
 
-export default function SmoothScroll({ children }: SmoothScrollProps) {
+export default function ClientRuntime({ children }: ClientRuntimeProps) {
   const pathname = usePathname();
+  const [ChatWidgetComponent, setChatWidgetComponent] = useState<ComponentType | null>(null);
   // Pass pathname so reveals re-bind after client navigations, and so
   // setup is deferred until after each route's hydration settles.
   useScrollReveal(pathname);
@@ -24,58 +27,21 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
   // and `immediate: true` skips the smooth easing — gives the
   // appearance of an instant page transition.
   useEffect(() => {
-    const lenis = (window as any).__lenis;
+    const lenis = window.__lenis;
     if (lenis) {
       lenis.stop();
       lenis.scrollTo(0, { immediate: true, force: true });
+      const resumeFrame = window.requestAnimationFrame(() => {
+        lenis.start();
+      });
+
+      return () => {
+        window.cancelAnimationFrame(resumeFrame);
+      };
     } else {
       window.scrollTo(0, 0);
     }
   }, [pathname]);
-
-  // As soon as the user clicks any internal link, instantly:
-  //   1. Snap to the top (so the new page never reveals mid-scroll
-  //      leftover from the previous page)
-  //   2. Lock Lenis from re-scrolling while the next page is loading
-  //   3. Unlock once the new page has rendered
-  useEffect(() => {
-    let unlocked = true;
-
-    const unlock = () => {
-      if (unlocked) return;
-      unlocked = true;
-      const lenis = (window as any).__lenis;
-      if (lenis) lenis.start();
-    };
-
-    const onLinkClick = (e: MouseEvent) => {
-      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
-        return;
-      }
-      const target = e.target as HTMLElement | null;
-      const anchor = target?.closest('a');
-      if (!anchor) return;
-      const href = anchor.getAttribute('href');
-      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-      if (anchor.target && anchor.target !== '_self') return;
-      if (anchor.hasAttribute('download')) return;
-
-      unlocked = false;
-      const lenis = (window as any).__lenis;
-      if (lenis) {
-        lenis.stop();
-        lenis.scrollTo(0, { immediate: true, force: true });
-      } else {
-        window.scrollTo(0, 0);
-      }
-      // Unlock shortly after — gives Next.js time to mount the new
-      // route and re-attach scroll listeners.
-      setTimeout(unlock, 800);
-    };
-
-    document.addEventListener('click', onLinkClick, { capture: true });
-    return () => document.removeEventListener('click', onLinkClick, { capture: true } as any);
-  }, []);
 
   // Hide ChatWidget (Pokeball) on admin pages and on the vendor
   // application form — the floating button overlaps the form fields
@@ -88,15 +54,52 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
   const isLegalPage = pathname === '/terms' || pathname === '/privacy';
   const hideChatWidget = isAdminRoute || isVendorApply || isLegalPage;
 
+  // The support widget is useful, but it is not part of the critical route
+  // transition. Load its chunk only after the new page has settled.
+  useEffect(() => {
+    if (hideChatWidget) {
+      setChatWidgetComponent(null);
+      return;
+    }
+
+    let cancelled = false;
+    let idleHandle: number | null = null;
+    const reveal = async () => {
+      const { default: ChatWidget } = await import('@/components/ChatWidget');
+      if (!cancelled) setChatWidgetComponent(() => ChatWidget);
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleHandle = window.requestIdleCallback(reveal, { timeout: 1500 });
+    } else {
+      idleHandle = window.setTimeout(reveal, 700);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleHandle === null) return;
+      if (typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleHandle);
+      } else {
+        window.clearTimeout(idleHandle);
+      }
+    };
+  }, [hideChatWidget]);
+
   useEffect(() => {
     if (isAdminRoute) return;
 
     // Dynamically import Lenis only on client to avoid SSR hydration issues
-    let lenisInstance: any;
+    let lenisInstance: Lenis | null = null;
     let rafId: number;
+
+    let cancelled = false;
+    let idleHandle: number | null = null;
 
     const initLenis = async () => {
       const Lenis = (await import('lenis')).default;
+
+      if (cancelled) return;
 
       lenisInstance = new Lenis({
         // Short duration + snappy easing keeps scroll responsive
@@ -116,23 +119,38 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
         syncTouch: false,
       });
 
-      (window as any).__lenis = lenisInstance;
+      window.__lenis = lenisInstance;
+      const activeLenis = lenisInstance;
 
       function raf(time: number) {
-        lenisInstance.raf(time);
+        activeLenis.raf(time);
         rafId = requestAnimationFrame(raf);
       }
 
       rafId = requestAnimationFrame(raf);
     };
 
-    initLenis();
+    // Native scrolling works immediately. Enhance it with Lenis only when the
+    // browser is idle so navigation and hydration stay responsive.
+    if (typeof window.requestIdleCallback === 'function') {
+      idleHandle = window.requestIdleCallback(() => void initLenis(), { timeout: 1200 });
+    } else {
+      idleHandle = window.setTimeout(() => void initLenis(), 400);
+    }
 
     return () => {
+      cancelled = true;
+      if (idleHandle !== null) {
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(idleHandle);
+        } else {
+          window.clearTimeout(idleHandle);
+        }
+      }
       if (rafId) cancelAnimationFrame(rafId);
       if (lenisInstance) {
         lenisInstance.destroy();
-        (window as any).__lenis = undefined;
+        window.__lenis = undefined;
       }
     };
   }, [isAdminRoute]);
@@ -140,7 +158,7 @@ export default function SmoothScroll({ children }: SmoothScrollProps) {
   return (
     <>
       {children}
-      {!hideChatWidget && <ChatWidget />}
+      {!hideChatWidget && ChatWidgetComponent && <ChatWidgetComponent />}
     </>
   );
 }

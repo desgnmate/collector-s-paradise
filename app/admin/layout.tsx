@@ -28,7 +28,7 @@ export default function AdminLayout({
             <div className="admin-sidebar-header">
               <h2 className="admin-sidebar-logo">
                 <Image src={logo} alt="Collector's Paradise" height={32} style={{ width: 'auto' }} />
-                Admin
+                <span>Admin Studio</span>
               </h2>
             </div>
             <AdminSidebarNav />

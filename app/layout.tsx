@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Inter } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
-import SmoothScroll from "@/components/SmoothScroll";
+import ClientRuntime from "@/components/ClientRuntime";
 import {
   OrganizationSchema,
   LocalBusinessSchema,
@@ -137,9 +137,9 @@ export default function RootLayout({
         <LocalBusinessSchema />
         <EventSeriesSchema />
         <FAQSchema />
-        <SmoothScroll>
+        <ClientRuntime>
           {children}
-        </SmoothScroll>
+        </ClientRuntime>
       </body>
     </html>
   );

@@ -29,13 +29,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Cache static assets for improved repeat-visit performance
   async headers() {
+    // Next.js manages its hashed /_next/static assets itself. Applying an
+    // immutable header during development causes browsers to keep stale CSS
+    // and JavaScript after edits.
+    if (process.env.NODE_ENV !== 'production') return [];
+
     return [
-      {
-        source: '/_next/static/(.*)',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
       {
         source: '/images/(.*)',
         headers: [
@@ -53,4 +52,3 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
-

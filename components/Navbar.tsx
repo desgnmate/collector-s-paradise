@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import { signOut } from '@/app/actions/auth';
 import logo from '@/public/images/logo.png';
@@ -20,7 +19,6 @@ export default function Navbar() {
   
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const navItems = [
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About' },
@@ -33,19 +31,36 @@ export default function Navbar() {
   const isActiveRoute = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   useEffect(() => {
-    // Use onAuthStateChange exclusively — avoids racing getUser() against
-    // the auth state listener which both try to acquire the navigator lock.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      const u = session?.user ?? null;
-      setUser(u);
-      if (u?.user_metadata?.full_name) {
-        setInitials(getInitials(u.user_metadata.full_name));
-      } else if (u?.email) {
-        setInitials(u.email.charAt(0).toUpperCase());
-      } else {
-        setInitials('');
-      }
-    });
+    let cancelled = false;
+    let authSubscription: { unsubscribe: () => void } | null = null;
+    let authIdleHandle: number | null = null;
+
+    const startAuthListener = async () => {
+      const { createSupabaseBrowserClient } = await import('@/lib/supabase/client');
+      if (cancelled) return;
+
+      const supabase = createSupabaseBrowserClient();
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const u = session?.user ?? null;
+        setUser(u);
+        if (u?.user_metadata?.full_name) {
+          setInitials(getInitials(u.user_metadata.full_name));
+        } else if (u?.email) {
+          setInitials(u.email.charAt(0).toUpperCase());
+        } else {
+          setInitials('');
+        }
+      });
+      authSubscription = subscription;
+    };
+
+    // Authentication controls are preserved, but Supabase is no longer part
+    // of the navigation-critical bundle and hydration task.
+    if (typeof window.requestIdleCallback === 'function') {
+      authIdleHandle = window.requestIdleCallback(() => void startAuthListener(), { timeout: 1000 });
+    } else {
+      authIdleHandle = window.setTimeout(() => void startAuthListener(), 300);
+    }
 
     const handleScroll = () => {
       const scrollPos = window.scrollY;
@@ -93,13 +108,21 @@ export default function Navbar() {
     window.addEventListener('keydown', handleKey);
 
     return () => {
+      cancelled = true;
+      if (authIdleHandle !== null) {
+        if (typeof window.cancelIdleCallback === 'function') {
+          window.cancelIdleCallback(authIdleHandle);
+        } else {
+          window.clearTimeout(authIdleHandle);
+        }
+      }
       window.removeEventListener('scroll', throttledScroll);
       document.removeEventListener('click', handleClickOutside);
       window.removeEventListener('keydown', handleKey);
       if (rafId !== null) cancelAnimationFrame(rafId);
-      subscription.unsubscribe();
+      authSubscription?.unsubscribe();
     };
-  }, [supabase, pathname]);
+  }, [pathname]);
 
   // Lock body scroll while the fullscreen mobile menu is open.
   useEffect(() => {

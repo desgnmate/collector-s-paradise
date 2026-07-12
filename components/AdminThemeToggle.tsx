@@ -3,29 +3,29 @@
 import { useState, useEffect } from 'react';
 
 export default function AdminThemeToggle() {
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const stored = localStorage.getItem('admin-theme');
-    if (stored === 'light') {
-      document.documentElement.setAttribute('data-admin-theme', 'light');
-      setIsDark(false);
+    if (stored === 'dark') {
+      document.documentElement.setAttribute('data-admin-theme', 'dark');
+      setIsDark(true);
     } else {
       document.documentElement.removeAttribute('data-admin-theme');
-      setIsDark(true);
+      setIsDark(false);
     }
   }, []);
 
   const toggle = () => {
     const next = isDark ? 'light' : 'dark';
-    if (next === 'light') {
-      document.documentElement.setAttribute('data-admin-theme', 'light');
-      localStorage.setItem('admin-theme', 'light');
-      setIsDark(false);
-    } else {
-      document.documentElement.removeAttribute('data-admin-theme');
+    if (next === 'dark') {
+      document.documentElement.setAttribute('data-admin-theme', 'dark');
       localStorage.setItem('admin-theme', 'dark');
       setIsDark(true);
+    } else {
+      document.documentElement.removeAttribute('data-admin-theme');
+      localStorage.setItem('admin-theme', 'light');
+      setIsDark(false);
     }
   };
 
