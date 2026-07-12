@@ -1,22 +1,53 @@
 import React from 'react';
 
-// Generates an array of generic svg elements for placeholder brands
-const generateBrandSVGs = () => {
-  return [
-    <svg key="1" viewBox="0 0 100 40" className="brand-logo-svg"><path d="M10,20 Q25,5 50,20 T90,20 L90,30 L10,30 Z" /></svg>,
-    <svg key="2" viewBox="0 0 100 40" className="brand-logo-svg"><rect x="25" y="10" width="50" height="20" rx="4" /> <circle cx="15" cy="20" r="10"/> </svg>,
-    <svg key="3" viewBox="0 0 100 40" className="brand-logo-svg"><polygon points="50,5 90,35 10,35" /></svg>,
-    <svg key="4" viewBox="0 0 100 40" className="brand-logo-svg"><ellipse cx="50" cy="20" rx="40" ry="15" /> </svg>,
-    <svg key="5" viewBox="0 0 100 40" className="brand-logo-svg"><path d="M10,10 L30,10 L50,30 L70,10 L90,10 L90,30 L70,30 L50,15 L30,30 L10,30 Z" /></svg>,
-    <svg key="6" viewBox="0 0 100 40" className="brand-logo-svg"><circle cx="50" cy="20" r="15" /> <circle cx="30" cy="20" r="10" /> <circle cx="70" cy="20" r="10" /> </svg>,
-    <svg key="7" viewBox="0 0 100 40" className="brand-logo-svg"><path d="M20,5 L80,5 L70,35 L30,35 Z" /></svg>,
-    <svg key="8" viewBox="0 0 100 40" className="brand-logo-svg"><rect x="10" y="15" width="80" height="10" /> <rect x="45" y="5" width="10" height="30" /></svg>,
-  ];
-};
+const reviews = [
+  {
+    title: 'Packed Every Time',
+    quote:
+      'Collector\'s Paradise events always bring serious foot traffic. We sold out half our singles table by midday — best Melbourne show we\'ve done this year.',
+    author: 'Marcus T.',
+    role: 'TCG Vendor · Melbourne',
+    rating: 5,
+  },
+  {
+    title: 'Seamless Event Day',
+    quote:
+      'From load-in to pack-down everything ran smoothly. Clear booth layout, helpful organisers, and collectors who actually know what they\'re looking for.',
+    author: 'Priya S.',
+    role: 'Sports Cards Vendor',
+    rating: 5,
+  },
+  {
+    title: 'Trade Floor Energy',
+    quote:
+      'The vibe at these events is unreal. Kids, veterans, and traders all in one room. We came for the sales and stayed for the community — already booked our next booth.',
+    author: 'Liam C.',
+    role: 'Pokémon & One Piece Vendor',
+    rating: 5,
+  },
+];
+
+function Stars({ count }: { count: number }) {
+  return (
+    <div className="review-stars" aria-label={`${count} out of 5 stars`}>
+      {Array.from({ length: count }).map((_, i) => (
+        <svg
+          key={i}
+          className="review-star"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          aria-hidden="true"
+        >
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      ))}
+    </div>
+  );
+}
 
 const Brands = () => {
-  const brandLogos = generateBrandSVGs();
-
   return (
     <section id="brands" className="brands-section">
       <div className="brands-header" data-aos="fade-up">
@@ -28,18 +59,23 @@ const Brands = () => {
         </p>
       </div>
 
-      <div className="brands-marquee-wrapper">
-        <div className="brands-marquee-content">
-          {/* Double the logos for seamless loop */}
-          {[...brandLogos, ...brandLogos].map((svg, index) => (
-            <div 
-              key={index} 
-              className="brand-item" 
-            >
-              {svg}
+      <div className="reviews-grid">
+        {reviews.map((review, index) => (
+          <article
+            key={review.title}
+            className="review-card"
+            data-aos="fade-up"
+            data-aos-delay={String(100 + index * 100)}
+          >
+            <Stars count={review.rating} />
+            <h3 className="review-card-title">{review.title}</h3>
+            <p className="review-card-quote">&ldquo;{review.quote}&rdquo;</p>
+            <div className="review-card-author">
+              <span className="review-card-name">{review.author}</span>
+              <span className="review-card-role">{review.role}</span>
             </div>
-          ))}
-        </div>
+          </article>
+        ))}
       </div>
     </section>
   );

@@ -115,8 +115,13 @@ const Experience = () => {
           <span className="eyebrow-badge">WHAT YOU&apos;LL EXPERIENCE</span>
           <h2 className="section-title">FUN FOR<br />EVERYONE</h2>
           <p className="section-subtitle">
-            Immerse yourself in a world of pop culture excitement. From rare collectibles to exclusive guest appearances, there&apos;s something for every fan.
+            Find rare cards, meet the community and enjoy a full day of collecting culture — whether you&apos;re chasing your first card or your next grail.
           </p>
+
+          <div className="experience-proof" aria-label="Event highlights">
+            <div><strong>100+</strong><span>Vendors & tables</span></div>
+            <div><strong>1</strong><span>Big collector community</span></div>
+          </div>
 
           <div className="experience-tags">
             {tags.map((tag) => (
@@ -130,6 +135,7 @@ const Experience = () => {
 
         {/* Right Side: Video Carousel */}
         <div className="experience-image-side">
+          <div className="experience-media-label"><span>LIVE</span> FROM THE FLOOR</div>
           {/* Slides */}
           <div className="exp-carousel-track">
             {slides.map((slide, i) => (

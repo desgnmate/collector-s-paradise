@@ -21,6 +21,16 @@ export default function Navbar() {
   const pathname = usePathname();
   const isHomePage = pathname === '/';
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const navItems = [
+    { href: '/', label: 'Home' },
+    { href: '/about', label: 'About' },
+    { href: '/events', label: 'Events' },
+    { href: '/vendors', label: 'Vendors' },
+    { href: '/sponsorship', label: 'Sponsorship' },
+    { href: '/volunteers', label: 'Volunteers' },
+  ];
+
+  const isActiveRoute = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
 
   useEffect(() => {
     // Use onAuthStateChange exclusively — avoids racing getUser() against
@@ -228,24 +238,21 @@ export default function Navbar() {
             {/* Desktop dropdown — hidden on mobile (≤900px) via CSS */}
             <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
               <div className="navbar-dropdown-inner">
-                <Link href="/" className="dropdown-item" onClick={handleLogoClick} prefetch>
-                  <span className="menu-item-text">Home</span>
-                </Link>
-                <Link href="/about" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
-                  <span className="menu-item-text">About</span>
-                </Link>
-                <Link href="/events" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
-                  <span className="menu-item-text">Events</span>
-                </Link>
-                <Link href="/vendors" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
-                  <span className="menu-item-text">Vendors</span>
-                </Link>
-                <Link href="/sponsorship" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
-                  <span className="menu-item-text">Sponsorship</span>
-                </Link>
-                <Link href="/volunteers" className="dropdown-item" onClick={() => setMenuOpen(false)} prefetch>
-                  <span className="menu-item-text">Volunteers</span>
-                </Link>
+                <div className="navbar-dropdown-heading"><span>Explore</span><small>Collector&apos;s Paradise</small></div>
+                {navItems.map((item, index) => (
+                  <Link
+                    href={item.href}
+                    className={`dropdown-item ${isActiveRoute(item.href) ? 'is-active' : ''}`}
+                    aria-current={isActiveRoute(item.href) ? 'page' : undefined}
+                    onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
+                    prefetch
+                    key={item.href}
+                  >
+                    <span className="menu-item-number">0{index + 1}</span>
+                    <span className="menu-item-text">{item.label}</span>
+                    <span className="menu-item-arrow" aria-hidden="true">→</span>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
@@ -272,24 +279,20 @@ export default function Navbar() {
         </button>
 
         <nav className="mobile-menu-nav">
-          <Link href="/" className="mobile-menu-link" onClick={handleLogoClick} prefetch>
-            <span className="mobile-menu-link-text">Home</span>
-          </Link>
-          <Link href="/about" className="mobile-menu-link" onClick={() => setMenuOpen(false)} prefetch>
-            <span className="mobile-menu-link-text">About</span>
-          </Link>
-          <Link href="/events" className="mobile-menu-link" onClick={() => setMenuOpen(false)} prefetch>
-            <span className="mobile-menu-link-text">Events</span>
-          </Link>
-          <Link href="/vendors" className="mobile-menu-link" onClick={() => setMenuOpen(false)} prefetch>
-            <span className="mobile-menu-link-text">Vendors</span>
-          </Link>
-          <Link href="/sponsorship" className="mobile-menu-link" onClick={() => setMenuOpen(false)} prefetch>
-            <span className="mobile-menu-link-text">Sponsorship</span>
-          </Link>
-          <Link href="/volunteers" className="mobile-menu-link" onClick={() => setMenuOpen(false)} prefetch>
-            <span className="mobile-menu-link-text">Volunteers</span>
-          </Link>
+          {navItems.map((item, index) => (
+            <Link
+              href={item.href}
+              className={`mobile-menu-link ${isActiveRoute(item.href) ? 'is-active' : ''}`}
+              aria-current={isActiveRoute(item.href) ? 'page' : undefined}
+              onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
+              prefetch
+              key={item.href}
+            >
+              <span className="mobile-menu-index">0{index + 1}</span>
+              <span className="mobile-menu-link-text">{item.label}</span>
+              <span className="mobile-menu-arrow" aria-hidden="true">→</span>
+            </Link>
+          ))}
         </nav>
 
         {/* Apply as vendor CTA — mirrors the desktop navbar pill */}

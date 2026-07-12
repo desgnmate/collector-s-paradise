@@ -69,15 +69,18 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
       {/* Card Content */}
       <div className="ec-content">
         {/* Status badge */}
-        <span
-          className="ec-status-badge"
-          style={{
-            color: status.color,
-            background: status.bg,
-          }}
-        >
-          {status.label}
-        </span>
+        <div className="ec-card-kicker">
+          <span
+            className="ec-status-badge"
+            style={{
+              color: status.color,
+              background: status.bg,
+            }}
+          >
+            {status.label}
+          </span>
+          <span className="ec-full-date">{fullDate}</span>
+        </div>
 
         {/* Title */}
         <h3 className="ec-title">{event.title}</h3>

@@ -24,34 +24,41 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
       <div className="container">
         
         {!isCalendarDateSelected && (
-          <div className="highlights-header" data-aos="fade-up">
-            <span className="eyebrow-badge">PREVIOUS &amp; UPCOMING EVENTS</span>
-            <h2 className="section-title">COLLECTOR'S CALENDAR</h2>
-            <p className="section-subtitle">
-              Discover everything happening at the event, from trading zones to exclusive finds.
-            </p>
+          <div className="highlights-header">
+            <div className="highlights-header-copy">
+              <span className="eyebrow-badge">EVENTS &amp; EXPERIENCES</span>
+              <h2 className="section-title">COLLECTOR&apos;S CALENDAR</h2>
+              <p className="section-subtitle">
+                Find your next collector meet-up, plan the day and secure your place before the tables fill up.
+              </p>
+            </div>
+            <div className="highlights-header-stamp" aria-hidden="true">
+              <span>NEXT UP</span>
+              <strong>{upcomingEvents.length.toString().padStart(2, '0')}</strong>
+              <small>EVENT{upcomingEvents.length === 1 ? '' : 'S'}</small>
+            </div>
           </div>
         )}
           
         <div 
           className="highlights-controls-wrapper"
-          style={{ 
-            justifyContent: viewMode === 'calendar' ? 'flex-end' : 'space-between',
-          }}
+          data-calendar-mode={viewMode === 'calendar' ? 'true' : 'false'}
         >
           {viewMode === 'card' && (
             <div className="highlights-toggle-container">
               <button 
                 className={`toggle-btn ${eventType === 'upcoming' ? 'active' : ''}`}
                 onClick={() => setEventType('upcoming')}
+                aria-pressed={eventType === 'upcoming'}
               >
-                Upcoming Events
+                Upcoming <span className="toggle-count">{upcomingEvents.length}</span>
               </button>
               <button 
                 className={`toggle-btn ${eventType === 'past' ? 'active' : ''}`}
                 onClick={() => setEventType('past')}
+                aria-pressed={eventType === 'past'}
               >
-                Past Events
+                Past <span className="toggle-count">{pastEvents.length}</span>
               </button>
             </div>
           )}
@@ -61,6 +68,7 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
               className={`view-btn view-icon-only ${viewMode === 'card' ? 'active' : ''}`}
               onClick={() => setViewMode('card')}
               aria-label="Card View"
+              aria-pressed={viewMode === 'card'}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
             </button>
@@ -68,6 +76,7 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
               className={`view-btn view-icon-only ${viewMode === 'calendar' ? 'active' : ''}`}
               onClick={() => setViewMode('calendar')}
               aria-label="Calendar View"
+              aria-pressed={viewMode === 'calendar'}
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             </button>
