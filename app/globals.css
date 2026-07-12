@@ -2770,10 +2770,14 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .experience-content .section-title {
-  max-width: 9ch;
+  max-width: 12ch;
   margin-top: 0.9rem;
   font-size: clamp(2.5rem, 4.5vw, 4.5rem);
   line-height: 0.92;
+}
+
+.experience-title-nowrap {
+  white-space: nowrap;
 }
 
 .experience-content .section-subtitle { max-width: 540px; color: var(--color-text-secondary); }

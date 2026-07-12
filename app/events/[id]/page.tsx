@@ -10,6 +10,8 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 export const revalidate = 3600;
 
+const EVENT_COVER_FALLBACK = '/images/event-experience.png';
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -166,7 +168,7 @@ export default async function EventDetailPage({ params }: Props) {
 
             <div className="edp-cover">
                 <Image
-                  src={event.cover_image_url || '/images/placeholder-event.png'}
+                  src={event.cover_image_url || EVENT_COVER_FALLBACK}
                   alt={event.title}
                   width={800}
                   height={450}

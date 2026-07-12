@@ -4,6 +4,8 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Event } from '@/app/actions/events';
 
+const EVENT_COVER_FALLBACK = '/images/event-experience.png';
+
 interface EventCardProps {
   event: Event;
   variant?: 'upcoming' | 'past';
@@ -54,7 +56,7 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
       {/* Cover Image with Date Chip */}
       <div className="ec-image-wrapper">
         <Image
-          src={event.cover_image_url || '/images/placeholder-event.png'}
+          src={event.cover_image_url || EVENT_COVER_FALLBACK}
           alt={event.title}
           fill
           loading="lazy"

@@ -60,13 +60,12 @@ const createPublicEventsClient = () => createClient(
 );
 
 // Legacy records may contain multi-megabyte base64 images. Sending those
-// inside an RSC payload makes transitions slow and exceeds Next.js's 2 MB
-// data-cache limit. Public pages use their existing placeholder for those
-// records; normal Storage/CDN URLs are preserved.
+// inside an RSC payload makes transitions slow and can exceed Next.js's
+// data-cache limits, so expose those covers through a small image route.
 const normalizePublicEventCover = (event: Event): Event => ({
   ...event,
   cover_image_url: event.cover_image_url?.startsWith('data:')
-    ? null
+    ? `/api/events/${event.id}/cover`
     : event.cover_image_url,
 });
 
@@ -87,7 +86,7 @@ const getCachedEvents = unstable_cache(
 
     return (data as Event[]).map(normalizePublicEventCover);
   },
-  ['public-events'],
+  ['public-events-v2'],
   { revalidate: 3600, tags: ['events'] }
 );
 
@@ -107,7 +106,7 @@ const getCachedEventById = unstable_cache(
 
     return normalizePublicEventCover(data as Event);
   },
-  ['public-event'],
+  ['public-event-v2'],
   { revalidate: 3600, tags: ['events'] }
 );
 

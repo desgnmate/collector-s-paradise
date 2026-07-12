@@ -113,7 +113,10 @@ const Experience = () => {
         {/* Left Side: Content */}
         <div className="experience-content">
           <span className="eyebrow-badge">WHAT YOU&apos;LL EXPERIENCE</span>
-          <h2 className="section-title">FUN FOR<br />EVERYONE</h2>
+          <h2 className="section-title">
+            FUN <br />
+            <span className="experience-title-nowrap">FOR EVERYONE</span>
+          </h2>
           <p className="section-subtitle">
             Find rare cards, meet the community and enjoy a full day of collecting culture — whether you&apos;re chasing your first card or your next grail.
           </p>
