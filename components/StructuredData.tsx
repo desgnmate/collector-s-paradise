@@ -1,5 +1,8 @@
 import React from 'react';
 
+const siteDescription =
+  "Australia’s Community Collectibles Market! Pokemon, One Piece, Sports Cards, TCG, Games, Art, Accessories and more! Buy, Sell, Trade with hundreds of vendors!";
+
 interface OrganizationSchemaProps {
   name?: string;
   url?: string;
@@ -19,11 +22,10 @@ export function LocalBusinessSchema() {
     '@id': 'https://collectorsparadise.au/#localbusiness',
     name: "Collector's Paradise",
     alternateName: "Collector's Paradise Melbourne",
-    description:
-      "Melbourne's premier Pokémon trading card and collectibles event. Buy, sell, trade rare cards, meet vendors, and connect with the collector community at our live events.",
+    description: siteDescription,
     url: 'https://collectorsparadise.au',
     logo: 'https://collectorsparadise.au/images/logo.png',
-    image: 'https://collectorsparadise.au/og-image.png',
+    image: 'https://collectorsparadise.au/og-image.jpg',
     priceRange: '$$',
     address: {
       '@type': 'PostalAddress',
@@ -117,8 +119,7 @@ export function EventSeriesSchema() {
     '@context': 'https://schema.org',
     '@type': 'EventSeries',
     name: "Collector's Paradise Melbourne Trading Card Events",
-    description:
-      "Recurring Pokémon TCG and trading card collector events in Melbourne, Australia. Featuring buy/sell/trade floors, tournaments, giveaways, and vendor halls.",
+    description: siteDescription,
     url: 'https://collectorsparadise.au/events',
     organizer: {
       '@type': 'Organization',
@@ -154,7 +155,7 @@ export function OrganizationSchema({
   name = "Collector's Paradise",
   url = 'https://collectorsparadise.au',
   logo = 'https://collectorsparadise.au/images/logo.png',
-  description = "Melbourne's premier Pokémon trading card event. Buy, sell, trade rare cards and connect with the collector community.",
+  description = siteDescription,
 }: OrganizationSchemaProps) {
   const orgSchema = {
     '@context': 'https://schema.org',

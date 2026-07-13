@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Collector's Paradise Melbourne",
     short_name: 'CP Events',
     description:
-      "Melbourne's premier Pokémon TCG and trading card event. Buy, sell, trade rare cards and connect with the Australian collector community.",
+      "Australia’s Community Collectibles Market! Pokemon, One Piece, Sports Cards, TCG, Games, Art, Accessories and more! Buy, Sell, Trade with hundreds of vendors!",
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
  * Returns `null` for any invalid value so the caller can omit the
  * `images` field entirely instead of publishing a broken URL.
  */
-function resolveSitemapImage(url: string | null | undefined, fallback: string): string | null {
+function resolveSitemapImage(url: string | null | undefined): string | null {
   if (!url || typeof url !== 'string') return null;
   const trimmed = url.trim();
   if (!trimmed) return null;
@@ -32,7 +32,7 @@ function resolveSitemapImage(url: string | null | undefined, fallback: string): 
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = 'https://collectorsparadise.au';
-  const ogImage = `${baseUrl}/og-image.png`;
+  const ogImage = `${baseUrl}/og-image.jpg`;
   const logoImage = `${baseUrl}/images/logo.png`;
 
   // Static pages — use a fixed date to avoid false freshness signals.
@@ -43,21 +43,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: staticLastMod,
       changeFrequency: 'weekly',
       priority: 1,
-      ...(resolveSitemapImage(ogImage, '') ? { images: [ogImage] } : {}),
+      images: [ogImage],
     },
     {
       url: `${baseUrl}/about`,
       lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.8,
-      ...(resolveSitemapImage(logoImage, '') ? { images: [logoImage] } : {}),
+      images: [logoImage],
     },
     {
       url: `${baseUrl}/events`,
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
-      ...(resolveSitemapImage(ogImage, '') ? { images: [ogImage] } : {}),
+      images: [ogImage],
     },
     {
       url: `${baseUrl}/vendors`,
@@ -123,7 +123,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     if (events) {
       eventPages = events
         .map((event) => {
-          const imageUrl = resolveSitemapImage(event.cover_image_url, ogImage) ?? ogImage;
+          const imageUrl = resolveSitemapImage(event.cover_image_url) ?? ogImage;
           return {
             url: `${baseUrl}/events/${event.id}`,
             lastModified: new Date(event.updated_at),

@@ -30,6 +30,9 @@ const baloo = localFont({
   display: "swap",
 });
 
+const siteDescription =
+  "Australia’s Community Collectibles Market! Pokemon, One Piece, Sports Cards, TCG, Games, Art, Accessories and more! Buy, Sell, Trade with hundreds of vendors!";
+
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
@@ -44,8 +47,7 @@ export const metadata: Metadata = {
     default: "Collector's Paradise | Pokémon Trading Card Events in Melbourne, Australia",
     template: "%s | Collector's Paradise",
   },
-  description:
-    "Melbourne's premier Pokémon trading card and collectibles event. Buy, sell, trade rare cards, meet vendors, and connect with the Australian collector community. Tickets available now.",
+  description: siteDescription,
   keywords: [
     "Pokemon cards Melbourne",
     "Pokemon TCG Melbourne",
@@ -79,16 +81,15 @@ export const metadata: Metadata = {
   classification: "Trading Card & Collectibles Events",
   openGraph: {
     title: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
-    description:
-      "Melbourne's premier trading card and collectibles event. Buy, sell, trade rare Pokémon cards, meet vendors, and join Australia's most passionate collector community.",
     type: "website",
     siteName: "Collector's Paradise",
     locale: "en_AU",
     url: "https://collectorsparadise.au",
     countryName: "Australia",
+    description: siteDescription,
     images: [
       {
-        url: '/og-image.png',
+        url: '/og-image.jpg',
         width: 1200,
         height: 630,
         alt: "Collector's Paradise - Pokémon Trading Card Events in Melbourne, Australia",
@@ -98,9 +99,8 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
-    description:
-      "Where Melbourne collectors meet, trade & connect. Buy tickets to the next trading card event.",
-    images: ['/og-image.png'],
+    description: siteDescription,
+    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
