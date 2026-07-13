@@ -23,7 +23,7 @@ events.
 - **Admin panel** — review and approve / reject / waitlist applications, create and edit events, with optimistic client-side caching.
 - **Transactional email** — automated applicant notifications (Resend).
 - **SEO & security** — dynamic sitemap & robots, JSON-LD structured data, strict CSP, HSTS, and route protection.
-- **Edge-deployed** — runs on Cloudflare via OpenNext.
+- **Vercel deployment** — deployed as a standard Next.js application.
 
 ---
 
@@ -40,7 +40,7 @@ events.
 | Email | [Resend](https://resend.com/) |
 | Image zoom | [react-zoom-pan-pinch](https://github.com/BetterTyped/react-zoom-pan-pinch) |
 | Language | [TypeScript](https://www.typescriptlang.org/) |
-| Deployment | [Cloudflare Pages](https://pages.cloudflare.com/) via [@opennextjs/cloudflare](https://opennext.js.org/cloudflare) |
+| Deployment | [Vercel](https://vercel.com/) |
 
 ---
 
@@ -147,14 +147,17 @@ collectors-paradise-web/
 
 ## 🚢 Deployment
 
-The site deploys to **Cloudflare Pages** via OpenNext. See
+The site deploys to **Vercel** using its native Next.js integration. See
 [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the full guide.
 
 ```bash
-npm run build      # build the Cloudflare worker + assets into .open-next/
-npm run deploy     # build + deploy via @opennextjs/cloudflare
-npm run preview    # preview the Cloudflare build locally with wrangler
+npm run build      # verify the production build locally
+npm run start      # run the production build locally
 ```
+
+Production deployments are created automatically from the connected Git
+repository in Vercel. Preview deployments are created for branches and pull
+requests.
 
 ---
 
@@ -170,7 +173,7 @@ Full documentation lives in [`docs/`](docs/):
 | [docs/ADMIN_PANEL.md](docs/ADMIN_PANEL.md) | Admin panel architecture **and** an owner's how-to guide |
 | [docs/SEO_SECURITY.md](docs/SEO_SECURITY.md) | Metadata, sitemap/robots, JSON-LD, security headers, route protection |
 | [docs/DESIGN_SYSTEM.md](docs/DESIGN_SYSTEM.md) | Design tokens (color, type, spacing), UI conventions |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Cloudflare / OpenNext build & deploy |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | Vercel build and deployment |
 
 ---
 

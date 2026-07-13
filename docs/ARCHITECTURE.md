@@ -11,20 +11,20 @@ data flow of the Collector's Paradise website. For the backend data model see
 ## 🏗️ Core Architecture
 
 The application is a **full-stack Next.js 16 (App Router)** app backed by
-**Supabase** (Postgres + Auth + Storage) and deployed to **Cloudflare** via
-OpenNext.
+**Supabase** (Postgres + Auth + Storage) and deployed to **Vercel** using its
+native Next.js integration.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│                      Cloudflare (edge)                        │
+│                         Vercel                               │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │  middleware.ts  (edge runtime)                         │  │
+│  │  middleware.ts                                          │  │
 │  │  • Auth gates /admin & /admin-login                     │  │
 │  │  • Injects security headers (CSP, HSTS, …)              │  │
 │  └────────────────────────────────────────────────────────┘  │
 │                          ▼                                    │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │  Next.js App Router (Cloudflare worker via OpenNext)    │  │
+│  │  Next.js App Router                                     │  │
 │  │  • Server Components (RSC)  • Server Actions            │  │
 │  │  • Route handlers (sitemap, robots, manifest, icon)     │  │
 │  └────────────────────────────────────────────────────────┘  │
@@ -41,7 +41,7 @@ OpenNext.
 ### Tech stack details
 
 - **Framework:** Next.js 16 (App Router) · React 19
-- **Runtime:** Cloudflare Workers/Pages via `@opennextjs/cloudflare`; middleware runs on the **edge runtime** (`export const runtime = 'experimental-edge'`)
+- **Runtime:** Vercel's native Next.js runtime; middleware currently declares the experimental edge runtime
 - **Data/auth/storage:** Supabase via `@supabase/ssr` (cookie-based, SSR + browser clients)
 - **Styling:** Vanilla CSS with a centralised design-token system in `app/globals.css`
 - **Animation:** native CSS transitions + Framer Motion; smooth scrolling via Lenis
@@ -90,9 +90,7 @@ collectors-paradise-web/
 ├── data/                    # static data (venue map)
 ├── public/                  # fonts/, images/, videos/
 ├── middleware.ts            # auth gating + security headers
-├── next.config.ts           # caching, image, headers config
-├── open-next.config.ts      # OpenNext/Cloudflare adapter config
-└── wrangler.json            # Cloudflare project + assets config
+└── next.config.ts           # caching, image, headers config
 ```
 
 ---
@@ -250,8 +248,8 @@ Configured in `next.config.ts`:
 - **`optimizePackageImports`** — tree-shakes `lucide-react` and `framer-motion`.
 - **Asset cache headers** — `_next/static/*` is `immutable` for 1 year;
   `/images/*` and `/videos/*` for 1 day.
-- **Images** — `images.unoptimized: true` (assets served directly on
-  Cloudflare), with AVIF/WebP formats and explicit device/image sizes.
+- **Images** — currently configured with `images.unoptimized: true`, with
+  AVIF/WebP formats and explicit device/image sizes.
 - **Compression** on; source maps off in production; `poweredByHeader` off.
 - **ISR** — events & vendors pages use `revalidate = 3600`.
 - **Admin client cache** — see [BACKEND.md](BACKEND.md) § "Admin data caching".

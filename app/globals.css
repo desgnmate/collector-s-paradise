@@ -12308,7 +12308,43 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   font-size: 0.5rem;
 }
 
-/* Hero card fan responsive authority — intentionally last to override legacy breakpoints. */
+/* Hero content + card fan responsive authority — intentionally last to override legacy breakpoints. */
+.hero .hero-content {
+  width: min(100%, 1080px);
+  max-width: none;
+  margin: 0 auto;
+  padding: clamp(1rem, 4.5vh, 3.25rem) clamp(1rem, 4vw, 3rem) 0;
+  box-sizing: border-box;
+}
+
+.hero .hero-title {
+  max-width: 18ch;
+  margin: 0 auto clamp(0.8rem, 1.8vh, 1.35rem);
+  font-size: clamp(2rem, min(4.6vw, 6vh), 4rem);
+  line-height: 0.98;
+  letter-spacing: clamp(-0.04em, -0.12vw, -0.015em);
+  text-wrap: balance;
+}
+
+.hero .hero-subtitle {
+  max-width: 68ch;
+  margin: 0 auto clamp(1rem, 2.4vh, 1.75rem);
+  font-size: clamp(0.84rem, min(1.3vw, 2vh), 1.08rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.hero .hero-buttons {
+  margin: 0;
+}
+
+.hero .btn-hero-ticket {
+  min-width: clamp(190px, 22vw, 280px);
+  min-height: clamp(50px, 6.5vh, 66px);
+  padding: clamp(0.72rem, 1.5vh, 0.95rem) clamp(2rem, 4vw, 3rem);
+  font-size: clamp(0.95rem, min(1.45vw, 2.1vh), 1.15rem);
+}
+
 .hero .hero-cards-fan {
   position: absolute !important;
   left: 50% !important;
@@ -12327,10 +12363,40 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 .hero .hero-card-right { right: 7% !important; width: 35% !important; bottom: 0 !important; }
 
 @media (min-width: 900px) and (max-height: 820px) {
+  .hero .hero-content {
+    padding-top: clamp(0.25rem, 1.5vh, 0.75rem);
+  }
+
+  .hero .hero-title {
+    margin-bottom: clamp(0.45rem, 1vh, 0.75rem);
+    font-size: clamp(1.7rem, min(3.6vw, 5.2vh), 2.65rem);
+  }
+
+  .hero .hero-subtitle {
+    max-width: 62ch;
+    margin-bottom: clamp(0.65rem, 1.4vh, 1rem);
+    font-size: clamp(0.78rem, min(1.15vw, 1.8vh), 0.95rem);
+    line-height: 1.45;
+  }
+
+  .hero .btn-hero-ticket {
+    min-width: clamp(170px, 19vw, 230px);
+    min-height: 46px;
+    padding: 0.65rem 2rem;
+    font-size: clamp(0.82rem, 1.1vw, 0.95rem);
+  }
+
   .hero .hero-cards-fan {
     bottom: clamp(-6.5rem, -10vh, -4rem) !important;
     width: clamp(330px, min(52vw, 66vh), 590px) !important;
     height: clamp(215px, min(38vw, 48vh), 410px) !important;
+  }
+}
+
+@media (min-width: 1200px) and (min-height: 821px) and (max-height: 1200px) {
+  .hero .hero-cards-fan {
+    width: clamp(720px, min(64vw, 86vh), 900px) !important;
+    height: clamp(500px, min(45vw, 60vh), 630px) !important;
   }
 }
 
@@ -12343,6 +12409,34 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 }
 
 @media (max-width: 640px) {
+  .hero .hero-content {
+    width: 100%;
+    margin-top: clamp(-3.25rem, -5vh, -1.5rem);
+    padding: clamp(0.25rem, 1.5vh, 0.75rem) clamp(1rem, 5vw, 1.35rem) 0;
+  }
+
+  .hero .hero-title {
+    max-width: 15ch;
+    margin-bottom: clamp(0.65rem, 1.5vh, 0.9rem);
+    font-size: clamp(1.8rem, 8.2vw, 2.7rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  .hero .hero-subtitle {
+    max-width: 38rem;
+    margin-bottom: clamp(0.8rem, 2vh, 1.15rem);
+    font-size: clamp(0.78rem, 3.2vw, 0.96rem);
+    line-height: 1.5;
+  }
+
+  .hero .btn-hero-ticket {
+    min-width: clamp(170px, 56vw, 220px);
+    min-height: 48px;
+    padding: 0.7rem 1.8rem;
+    font-size: clamp(0.92rem, 3.8vw, 1.05rem);
+  }
+
   .hero .hero-cards-fan {
     bottom: clamp(-4.5rem, -8vh, -2.75rem) !important;
     width: clamp(285px, 88vw, 410px) !important;
@@ -12354,6 +12448,28 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   .hero .hero-card-left { left: 5% !important; }
   .hero .hero-card-right { right: 5% !important; }
   .hero .hero-card-center { width: 43% !important; bottom: 3% !important; }
+}
+
+@media (max-width: 380px), (max-width: 640px) and (max-height: 700px) {
+  .hero .hero-content {
+    margin-top: -7.25rem;
+  }
+
+  .hero .hero-title {
+    font-size: clamp(1.6rem, 7.6vw, 2rem);
+  }
+
+  .hero .hero-subtitle {
+    font-size: clamp(0.74rem, 3vw, 0.84rem);
+    line-height: 1.42;
+  }
+
+  .hero .btn-hero-ticket {
+    min-width: 165px;
+    min-height: 44px;
+    padding: 0.6rem 1.6rem;
+    font-size: 0.9rem;
+  }
 }
 
 /* Homepage events — branded collector calendar */

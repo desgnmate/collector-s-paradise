@@ -1,56 +1,43 @@
 # Deployment Guide — Collector's Paradise
 
-This project is optimized for deployment on **Cloudflare Pages** using **@opennextjs/cloudflare**. This allows Next.js to run on Cloudflare's edge network with high performance and global availability.
+This project deploys to **Vercel** using Vercel's native Next.js integration.
+No framework adapter or custom build output directory is required.
 
-## 🛠️ Build Process
+## Local production verification
 
-The project uses OpenNext to bridge the gap between Next.js and Cloudflare Workers.
-
-### 1. Build the Application
-This command generates the `.open-next` directory containing the Cloudflare-compatible worker and assets.
+Before deploying, create and run the same standard Next.js production build:
 
 ```bash
 npm run build
+npm run start
 ```
 
-*Note: The `build` script in `package.json` runs `next build` which is picked up by the OpenNext build process if configured.*
+## Vercel setup
 
-## 🔬 Local Preview
+1. Import the Git repository into Vercel.
+2. Keep the detected framework preset as **Next.js**.
+3. Keep the build command as `npm run build` and the output directory unset.
+4. Add the variables from `.env.local.example` in the Vercel project's
+   Environment Variables settings.
+5. Assign `collectorsparadise.au` in the project's Domains settings.
 
-To test the Cloudflare-specific build locally before deploying:
+Vercel creates production deployments from the production branch and preview
+deployments from other branches and pull requests.
 
-```bash
-npx wrangler pages dev .open-next/assets
-```
+## Environment variables
 
-## 🚀 Deployment
+Configure the required Supabase variables for Production, Preview, and
+Development as appropriate. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only and do
+not expose it with a `NEXT_PUBLIC_` prefix.
 
-### Manual Deployment via Wrangler
+## Runtime behavior
 
-You can deploy the build folder directly to Cloudflare Pages:
-
-```bash
-npx wrangler pages deploy .open-next/assets
-```
-
-### Continuous Integration (CI/CD)
-
-For automated deployments, link your GitHub repository to Cloudflare Pages:
-
-1. **Build Command**: `npx @opennextjs/cloudflare -b` (or your npm build script if it handles this).
-2. **Build Output Directory**: `.open-next/assets`
-3. **Compatibility Flag**: Ensure `nodejs_compat` is enabled in the Cloudflare Dashboard.
-
-## ⚙️ Configuration Files
-
-- `wrangler.json`: Defines the Cloudflare project name, compatibility dates, and asset bindings.
-- `open-next.config.ts`: Configuration for the OpenNext adapter (e.g., R2 caching).
-
-## ⚠️ Important Considerations
-
-- **Server Actions**: Fully supported on Cloudflare via OpenNext.
-- **Dynamic Routes**: Ensure Cloudflare compatibility flags are set if using Node.js specific APIs.
-- **Edge Runtime**: While this project uses the standard Next.js build, OpenNext transpiles it to run on the Edge.
+- Server Components, Server Actions, dynamic routes, and Route Handlers run
+  through Vercel's native Next.js runtime.
+- Static assets in `public/` and generated `/_next/static` assets are served by
+  Vercel's CDN.
+- No `.open-next` output, Wrangler configuration, or Cloudflare compatibility
+  flags are needed.
 
 ---
 
