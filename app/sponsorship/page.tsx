@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export const metadata: Metadata = {
   title: 'Event Sponsorship Melbourne | Partner with Pokémon TCG Events',
@@ -85,6 +86,37 @@ export default function SponsorshipPage() {
               Pokémon TCG and trading card community. Reach thousands of collectors at every show.
             </p>
           </div>
+        </div>
+      </section>
+
+      <section className="featured-sponsor-section" aria-labelledby="fetch-sponsor-title">
+        <div className="container">
+          <article className="featured-sponsor-card">
+            <div className="featured-sponsor-visual" aria-hidden="true">
+              <div className="featured-sponsor-logo-frame">
+                <Image
+                  src="/images/sponsors/fetch-sponsor.jpeg"
+                  alt=""
+                  width={1080}
+                  height={1080}
+                  sizes="(max-width: 820px) 220px, 300px"
+                  className="featured-sponsor-logo"
+                />
+              </div>
+            </div>
+
+            <div className="featured-sponsor-content">
+              <span className="featured-sponsor-kicker">Featured Event Partner</span>
+              <h2 id="fetch-sponsor-title" className="featured-sponsor-title">
+                Proudly supported by <span>FETCH</span>
+              </h2>
+              <p className="featured-sponsor-description">
+                FETCH proudly supports Collector&apos;s Paradise and our growing community of
+                collectors, vendors, and trading card enthusiasts.
+              </p>
+              <p className="featured-sponsor-note">Supporting collector culture and community.</p>
+            </div>
+          </article>
         </div>
       </section>
 

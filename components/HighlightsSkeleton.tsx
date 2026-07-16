@@ -5,60 +5,53 @@
  */
 export default function HighlightsSkeleton() {
   return (
-    <section id="highlights" className="highlights-section" aria-hidden="true">
+    <section id="highlights" className="highlights-section highlights-skeleton" aria-hidden="true">
       <div className="container">
         <div className="highlights-header">
-          <span className="eyebrow-badge">PREVIOUS &amp; UPCOMING EVENTS</span>
-          <h2 className="section-title">COLLECTOR&apos;S CALENDAR</h2>
-          <p className="section-subtitle">
-            Discover everything happening at the event, from trading zones to exclusive finds.
-          </p>
+          <div className="highlights-header-copy">
+            <span className="eyebrow-badge">EVENTS &amp; EXPERIENCES</span>
+            <h2 className="section-title">COLLECTOR&apos;S CALENDAR</h2>
+            <p className="section-subtitle">
+              Find your next collector meet-up, plan the day and secure your place before the tables fill up.
+            </p>
+          </div>
+          <div className="highlights-header-stamp">
+            <span>NEXT UP</span>
+            <strong className="skeleton-count" />
+            <small>EVENTS</small>
+          </div>
         </div>
-        <div
-          className="ec-grid"
-          style={{ pointerEvents: 'none' }}
-        >
-          {[0, 1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="ec-card"
-              style={{ opacity: 0.5 }}
-            >
-              <div
-                className="ec-image-wrapper"
-                style={{ background: 'rgba(46, 46, 46, 0.08)' }}
-              />
-              <div className="ec-content">
-                <div
-                  style={{
-                    height: 14,
-                    width: 80,
-                    background: 'rgba(46, 46, 46, 0.08)',
-                    borderRadius: 4,
-                    marginBottom: 12,
-                  }}
-                />
-                <div
-                  style={{
-                    height: 22,
-                    width: '85%',
-                    background: 'rgba(46, 46, 46, 0.08)',
-                    borderRadius: 4,
-                    marginBottom: 10,
-                  }}
-                />
-                <div
-                  style={{
-                    height: 14,
-                    width: '60%',
-                    background: 'rgba(46, 46, 46, 0.08)',
-                    borderRadius: 4,
-                    marginBottom: 16,
-                  }}
-                />
+
+        <div className="highlights-controls-wrapper highlights-skeleton-controls">
+          <div className="highlights-toggle-container">
+            <div className="toggle-btn active">Upcoming <span className="toggle-count" /></div>
+            <div className="toggle-btn">Past <span className="toggle-count" /></div>
+          </div>
+          <div className="view-toggle-container">
+            <div className="view-btn active"><span className="skeleton-view-grid" /></div>
+            <div className="view-btn"><span className="skeleton-view-calendar" /></div>
+          </div>
+        </div>
+
+        <div className="ec-grid-wrapper">
+          <div className="ec-grid ec-grid--single highlights-skeleton-grid">
+            <div className="highlights-skeleton-card">
+              <div className="highlights-skeleton-cover">
+                <span className="highlights-skeleton-date" />
+              </div>
+              <div className="highlights-skeleton-content">
+                <div className="highlights-skeleton-kicker">
+                  <span className="skeleton-line skeleton-line--badge" />
+                  <span className="skeleton-line skeleton-line--date" />
+                </div>
+                <span className="skeleton-line skeleton-line--title" />
+                <span className="skeleton-line skeleton-line--title-short" />
+                <div className="highlights-skeleton-spacer" />
+                <span className="skeleton-line skeleton-line--meta" />
+                <span className="skeleton-line skeleton-line--cta" />
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
     </section>

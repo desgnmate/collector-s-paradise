@@ -51,7 +51,7 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
       href={`/events/${event.id}`}
       prefetch
       className={`ec-card ${isPast ? 'ec-card-past' : ''}`}
-      style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}
+      style={{ textDecoration: 'none', color: 'inherit' }}
     >
       {/* Cover Image with Date Chip */}
       <div className="ec-image-wrapper">

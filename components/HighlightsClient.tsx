@@ -85,7 +85,7 @@ const HighlightsClient = ({ upcomingEvents, pastEvents }: HighlightsClientProps)
 
         {viewMode === 'card' ? (
           <div className="ec-grid-wrapper">
-            <div className="ec-grid">
+            <div className={`ec-grid ${filteredEvents.length === 1 ? 'ec-grid--single' : ''}`}>
               {filteredEvents.length > 0 ? (
                 filteredEvents.map((event) => (
                   <EventCard
