@@ -6,7 +6,8 @@
     "dev": "NODE_OPTIONS='--max-old-space-size=8192' next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:sheet": "node tests/google-sheet-migration.test.js"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",

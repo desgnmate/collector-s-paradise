@@ -1,9 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import { approveVendor, rejectVendor, waitlistVendor, deleteVendor, syncAllVendorsToSheet } from '@/app/actions/vendors';
-import type { Vendor } from '@/app/actions/vendors';
+import { approveVendor, rejectVendor, waitlistVendor, deleteVendor, updateVendor, syncAllVendorsToSheet } from '@/app/actions/vendors';
+import type { Vendor, VendorUpdateData } from '@/app/actions/vendors';
+import Image from 'next/image';
+
 
 type TabType = 'all' | 'pending' | 'approved' | 'rejected' | 'waitlisted';
 
@@ -16,6 +18,10 @@ export default function AdminVendorsClient() {
   const [showViewModal, setShowViewModal] = useState(false);
   const [modalAction, setModalAction] = useState<'approve' | 'reject' | 'waitlist' | 'delete' | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [editData, setEditData] = useState<VendorUpdateData | null>(null);
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editStatus, setEditStatus] = useState<{ success: boolean; message: string } | null>(null);
 
   const tabs: { key: TabType; label: string; count: number }[] = [
     { key: 'all', label: 'All', count: vendors.length },
@@ -37,8 +43,72 @@ export default function AdminVendorsClient() {
   };
 
   const handleViewInfo = (vendor: Vendor) => {
+    setIsEditing(false);
+    setEditData(null);
+    setEditStatus(null);
     setSelectedVendor(vendor);
     setShowViewModal(true);
+  };
+
+  const handleEdit = (vendor: Vendor) => {
+    setEditData({
+      business_name: vendor.business_name,
+      contact_name: vendor.contact_name,
+      email: vendor.email,
+      phone: vendor.phone || '',
+      location_state: vendor.location_state || '',
+      description: vendor.description || '',
+      categories: vendor.categories || [],
+      social_links: vendor.social_links || '',
+      tables_requested: vendor.tables_requested || '',
+      power_requirements: vendor.power_requirements || '',
+      additional_notes: vendor.additional_notes || '',
+      booth_assignment: vendor.booth_assignment || '',
+    });
+    setEditStatus(null);
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedVendor || !editData) return;
+    setSavingEdit(true);
+    setEditStatus(null);
+
+    // Sanitize categories — trim whitespace and remove empties
+    const cleanData: VendorUpdateData = {
+      ...editData,
+      categories: editData.categories.map(s => s.trim()).filter(Boolean),
+    };
+
+    try {
+      const result = await updateVendor(selectedVendor.id, cleanData);
+      if (result?.success) {
+        invalidateCache('vendors');
+        setShowViewModal(false);
+        setIsEditing(false);
+        setEditData(null);
+        setEditStatus(null);
+      } else {
+        setEditStatus({ success: false, message: result?.message || 'Update failed.' });
+      }
+    } catch (err) {
+      console.error('Edit save error:', err);
+      setEditStatus({ success: false, message: 'Something went wrong. Please try again.' });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+  const handleCancelEdit = () => {
+    setIsEditing(false);
+    setEditData(null);
+    setEditStatus(null);
+  };
+
+  const closeViewModal = () => {
+    setIsEditing(false);
+    setEditData(null);
+    setEditStatus(null);
+    setShowViewModal(false);
   };
 
   const confirmAction = async () => {
@@ -118,7 +188,7 @@ export default function AdminVendorsClient() {
       escapeCsv(v.contact_name),
       escapeCsv(v.email),
       escapeCsv(v.phone),
-      escapeCsv((v as any).location_state),
+      escapeCsv(v.location_state),
       escapeCsv((v.categories || []).join('; ')),
       escapeCsv(v.application_status),
       escapeCsv(v.tables_requested),
@@ -280,29 +350,29 @@ export default function AdminVendorsClient() {
                 </div>
               )}
               
-              <div className="vendor-event-requirements" style={{ marginTop: '0.75rem', paddingTop: '0.75rem', borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+              <div className="vendor-event-reqs">
                 {(vendor.tables_requested || vendor.power_requirements) && (
-                  <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
+                  <div className="vendor-req-row">
                     {vendor.tables_requested && (
-                      <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>
-                        📦 Tables: {vendor.tables_requested}
+                      <span className="vendor-req-item">
+                        Tables: {vendor.tables_requested}
                       </span>
                     )}
                     {vendor.power_requirements && (
-                      <span style={{ fontSize: '0.85rem', color: '#666', fontWeight: 500 }}>
-                        ⚡ Power: {vendor.power_requirements}
+                      <span className="vendor-req-item">
+                        Power: {vendor.power_requirements}
                       </span>
                     )}
                   </div>
                 )}
                 {vendor.social_links && (
-                  <div style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>
-                    🔗 <a href={vendor.social_links} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--color-dark)', textDecoration: 'underline' }}>Social Profile</a>
+                  <div className="vendor-req-item" style={{ marginBottom: '4px' }}>
+                    <a href={vendor.social_links} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--admin-yellow)', textDecoration: 'underline' }}>Social Profile</a>
                   </div>
                 )}
                 {vendor.additional_notes && (
-                  <div style={{ fontSize: '0.85rem', color: '#666', fontStyle: 'italic' }}>
-                     {vendor.additional_notes}
+                  <div className="vendor-req-item" style={{ fontStyle: 'italic' }}>
+                    {vendor.additional_notes}
                   </div>
                 )}
               </div>
@@ -317,21 +387,8 @@ export default function AdminVendorsClient() {
                 <button
                   onClick={() => handleViewInfo(vendor)}
                   className="btn-view-info"
-                  style={{
-                    background: 'var(--color-dark)',
-                    color: 'white',
-                    border: '2px solid var(--color-dark)',
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.5px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
                 >
-                  👁 View Information
+                  View Information
                 </button>
                 {vendor.application_status === 'pending' && (
                   <>
@@ -340,21 +397,21 @@ export default function AdminVendorsClient() {
                       disabled={processingId === vendor.id}
                       className="btn-approve"
                     >
-                      {processingId === vendor.id ? 'Processing...' : '✓ Approve'}
+                      {processingId === vendor.id ? 'Processing...' : 'Approve'}
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'reject')}
                       disabled={processingId === vendor.id}
                       className="btn-reject"
                     >
-                      ✕ Reject
+                      Reject
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'waitlist')}
                       disabled={processingId === vendor.id}
                       className="btn-waitlist"
                     >
-                       Waitlist
+                      Waitlist
                     </button>
                   </>
                 )}
@@ -365,14 +422,14 @@ export default function AdminVendorsClient() {
                       disabled={processingId === vendor.id}
                       className="btn-reject"
                     >
-                      ✕ Unapprove
+                      Unapprove
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'waitlist')}
                       disabled={processingId === vendor.id}
                       className="btn-waitlist"
                     >
-                       Waitlist
+                      Waitlist
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'delete')}
@@ -391,14 +448,14 @@ export default function AdminVendorsClient() {
                       disabled={processingId === vendor.id}
                       className="btn-approve"
                     >
-                      {processingId === vendor.id ? 'Processing...' : '✓ Re-approve'}
+                      {processingId === vendor.id ? 'Processing...' : 'Re-approve'}
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'waitlist')}
                       disabled={processingId === vendor.id}
                       className="btn-waitlist"
                     >
-                       Waitlist
+                      Waitlist
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'delete')}
@@ -417,14 +474,14 @@ export default function AdminVendorsClient() {
                       disabled={processingId === vendor.id}
                       className="btn-approve"
                     >
-                      {processingId === vendor.id ? 'Processing...' : '✓ Approve'}
+                      {processingId === vendor.id ? 'Processing...' : 'Approve'}
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'reject')}
                       disabled={processingId === vendor.id}
                       className="btn-reject"
                     >
-                      ✕ Reject
+                      Reject
                     </button>
                     <button
                       onClick={() => handleAction(vendor, 'delete')}
@@ -507,269 +564,205 @@ export default function AdminVendorsClient() {
 
       {/* View Information Modal */}
       {showViewModal && selectedVendor && (
-        <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content modal-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-            <div className="modal-header" style={{ borderBottom: '2px solid var(--color-dark)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+        <div className="modal-overlay" onClick={closeViewModal}>
+          <div className="modal-content modal-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }} role="dialog" aria-modal="true" aria-labelledby="vendor-detail-title">
+            <div className="modal-header">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="modal-title" style={{ margin: 0 }}>Vendor Application Details</h3>
-                <button 
-                  onClick={() => setShowViewModal(false)}
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    fontSize: '1.5rem',
-                    cursor: 'pointer',
-                    color: '#666',
-                    padding: '0.25rem',
-                    lineHeight: 1
-                  }}
-                >
+                <h3 className="modal-title" style={{ margin: 0 }} id="vendor-detail-title">Vendor Application Details</h3>
+                <button onClick={closeViewModal} className="modal-close-btn" aria-label="Close vendor details">
                   ✕
                 </button>
               </div>
             </div>
             
-            <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-              {/* Business Info Section */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 800, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '1px',
-                  color: '#666',
-                  marginBottom: '0.75rem',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '2px solid var(--color-yellow)'
-                }}>
-                  Business Information
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Business Name</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.business_name}</p>
+            <div className="modal-body">
+              {isEditing && editData ? (
+                /* ── Edit Mode ── */
+                <form id="vendor-edit-form" onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  <div className="edit-form-grid">
+                    <div>
+                      <label className="vendor-edit-label">Business Name</label>
+                      <input value={editData.business_name} onChange={e => setEditData({ ...editData, business_name: e.target.value })} className="vendor-edit-input" />
+                    </div>
+                    <div>
+                      <label className="vendor-edit-label">Contact Person</label>
+                      <input value={editData.contact_name} onChange={e => setEditData({ ...editData, contact_name: e.target.value })} className="vendor-edit-input" />
+                    </div>
+                    <div>
+                      <label className="vendor-edit-label">Email Address</label>
+                      <input value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="vendor-edit-input" />
+                    </div>
+                    <div>
+                      <label className="vendor-edit-label">Phone Number</label>
+                      <input value={editData.phone} onChange={e => setEditData({ ...editData, phone: e.target.value })} className="vendor-edit-input" />
+                    </div>
+                  </div>
+                  <div className="edit-form-grid">
+                    <div>
+                      <label className="vendor-edit-label">State</label>
+                      <input value={editData.location_state} onChange={e => setEditData({ ...editData, location_state: e.target.value })} className="vendor-edit-input" />
+                    </div>
+                    <div>
+                      <label className="vendor-edit-label">Social Links</label>
+                      <input value={editData.social_links} onChange={e => setEditData({ ...editData, social_links: e.target.value })} className="vendor-edit-input" />
+                    </div>
                   </div>
                   <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Contact Person</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.contact_name}</p>
+                    <label className="vendor-edit-label">Categories (comma-separated)</label>
+                    <input value={editData.categories.join(', ')} onChange={e => setEditData({ ...editData, categories: e.target.value.split(',').map(s => s.trim()) })} className="vendor-edit-input" />
                   </div>
                   <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Email Address</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.email}</p>
+                    <label className="vendor-edit-label">Business Description</label>
+                    <textarea value={editData.description} onChange={e => setEditData({ ...editData, description: e.target.value })} rows={3} className="vendor-edit-input" style={{ resize: 'vertical' }} />
+                  </div>
+                  <div className="edit-form-grid">
+                    <div>
+                      <label className="vendor-edit-label">Tables Requested</label>
+                      <input value={editData.tables_requested} onChange={e => setEditData({ ...editData, tables_requested: e.target.value })} className="vendor-edit-input" />
+                    </div>
+                    <div>
+                      <label className="vendor-edit-label">Power Requirements</label>
+                      <input value={editData.power_requirements} onChange={e => setEditData({ ...editData, power_requirements: e.target.value })} className="vendor-edit-input" />
+                    </div>
                   </div>
                   <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Phone Number</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.phone || 'Not provided'}</p>
+                    <label className="vendor-edit-label">Additional Notes</label>
+                    <textarea value={editData.additional_notes} onChange={e => setEditData({ ...editData, additional_notes: e.target.value })} rows={3} className="vendor-edit-input" style={{ resize: 'vertical' }} />
                   </div>
-                </div>
-                {selectedVendor.logo_url && (
-                  <div style={{ marginTop: '1rem' }}>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Business Logo</p>
-                    <img 
-                      src={selectedVendor.logo_url} 
-                      alt={`${selectedVendor.business_name} logo`}
-                      style={{ width: '100px', height: '100px', objectFit: 'cover', borderRadius: '8px', border: '2px solid var(--color-dark)' }}
-                    />
+                  <div>
+                    <label className="vendor-edit-label">Booth Assignment</label>
+                    <input value={editData.booth_assignment} onChange={e => setEditData({ ...editData, booth_assignment: e.target.value })} className="vendor-edit-input" />
                   </div>
-                )}
-              </div>
+                </form>
+              ) : (
+                /* ── Read-Only Mode ── */
+                <div>
+                  {/* Business Info Section */}
+                  <div className="modal-section">
+                    <h4 className="modal-section-title">Business Information</h4>
+                    <div className="info-grid">
+                      <div><p className="info-label">Business Name</p><p className="info-value">{selectedVendor.business_name}</p></div>
+                      <div><p className="info-label">Contact Person</p><p className="info-value">{selectedVendor.contact_name}</p></div>
+                      <div><p className="info-label">Email Address</p><p className="info-value">{selectedVendor.email}</p></div>
+                      <div><p className="info-label">Phone Number</p><p className="info-value">{selectedVendor.phone || <span className="info-value-muted">Not provided</span>}</p></div>
+                    </div>
+                    {selectedVendor.logo_url && (
+                      <div style={{ marginTop: '16px' }}>
+                        <p className="info-label" style={{ marginBottom: '8px' }}>Business Logo</p>
+                        <Image src={selectedVendor.logo_url} alt={`${selectedVendor.business_name} logo`} width={100} height={100} unoptimized className="vendor-logo-img" />
+                      </div>
+                    )}
+                  </div>
 
-              {/* Social Media Section */}
-              {selectedVendor.social_links && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h4 style={{ 
-                    fontSize: '0.75rem', 
-                    fontWeight: 800, 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '1px',
-                    color: '#666',
-                    marginBottom: '0.75rem',
-                    paddingBottom: '0.5rem',
-                    borderBottom: '2px solid var(--color-yellow)'
-                  }}>
-                    Social Media
-                  </h4>
-                  <a 
-                    href={selectedVendor.social_links} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    style={{ 
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: '0.5rem',
-                      color: 'var(--color-dark)',
-                      textDecoration: 'underline',
-                      fontWeight: 500
-                    }}
-                  >
-                     {selectedVendor.social_links}
-                  </a>
-                </div>
-              )}
+                  {/* Social Media Section */}
+                  {selectedVendor.social_links && (
+                    <div className="modal-section">
+                      <h4 className="modal-section-title">Social Media</h4>
+                      <a href={selectedVendor.social_links} target="_blank" rel="noopener noreferrer" className="social-link">
+                        {selectedVendor.social_links}
+                      </a>
+                    </div>
+                  )}
 
-              {/* Products & Categories Section */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 800, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '1px',
-                  color: '#666',
-                  marginBottom: '0.75rem',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '2px solid var(--color-yellow)'
-                }}>
-                  Products & Categories
-                </h4>
-                {selectedVendor.categories && selectedVendor.categories.length > 0 && (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
-                    {selectedVendor.categories.map((cat, i) => (
-                      <span 
-                        key={i}
-                        style={{
-                          background: 'var(--color-yellow)',
-                          color: 'var(--color-dark)',
-                          padding: '0.35rem 0.75rem',
-                          borderRadius: '4px',
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          textTransform: 'uppercase',
-                          border: '1px solid var(--color-dark)'
-                        }}
-                      >
-                        {cat}
-                      </span>
-                    ))}
+                  {/* Products & Categories Section */}
+                  <div className="modal-section">
+                    <h4 className="modal-section-title">Products & Categories</h4>
+                    {selectedVendor.categories && selectedVendor.categories.length > 0 && (
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
+                        {selectedVendor.categories.map((cat, i) => (
+                          <span key={i} className="view-category-tag">{cat}</span>
+                        ))}
+                      </div>
+                    )}
+                    {selectedVendor.description && (
+                      <div><p className="info-label">Business Description</p><p className="info-value-muted" style={{ lineHeight: 1.6, marginTop: '4px' }}>{selectedVendor.description}</p></div>
+                    )}
                   </div>
-                )}
-                {selectedVendor.description && (
-                  <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.5rem' }}>Business Description</p>
-                    <p style={{ lineHeight: 1.6, fontSize: '0.95rem' }}>{selectedVendor.description}</p>
-                  </div>
-                )}
-              </div>
 
-              {/* Event Requirements Section */}
-              <div style={{ marginBottom: '1.5rem' }}>
-                <h4 style={{ 
-                  fontSize: '0.75rem', 
-                  fontWeight: 800, 
-                  textTransform: 'uppercase', 
-                  letterSpacing: '1px',
-                  color: '#666',
-                  marginBottom: '0.75rem',
-                  paddingBottom: '0.5rem',
-                  borderBottom: '2px solid var(--color-yellow)'
-                }}>
-                  Event Requirements
-                </h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Tables Requested</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>
-                      {selectedVendor.tables_requested ? `📦 ${selectedVendor.tables_requested}` : 'Not specified'}
-                    </p>
+                  {/* Event Requirements Section */}
+                  <div className="modal-section">
+                    <h4 className="modal-section-title">Event Requirements</h4>
+                    <div className="info-grid">
+                      <div><p className="info-label">Tables Requested</p><p className="info-value">{selectedVendor.tables_requested || <span className="info-value-muted">Not specified</span>}</p></div>
+                      <div><p className="info-label">Power Requirements</p><p className="info-value">{selectedVendor.power_requirements || <span className="info-value-muted">Not specified</span>}</p></div>
+                    </div>
                   </div>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Power Requirements</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>
-                      {selectedVendor.power_requirements ? `⚡ ${selectedVendor.power_requirements}` : 'Not specified'}
-                    </p>
-                  </div>
-                </div>
-              </div>
 
-              {/* Additional Notes Section */}
-              {selectedVendor.additional_notes && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <h4 style={{ 
-                    fontSize: '0.75rem', 
-                    fontWeight: 800, 
-                    textTransform: 'uppercase', 
-                    letterSpacing: '1px',
-                    color: '#666',
-                    marginBottom: '0.75rem',
-                    paddingBottom: '0.5rem',
-                    borderBottom: '2px solid var(--color-yellow)'
-                  }}>
-                    Additional Notes
-                  </h4>
-                  <p style={{ 
-                    lineHeight: 1.6, 
-                    fontSize: '0.95rem',
-                    background: 'rgba(244, 197, 66, 0.1)',
-                    padding: '1rem',
-                    borderRadius: '6px',
-                    border: '1px dashed var(--color-dark)'
-                  }}>
-                    {selectedVendor.additional_notes}
-                  </p>
+                  {/* Additional Notes Section */}
+                  {selectedVendor.additional_notes && (
+                    <div className="modal-section">
+                      <h4 className="modal-section-title">Additional Notes</h4>
+                      <p className="notes-display">{selectedVendor.additional_notes}</p>
+                    </div>
+                  )}
+
+                  {/* Application Status Section */}
+                  <div className="status-block">
+                    <div className="info-grid">
+                      <div>
+                        <p className="info-label">Application Status</p>
+                        <p className="info-value" style={{
+                          color: selectedVendor.application_status === 'approved' ? '#22c55e' :
+                                 selectedVendor.application_status === 'rejected' ? '#ef4444' :
+                                 selectedVendor.application_status === 'waitlisted' ? '#8b5cf6' : '#f59e0b'
+                        }}>{selectedVendor.application_status}</p>
+                      </div>
+                      <div>
+                        <p className="info-label">Applied On</p>
+                        <p className="info-value">{new Date(selectedVendor.applied_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                    {selectedVendor.booth_assignment && (
+                      <div style={{ marginTop: '12px' }}>
+                        <p className="info-label">Booth Assignment</p>
+                        <p className="info-value">{selectedVendor.booth_assignment}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
-
-              {/* Application Status Section */}
-              <div style={{ 
-                background: 'rgba(0,0,0,0.05)', 
-                padding: '1rem', 
-                borderRadius: '6px',
-                marginTop: '1.5rem'
-              }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Application Status</p>
-                    <p style={{ 
-                      fontWeight: 700, 
-                      fontSize: '1rem',
-                      textTransform: 'uppercase',
-                      color: selectedVendor.application_status === 'approved' ? '#22c55e' :
-                             selectedVendor.application_status === 'rejected' ? '#ef4444' :
-                             selectedVendor.application_status === 'waitlisted' ? '#8b5cf6' : '#f59e0b'
-                    }}>
-                      {selectedVendor.application_status}
-                    </p>
-                  </div>
-                  <div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Applied On</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>
-                      {new Date(selectedVendor.applied_at).toLocaleDateString('en-US', { 
-                        month: 'long', 
-                        day: 'numeric', 
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
-                  </div>
-                </div>
-                {selectedVendor.booth_assignment && (
-                  <div style={{ marginTop: '0.75rem' }}>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginBottom: '0.25rem' }}>Booth Assignment</p>
-                    <p style={{ fontWeight: 600, fontSize: '1rem' }}>{selectedVendor.booth_assignment}</p>
-                  </div>
-                )}
-              </div>
             </div>
             
-            <div className="modal-footer" style={{ borderTop: '1px solid #e5e5e5', paddingTop: '1rem', marginTop: '1.5rem' }}>
-              <button 
-                onClick={() => setShowViewModal(false)} 
-                className="btn-cancel"
-                style={{
-                  background: 'var(--color-dark)',
-                  color: 'white',
-                  border: '2px solid var(--color-dark)',
-                  padding: '0.65rem 1.5rem',
-                  borderRadius: '6px',
-                  fontWeight: 700,
-                  fontSize: '0.9rem',
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.5px',
-                  cursor: 'pointer'
-                }}
-              >
-                Close
-              </button>
+            <div className="modal-footer" style={{ borderTop: '1px solid var(--admin-border)', paddingTop: '16px', marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Edit status feedback */}
+              {editStatus && (
+                <span style={{ fontSize: '0.85rem', color: editStatus.success ? '#22c55e' : '#ef4444', fontWeight: 500 }}>
+                  {editStatus.message}
+                </span>
+              )}
+              <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
+                {isEditing ? (
+                  <>
+                    <button
+                      onClick={handleCancelEdit}
+                      className="modal-footer-btn modal-footer-secondary"
+                      disabled={savingEdit}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" form="vendor-edit-form" disabled={savingEdit}
+                      className="modal-footer-btn modal-footer-primary"
+                    >
+                      {savingEdit ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleEdit.bind(null, selectedVendor!)}
+                      className="modal-footer-btn modal-footer-secondary"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={closeViewModal}
+                      className="modal-footer-btn modal-footer-primary"
+                    >
+                      Close
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>

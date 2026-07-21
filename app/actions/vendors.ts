@@ -25,6 +25,7 @@ export type Vendor = {
   booth_assignment: string | null;
   event_id: string | null;
   rejection_reason: string | null;
+  location_state: string;
   applied_at: string;
 };
 
@@ -79,6 +80,42 @@ type ActionState = {
   fields?: Partial<VendorApplicationFields>;
 };
 
+/** Verify the current user is an admin — returns error message or null if OK */
+async function verifyAdmin(): Promise<string | null> {
+  const supabase = await createSupabaseServerClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return 'Authentication required.';
+
+  const { data: adminRecord } = await supabase
+    .from('admin_users')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!adminRecord) return 'Admin access required.';
+
+  return null;
+}
+
+// Admin update schema — more lenient than the application form
+const vendorUpdateSchema = z.object({
+  business_name: z.string().min(1, 'Business name is required').max(200),
+  contact_name: z.string().min(1, 'Contact name is required').max(200),
+  email: z.string().email('Please enter a valid email address'),
+  phone: z.string().optional().default(''),
+  location_state: z.string().min(1, 'Please select a state'),
+  description: z.string().max(1000).optional().default(''),
+  categories: z.array(z.string()).min(1, 'Please select at least one category'),
+  social_links: z.string().optional().default(''),
+  tables_requested: z.string().optional().default(''),
+  power_requirements: z.string().optional().default(''),
+  additional_notes: z.string().optional().default(''),
+  booth_assignment: z.string().optional().default(''),
+});
+
+export type VendorUpdateData = z.infer<typeof vendorUpdateSchema>;
+
 function isStorageSetupError(message: string) {
   const normalized = message.toLowerCase();
   return (
@@ -93,21 +130,36 @@ function isStorageSetupError(message: string) {
 // Public Actions
 // ============================================
 
-async function sendToGoogleSheet(data: Record<string, unknown>) {
+async function sendToGoogleSheet(data: Record<string, unknown>): Promise<{ success: boolean; error?: string }> {
   const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
-  if (!webhookUrl) return; // silently skip if not configured
+  if (!webhookUrl) return { success: false, error: 'GOOGLE_SHEET_WEBHOOK_URL not configured' };
 
-  await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      return { success: false, error: `Sheet webhook returned HTTP ${res.status}` };
+    }
+
+    const body = await res.json();
+    if (body && body.success === false) {
+      return { success: false, error: body.error || 'Sheet webhook returned failure' };
+    }
+
+    return { success: true };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Unknown sheet sync error' };
+  }
 }
 
 export async function syncAllVendorsToSheet() {
   'use server';
-  const webhookUrl = process.env.GOOGLE_SHEET_WEBHOOK_URL;
-  if (!webhookUrl) return { success: false, message: 'Google Sheet webhook not configured.' };
+  const adminError = await verifyAdmin();
+  if (adminError) return { success: false, message: adminError };
 
   const supabase = await createSupabaseServerClient();
   const { data: vendors, error } = await supabase
@@ -120,24 +172,28 @@ export async function syncAllVendorsToSheet() {
   }
 
   for (const v of vendors) {
-    await fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        business_name: v.business_name,
-        contact_name: v.contact_name,
-        email: v.email,
-        phone: v.phone || '',
-        location_state: v.location_state || '',
-        categories: v.categories || [],
-        tables_requested: v.tables_requested || '',
-        power_requirements: v.power_requirements || '',
-        social_links: v.social_links || '',
-        description: v.description || '',
-        logo_url: v.logo_url || '',
-        application_status: v.application_status,
-      }),
+    const result = await sendToGoogleSheet({
+      id: v.id,
+      business_name: v.business_name,
+      contact_name: v.contact_name,
+      email: v.email,
+      phone: v.phone || '',
+      location_state: v.location_state || '',
+      categories: v.categories || [],
+      tables_requested: v.tables_requested || '',
+      power_requirements: v.power_requirements || '',
+      social_links: v.social_links || '',
+      description: v.description || '',
+      logo_url: v.logo_url || '',
+      additional_notes: v.additional_notes || '',
+      booth_assignment: v.booth_assignment || '',
+      application_status: v.application_status,
+      applied_at: v.applied_at || new Date().toISOString(),
     });
+
+    if (!result.success) {
+      return { success: false, message: `Failed to sync vendor "${v.business_name}" (${v.id}): ${result.error}` };
+    }
   }
 
   return { success: true, message: `${vendors.length} applications synced to spreadsheet.` };
@@ -304,8 +360,9 @@ export async function submitVendorApplication(
     validatedFields.data.contact_name
   ).catch((err) => console.error('Failed to send application emails:', err));
 
-  // Push to Google Sheet (non-blocking)
-  sendToGoogleSheet({
+  // Push to Google Sheet (best-effort await — won't fail the submission)
+  const sheetResult = await sendToGoogleSheet({
+    id: vendorId,
     business_name: validatedFields.data.business_name,
     contact_name: validatedFields.data.contact_name,
     email: validatedFields.data.email,
@@ -317,9 +374,12 @@ export async function submitVendorApplication(
     social_links: validatedFields.data.social_links || '',
     description: validatedFields.data.description,
     logo_url: logoUrl,
+    additional_notes: validatedFields.data.additional_notes || '',
+    booth_assignment: '',
     application_status: 'pending',
-  }).catch((err) => console.error('Failed to push to Google Sheet:', err));
-
+    applied_at: new Date().toISOString(),
+  });
+  if (!sheetResult.success) console.error('Failed to push to Google Sheet:', sheetResult.error);
   revalidatePath('/admin');
   return {
     message: 'Application submitted securely! We\'ll review your application and get back to you soon.',
@@ -372,6 +432,9 @@ export async function getApprovedVendors(): Promise<Partial<Vendor>[]> {
 /** Get all vendors with full details (admin only) - OPTIMIZED: selects only needed columns */
 export async function getAllVendors(): Promise<Vendor[]> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) throw new Error(adminError);
+
 
   const { data, error } = await supabase
     .from('vendors')
@@ -389,6 +452,9 @@ export async function getAllVendors(): Promise<Vendor[]> {
 /** Get pending vendor applications (admin only) - OPTIMIZED: selects only needed columns */
 export async function getPendingVendors(): Promise<Vendor[]> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) throw new Error(adminError);
+
 
   const { data, error } = await supabase
     .from('vendors')
@@ -407,6 +473,9 @@ export async function getPendingVendors(): Promise<Vendor[]> {
 /** Approve a vendor application */
 export async function approveVendor(vendorId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) return { message: adminError };
+
 
   // Fetch vendor details first for email notification
   const { data: vendor } = await supabase
@@ -439,6 +508,9 @@ export async function approveVendor(vendorId: string): Promise<ActionState> {
 /** Reject a vendor application */
 export async function rejectVendor(vendorId: string, reason?: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) return { message: adminError };
+
 
   // Fetch vendor details first for email notification
   const { data: vendor } = await supabase
@@ -475,6 +547,9 @@ export async function rejectVendor(vendorId: string, reason?: string): Promise<A
 /** Waitlist a vendor application */
 export async function waitlistVendor(vendorId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) return { message: adminError };
+
 
   const { error } = await supabase
     .from('vendors')
@@ -490,9 +565,104 @@ export async function waitlistVendor(vendorId: string): Promise<ActionState> {
   return { success: true, message: 'Vendor waitlisted successfully!' };
 }
 
+
+/** Update a vendor's submitted information (admin only) */
+export async function updateVendor(
+  vendorId: string,
+  data: VendorUpdateData
+): Promise<ActionState> {
+  const adminError = await verifyAdmin();
+  if (adminError) return { message: adminError };
+
+  const supabase = await createSupabaseServerClient();
+
+  const validated = vendorUpdateSchema.safeParse(data);
+  if (!validated.success) {
+    return {
+      message: 'Please fix the errors below.',
+      errors: validated.error.flatten().fieldErrors,
+    };
+  }
+  // Verify the vendor exists before attempting update
+  const { data: existing } = await supabase
+    .from('vendors')
+    .select('id, logo_url, application_status, applied_at')
+    .eq('id', vendorId)
+    .maybeSingle();
+
+  if (!existing) {
+    return { message: 'Vendor not found.' };
+  }
+
+  const fields = validated.data;
+  const updateData: Record<string, string | string[] | null> = {
+    business_name: fields.business_name,
+    contact_name: fields.contact_name,
+    email: fields.email,
+    phone: fields.phone || null,
+    location_state: fields.location_state,
+    description: fields.description || null,
+    categories: fields.categories,
+    social_links: fields.social_links || null,
+    tables_requested: fields.tables_requested || null,
+    power_requirements: fields.power_requirements || null,
+    additional_notes: fields.additional_notes || null,
+    booth_assignment: fields.booth_assignment || null,
+  };
+
+  const { error } = await supabase
+    .from('vendors')
+    .update(updateData)
+    .eq('id', vendorId);
+
+  if (error) {
+    console.error('Error updating vendor:', JSON.stringify(error, null, 2));
+
+    if (error.code === '23505') {
+      return { message: 'This business name is already registered.' };
+    }
+
+    return { message: `Failed to update vendor: ${error.message}` };
+  }
+
+  // Push updated data to Google Sheet (best-effort await)
+  const sheetResult = await sendToGoogleSheet({
+    id: vendorId,
+    business_name: fields.business_name,
+    contact_name: fields.contact_name,
+    email: fields.email,
+    phone: fields.phone || '',
+    location_state: fields.location_state,
+    categories: fields.categories,
+    tables_requested: fields.tables_requested || '',
+    power_requirements: fields.power_requirements || '',
+    social_links: fields.social_links || '',
+    description: fields.description || '',
+    logo_url: existing.logo_url || '',
+    additional_notes: fields.additional_notes || '',
+    booth_assignment: fields.booth_assignment || '',
+    application_status: existing.application_status || 'pending',
+    applied_at: existing.applied_at || new Date().toISOString(),
+  }).catch((err) => ({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }));
+
+  revalidatePath('/admin/vendors');
+  revalidatePath('/vendors');
+
+  if (!sheetResult.success) {
+    return {
+      success: true,
+      message: `Vendor updated in database, but spreadsheet sync failed: ${sheetResult.error}. You can retry with "Sync to Sheet".`,
+    };
+  }
+
+  return { success: true, message: 'Vendor updated successfully!' };
+}
 /** Delete a vendor (admin only) — removes vendor from database */
 export async function deleteVendor(vendorId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) return { message: adminError };
+
 
   const { error } = await supabase
     .from('vendors')
@@ -509,9 +679,13 @@ export async function deleteVendor(vendorId: string): Promise<ActionState> {
   return { success: true, message: 'Vendor deleted successfully!' };
 }
 
+
 /** Get approved vendors list for admin view (with more fields than public) - OPTIMIZED */
 export async function getApprovedVendorsAdmin(): Promise<Vendor[]> {
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin();
+  if (adminError) throw new Error(adminError);
+
 
   const { data, error } = await supabase
     .from('vendors')

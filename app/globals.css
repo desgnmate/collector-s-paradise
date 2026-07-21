@@ -7385,9 +7385,9 @@ button.login-dropdown-item:hover .login-item-desc {
 
 /* -- Design Tokens -- */
 :root {
-  --admin-bg: #0f0f0f;
-  --admin-surface: #1a1a1a;
-  --admin-surface-hover: #222222;
+  --admin-bg: #131517;
+  --admin-surface: #1b1d20;
+  --admin-surface-hover: #222529;
   --admin-border: rgba(255, 255, 255, 0.06);
   --admin-border-hover: rgba(255, 255, 255, 0.12);
   --admin-text-primary: #ffffff;
@@ -7405,12 +7405,12 @@ button.login-dropdown-item:hover .login-item-desc {
   --admin-purple: #8b5cf6;
   --admin-purple-soft: rgba(139, 92, 246, 0.08);
   --admin-radius-sm: 6px;
-  --admin-radius: 10px;
-  --admin-radius-lg: 14px;
-  --admin-radius-xl: 18px;
-  --admin-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
-  --admin-shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.3);
-  --admin-transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --admin-radius: 8px;
+  --admin-radius-lg: 10px;
+  --admin-radius-xl: 14px;
+  --admin-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+  --admin-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2);
+  --admin-transition: all 0.2s ease;
 }
 
 /* ---- Admin Light Mode ---- */
@@ -8997,8 +8997,7 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(8px);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -14000,21 +13999,19 @@ html[data-admin-theme="dark"] .admin-stat-card--blue { background: var(--admin-s
 .admin-vendor-card,
 .modal-content {
   background: var(--admin-surface);
-  border: 2px solid var(--admin-border);
+  border: 1px solid var(--admin-border);
   border-radius: var(--admin-radius-xl);
-  box-shadow: 5px 5px 0 rgba(46, 46, 46, 0.16);
 }
 
 .admin-tabs {
   padding: 5px;
-  background: var(--admin-blue-soft);
-  border: 2px solid var(--admin-border);
-  border-radius: 14px;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-lg);
 }
 
-.admin-tab { color: var(--admin-text-secondary); font-weight: 700; }
+.admin-tab { color: var(--admin-text-secondary); font-weight: 600; }
 .admin-tab:hover { background: var(--admin-surface); color: var(--admin-text-primary); }
-.admin-tab.active { background: var(--admin-yellow); color: #2e2e2e; box-shadow: 2px 2px 0 var(--admin-border); }
+.admin-tab.active { background: var(--admin-yellow); color: #2e2e2e; }
 
 .admin-table thead th { background: var(--admin-yellow-soft); color: var(--admin-text-primary); }
 .admin-table th, .admin-table td { border-color: color-mix(in srgb, var(--admin-border) 18%, transparent); }
@@ -14024,7 +14021,7 @@ html[data-admin-theme="dark"] .admin-stat-card--blue { background: var(--admin-s
 .event-form-group textarea,
 .modal-textarea {
   background: var(--admin-surface);
-  border: 2px solid color-mix(in srgb, var(--admin-border) 70%, transparent);
+  border: 1px solid color-mix(in srgb, var(--admin-border) 70%, transparent);
   color: var(--admin-text-primary);
 }
 
@@ -14032,8 +14029,8 @@ html[data-admin-theme="dark"] .admin-stat-card--blue { background: var(--admin-s
 .event-form-group textarea:focus,
 .modal-textarea:focus {
   background: var(--admin-surface);
-  border-color: var(--admin-border);
-  box-shadow: 3px 3px 0 var(--admin-yellow);
+  border-color: var(--admin-yellow);
+  box-shadow: 0 0 0 2px rgba(244, 197, 66, 0.15);
 }
 
 .event-form-group input[type="date"],
@@ -14042,6 +14039,244 @@ html[data-admin-theme="dark"] .event-form-group input[type="date"],
 html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-scheme: dark; }
 
 .admin-spinner { border-color: color-mix(in srgb, var(--admin-border) 18%, transparent); border-top-color: var(--admin-yellow); }
+
+/* --- Admin Vendor Card --- */
+.admin-vendor-card:hover {
+  border-color: var(--admin-border-hover);
+}
+
+/* View Info Button — outline style */
+.btn-view-info {
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--admin-border-hover);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  font-family: inherit;
+}
+
+.btn-view-info:hover {
+  border-color: var(--admin-yellow);
+  color: var(--admin-yellow);
+  background: var(--admin-yellow-soft);
+}
+
+/* Modal section titles */
+.modal-section-title {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--admin-text-muted);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
+}
+
+/* Info label/value pairs in modals */
+.info-label {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin: 0 0 4px 0;
+  font-weight: 500;
+}
+
+.info-value {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--admin-text-primary);
+  margin: 0;
+}
+
+.info-value-muted {
+  font-weight: 400;
+  font-size: 0.9375rem;
+  color: var(--admin-text-secondary);
+  margin: 0;
+}
+
+/* Vendor edit form input styling */
+.vendor-edit-input {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--admin-surface);
+  border: 1px solid color-mix(in srgb, var(--admin-border) 80%, transparent);
+  border-radius: var(--admin-radius-sm);
+  color: var(--admin-text-primary);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: var(--admin-transition);
+}
+
+.vendor-edit-input:focus {
+  outline: none;
+  border-color: var(--admin-yellow);
+  box-shadow: 0 0 0 2px rgba(244, 197, 66, 0.15);
+}
+
+.vendor-edit-label {
+  font-size: 0.8125rem;
+  color: var(--admin-text-secondary);
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* Modal footer button classes */
+.modal-footer-btn {
+  padding: 10px 20px;
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--admin-transition);
+  font-family: inherit;
+  line-height: 1;
+}
+
+.modal-footer-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal-footer-primary {
+  background: var(--admin-yellow);
+  color: #1a1a1a;
+  border: none;
+}
+
+.modal-footer-primary:hover:not(:disabled) {
+  background: #e0b33a;
+}
+
+.modal-footer-secondary {
+  background: transparent;
+  color: var(--admin-text-secondary);
+  border: 1px solid var(--admin-border-hover);
+}
+
+.modal-footer-secondary:hover:not(:disabled) {
+  border-color: var(--admin-text-muted);
+  color: var(--admin-text-primary);
+}
+
+.modal-footer-danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+}
+
+.modal-footer-danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+/* Section block spacing */
+.modal-section {
+  margin-bottom: 24px;
+}
+
+/* Info grid (2-col) */
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Status block in modal */
+.status-block {
+  padding: 16px;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+}
+
+/* Notes display */
+.notes-display {
+  line-height: 1.6;
+  font-size: 0.9375rem;
+  color: var(--admin-text-secondary);
+  padding: 0;
+}
+
+/* Logo image */
+.vendor-logo-img {
+  object-fit: cover;
+  border-radius: var(--admin-radius-sm);
+  border: 1px solid var(--admin-border);
+}
+
+/* Social link in view */
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--admin-yellow);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: var(--admin-transition);
+}
+
+.social-link:hover {
+  color: #ffd54f;
+  text-decoration: underline;
+}
+
+/* Category tag (view mode) */
+.view-category-tag {
+  background: var(--admin-yellow-soft);
+  color: var(--admin-yellow);
+  padding: 4px 12px;
+  border-radius: var(--admin-radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+/* Close button (modal header X) */
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--admin-text-muted);
+  padding: 4px;
+  line-height: 1;
+  transition: var(--admin-transition);
+}
+
+.modal-close-btn:hover {
+  color: var(--admin-text-primary);
+}
+
+/* Edit form grids */
+.edit-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* Event requirements row in card */
+.vendor-req-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.vendor-req-item {
+  font-size: 0.8125rem;
+  color: var(--admin-text-secondary);
+  font-weight: 500;
+}
+
+/* Vendor requirements card footer */
+.vendor-event-reqs {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--admin-border);
+}
 
 @media (max-width: 1180px) {
   .admin-dashboard-workspace { grid-template-columns: 1fr; }
@@ -14054,8 +14289,8 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
     position: relative;
     inset: auto;
     width: 100%;
-    border: 2px solid var(--admin-border);
-    border-radius: 20px;
+    border: 1px solid var(--admin-border);
+    border-radius: var(--admin-radius-lg);
   }
   .admin-sidebar-header { min-height: 72px; padding: 12px 16px; }
   .admin-sidebar-logo { flex-direction: row; align-items: center; }
@@ -14074,6 +14309,9 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
   .admin-content { width: 100%; margin-left: 0; }
   .admin-page { padding: 20px; }
   .admin-dashboard-section--events .events-grid { grid-template-columns: 1fr; }
+  .modal-content {
+    padding: 20px;
+  }
 }
 
 @media (max-width: 520px) {
