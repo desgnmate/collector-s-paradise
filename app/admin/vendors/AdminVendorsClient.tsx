@@ -645,6 +645,7 @@ export default function AdminVendorsClient() {
                       <div><p className="info-label">Contact Person</p><p className="info-value">{selectedVendor.contact_name}</p></div>
                       <div><p className="info-label">Email Address</p><p className="info-value">{selectedVendor.email}</p></div>
                       <div><p className="info-label">Phone Number</p><p className="info-value">{selectedVendor.phone || <span className="info-value-muted">Not provided</span>}</p></div>
+                      <div><p className="info-label">State</p><p className="info-value">{selectedVendor.location_state || <span className="info-value-muted">Not provided</span>}</p></div>
                     </div>
                     {selectedVendor.logo_url && (
                       <div style={{ marginTop: '16px' }}>
