@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { Montserrat, Inter } from "next/font/google";
-import localFont from "next/font/local";
+import { Montserrat, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import ClientRuntime from "@/components/ClientRuntime";
 import {
@@ -23,9 +22,10 @@ const inter = Inter({
   display: "swap",
 });
 
-const baloo = localFont({
-  src: "../public/fonts/Baloo-Regular.ttf",
-  variable: "--font-baloo",
+const poppins = Poppins({
+  subsets: ["latin"],
+  weight: ["600", "700", "800", "900"],
+  variable: "--font-poppins",
   display: "swap",
 });
 
@@ -126,7 +126,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en-AU" dir="ltr" className={`${montserrat.variable} ${inter.variable} ${baloo.variable}`}>
+    <html lang="en-AU" dir="ltr" className={`${montserrat.variable} ${inter.variable} ${poppins.variable}`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

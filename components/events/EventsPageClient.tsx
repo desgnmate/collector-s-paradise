@@ -29,16 +29,15 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
         {/* Header — hide when calendar date is selected */}
         {!isCalendarDateSelected && (
           <div className="events-page-header">
-            <span className="eyebrow-badge">EVENTS</span>
-            <h1 className="section-title">
-              {viewMode === 'calendar' ? 'EVENT CALENDAR' : (eventType === 'upcoming' ? 'UPCOMING EVENTS' : 'PAST EVENTS')}
-            </h1>
+            <span className="eyebrow-badge">EVENTS &amp; EXPERIENCES</span>
+            <h1 className="section-title">COLLECTOR&apos;S CALENDAR</h1>
             <p className="section-subtitle">
-              Browse our Pokémon TCG events. Discover upcoming gatherings or relive past highlights.
+              Find your next collector meet-up, plan the day and relive the events that brought the community together.
             </p>
           </div>
         )}
 
+        <div className="events-calendar-shell">
         {/* Controls Bar */}
         <div 
           className="highlights-controls-wrapper"
@@ -47,18 +46,18 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
           }}
         >
           {viewMode === 'card' && (
-            <div className="highlights-toggle-container">
+            <div className="highlights-toggle-container" aria-label="Event timeframe">
               <button 
                 className={`toggle-btn ${eventType === 'upcoming' ? 'active' : ''}`}
                 onClick={() => setEventType('upcoming')}
               >
-                Upcoming Events
+                Upcoming <span className="toggle-count">{upcomingEvents.length}</span>
               </button>
               <button 
                 className={`toggle-btn ${eventType === 'past' ? 'active' : ''}`}
                 onClick={() => setEventType('past')}
               >
-                Past Events
+                Past <span className="toggle-count">{pastEvents.length}</span>
               </button>
             </div>
           )}
@@ -84,7 +83,7 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
 {/* Content: Card or Calendar */}
         {viewMode === 'card' ? (
           <div className="ec-grid-wrapper">
-            <div className="ec-grid">
+            <div className={`ec-grid events-page-card-grid ${filteredEvents.length === 1 ? 'ec-grid--single' : ''}`}>
               {filteredEvents.length > 0 ? (
                 filteredEvents.map((event) => (
                   <EventCard
@@ -108,6 +107,7 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
             />
           </div>
         )}
+        </div>
 
       </div>
     </section>

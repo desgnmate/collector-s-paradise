@@ -46,15 +46,12 @@ const slides = [
 
 const Experience = () => {
   const [current, setCurrent] = useState(0);
-  const bgVideoRef = useRef<HTMLVideoElement>(null);
-  const sectionRef = useRef<HTMLElement>(null);
   const slideVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const activeVideoRef = useRef<HTMLVideoElement | null>(null);
 
   const next = useCallback(() => setCurrent(c => (c + 1) % slides.length), []);
   const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), []);
 
-  // Play/pause slide videos based on active index — only active video plays
   useEffect(() => {
     const prevVideo = activeVideoRef.current;
     if (prevVideo) {
@@ -70,80 +67,46 @@ const Experience = () => {
     }
   }, [current]);
 
-  // Auto-advance every 8s (longer for video content)
   useEffect(() => {
     const id = setInterval(next, 8000);
     return () => clearInterval(id);
   }, [next]);
 
-  // Lazy-load the background video when the section enters viewport
-  useEffect(() => {
-    const section = sectionRef.current;
-    const video = bgVideoRef.current;
-    if (!section || !video) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          video.src = '/videos/cp-bg.mp4';
-          video.load();
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' }
-    );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
 
   return (
-    <section id="experience" className="experience-section" ref={sectionRef}>
-      <video 
-        ref={bgVideoRef}
-        autoPlay 
-        muted 
-        loop 
-        playsInline 
-        preload="none"
-        className="experience-video-bg"
-      />
+    <section id="experience" className="experience-section">
       <div className="experience-card-container" data-aos="fade-up">
-
-        {/* Left Side: Content */}
         <div className="experience-content">
           <span className="eyebrow-badge">WHAT YOU&apos;LL EXPERIENCE</span>
-          <h2 className="section-title">
-            FUN <br />
-            <span className="experience-title-nowrap">FOR EVERYONE</span>
-          </h2>
+          <h2 className="section-title">FUN FOR EVERYONE</h2>
           <p className="section-subtitle">
             Find rare cards, meet the community and enjoy a full day of collecting culture — whether you&apos;re chasing your first card or your next grail.
           </p>
 
           <div className="experience-proof" aria-label="Event highlights">
-            <div><strong>100+</strong><span>Vendors & tables</span></div>
+            <div><strong>100+</strong><span>Vendors &amp; tables</span></div>
             <div><strong>1</strong><span>Big collector community</span></div>
           </div>
 
           <div className="experience-tags">
             {tags.map((tag) => (
               <span key={tag.label} className="experience-tag">
-                <span className="experience-tag-icon">{tag.icon}</span>
+                <span className="experience-tag-icon" aria-hidden="true">{tag.icon}</span>
                 {tag.label}
               </span>
             ))}
           </div>
         </div>
 
-        {/* Right Side: Video Carousel */}
         <div className="experience-image-side">
-          <div className="experience-media-label"><span>LIVE</span> FROM THE FLOOR</div>
-          {/* Slides */}
+          <div className="experience-media-label">
+            <span className="experience-media-live-icon" aria-hidden="true">◉</span>
+            <span className="experience-media-label-copy"><strong>LIVE FROM</strong><strong>THE FLOOR</strong></span>
+          </div>
           <div className="exp-carousel-track">
             {slides.map((slide, i) => (
               <div
-                key={i}
+                key={slide.src}
                 className={`exp-carousel-slide ${i === current ? 'active' : ''}`}
               >
                 <video
@@ -152,38 +115,35 @@ const Experience = () => {
                   muted
                   loop
                   playsInline
-                  preload="metadata"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', pointerEvents: 'none' }}
+                  preload={i === 0 ? 'metadata' : 'none'}
+                  aria-label={slide.alt}
                 />
               </div>
             ))}
           </div>
 
-          {/* Prev / Next arrows */}
-          <button className="exp-carousel-btn exp-carousel-btn--prev" onClick={prev} aria-label="Previous">
+          <button className="exp-carousel-btn exp-carousel-btn--prev" onClick={prev} aria-label="Previous video">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M15 18l-6-6 6-6"/>
             </svg>
           </button>
-          <button className="exp-carousel-btn exp-carousel-btn--next" onClick={next} aria-label="Next">
+          <button className="exp-carousel-btn exp-carousel-btn--next" onClick={next} aria-label="Next video">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 18l6-6-6-6"/>
             </svg>
           </button>
 
-          {/* Dot indicators */}
-          <div className="exp-carousel-dots">
-            {slides.map((_, i) => (
+          <div className="exp-carousel-dots" aria-label="Choose event video">
+            {slides.map((slide, i) => (
               <button
-                key={i}
+                key={slide.src}
                 className={`exp-carousel-dot ${i === current ? 'active' : ''}`}
                 onClick={() => setCurrent(i)}
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={`Go to video ${i + 1}`}
               />
             ))}
           </div>
         </div>
-
       </div>
     </section>
   );

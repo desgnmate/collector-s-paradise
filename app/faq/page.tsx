@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { FAQ_DATA, FAQSchema } from '@/components/StructuredData';
+import FaqAccordion from '@/components/FaqAccordion';
 
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions | Trading Card Events Melbourne',
@@ -49,14 +50,7 @@ export default function FAQPage() {
         {/* FAQ List */}
         <section className="faq-section">
           <div className="container">
-            <div className="faq-list">
-              {FAQ_DATA.map((faq, index) => (
-                <div className="faq-item" key={index}>
-                  <h2 className="faq-question">{faq.q}</h2>
-                  <p className="faq-answer">{faq.a}</p>
-                </div>
-              ))}
-            </div>
+            <FaqAccordion items={FAQ_DATA} />
           </div>
         </section>
       </main>
