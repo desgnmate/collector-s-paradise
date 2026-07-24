@@ -23,6 +23,7 @@ export default function Navbar() {
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About' },
     { href: '/events', label: 'Events' },
+    { href: '/faq', label: 'FAQ' },
     { href: '/vendors', label: 'Vendors' },
     { href: '/sponsorship', label: 'Sponsorship' },
     { href: '/volunteers', label: 'Volunteers' },

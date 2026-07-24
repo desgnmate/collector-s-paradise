@@ -60,6 +60,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       images: [ogImage],
     },
     {
+      url: `${baseUrl}/faq`,
+      lastModified: staticLastMod,
+      changeFrequency: 'monthly',
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/vendors`,
       lastModified: new Date(),
       changeFrequency: 'weekly',

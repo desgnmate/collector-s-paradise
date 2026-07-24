@@ -48,22 +48,30 @@ export default async function EventsPage() {
     <main>
       <Navbar />
       {/* Structured data for each event — invisible to users, consumed by search engines */}
+      {/* Structured data for each upcoming event — consumed by search engines */}
       {events
         .filter((e) => e.event_date >= now && e.status !== 'cancelled' && e.status !== 'completed')
-        .map(event => (
-          <EventSchema
-            key={event.id}
-            name={event.title}
-            description={event.description || ''}
-            startDate={`${event.event_date}T${event.start_time || '09:00'}:00`}
-            endDate={`${event.event_date}T${event.end_time || '17:00'}:00`}
-            venue={event.venue || 'Melbourne'}
-            venueAddress={event.venue_address || undefined}
-            ticketPrice={event.ticket_price ?? undefined}
-            imageUrl={event.cover_image_url || undefined}
-            status={event.status as 'upcoming' | 'completed'}
-          />
-        ))}
+        .map(event => {
+          // Parse venue_address into optional structured fields
+          const m = event.venue_address?.match(/,\s*([^,]+?)\s+(ACT|NSW|NT|QLD|SA|TAS|VIC|WA)\s+(\d{4})\s*$/i);
+          return (
+            <EventSchema
+              key={event.id}
+              name={event.title}
+              description={event.description || ''}
+              startDate={`${event.event_date}T${event.start_time || '09:00'}:00`}
+              endDate={`${event.event_date}T${event.end_time || '17:00'}:00`}
+              venue={event.venue || 'Event Venue'}
+              venueAddress={event.venue_address || undefined}
+              addressLocality={m?.[1]}
+              addressRegion={m?.[2]?.toUpperCase()}
+              postalCode={m?.[3]}
+              ticketPrice={event.ticket_price ?? undefined}
+              imageUrl={event.cover_image_url || undefined}
+              status={event.status as 'upcoming' | 'completed'}
+            />
+          );
+        })}
       <EventsPageClient upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
       <Footer />
     </main>

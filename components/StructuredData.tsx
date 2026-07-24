@@ -63,37 +63,44 @@ export function LocalBusinessSchema() {
  * cited verbatim by Google AI Overviews, Perplexity, and ChatGPT when
  * answering "what is collector's paradise" / "when is the next event".
  */
+
+/**
+ * Shared FAQ data used by both FAQSchema (JSON-LD) and the /faq page.
+ * Keeping them in one place guarantees the visible content and structured
+ * data can never drift apart.
+ */
+export const FAQ_DATA = [
+  {
+    q: 'What is Collector\'s Paradise?',
+    a: "Collector's Paradise is Melbourne's premier trading card and collectibles event series. We host live Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic: The Gathering, and sports card events where collectors buy, sell, trade, and connect.",
+  },
+  {
+    q: 'Where is the next Collector\'s Paradise event?',
+    a: 'Event locations vary. Check the Events page for the next scheduled date, venue address, and ticket availability.',
+  },
+  {
+    q: 'How do I buy tickets to a Collector\'s Paradise event?',
+    a: 'Tickets are available on our Events page. Select an upcoming event, choose your pass type, and complete secure checkout. Tickets are delivered to your email instantly.',
+  },
+  {
+    q: 'How do I become a vendor at Collector\'s Paradise?',
+    a: 'Apply through the Vendors page. We accept applications from traders of Pokémon TCG, Yu-Gi-Oh!, One Piece TCG, sports cards, graded cards, vintage collectibles, and accessories. Approved vendors receive a booth assignment and access to our buyer community.',
+  },
+  {
+    q: 'What kinds of cards and collectibles can I buy and sell?',
+    a: 'Pokémon trading cards (vintage and modern), Yu-Gi-Oh!, Magic: The Gathering, One Piece TCG, Dragon Ball Super, sports cards, graded cards, sealed product, accessories, and vintage or retro collectibles.',
+  },
+  {
+    q: 'Does Collector\'s Paradise run events outside Melbourne?',
+    a: 'Our flagship series is based in Melbourne, Victoria, Australia. We occasionally run events in other regions — check the Events page for upcoming dates and locations.',
+  },
+];
+
 export function FAQSchema() {
-  const faqs = [
-    {
-      q: 'What is Collector\'s Paradise?',
-      a: "Collector's Paradise is Melbourne's premier trading card and collectibles event series. We host live Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic: The Gathering, and sports card events where collectors buy, sell, trade, and connect.",
-    },
-    {
-      q: 'Where is the next Collector\'s Paradise event in Melbourne?',
-      a: "Our events are held at venues across metropolitan Melbourne, Victoria. Check the Events page for the next scheduled date, venue address, and ticket availability.",
-    },
-    {
-      q: 'How do I buy tickets to a Collector\'s Paradise event?',
-      a: 'Tickets are available on our Events page. Select an upcoming event, choose your pass type, and complete secure checkout. Tickets are delivered to your email instantly.',
-    },
-    {
-      q: 'How do I become a vendor at Collector\'s Paradise?',
-      a: 'Apply through the Vendors page. We accept applications from traders of Pokémon TCG, Yu-Gi-Oh!, One Piece TCG, sports cards, graded cards, vintage collectibles, and accessories. Approved vendors receive a booth assignment and access to our buyer community.',
-    },
-    {
-      q: 'What kinds of cards and collectibles can I buy and sell?',
-      a: 'Pokémon trading cards (vintage and modern), Yu-Gi-Oh!, Magic: The Gathering, One Piece TCG, Dragon Ball Super, sports cards, graded cards, sealed product, accessories, and vintage or retro collectibles.',
-    },
-    {
-      q: 'Does Collector\'s Paradise run events outside Melbourne?',
-      a: 'Our flagship series is based in Melbourne, Victoria, Australia. We partner with regional collectors and vendors across Victoria for satellite events announced on the Events page.',
-    },
-  ];
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: faqs.map((f) => ({
+    mainEntity: FAQ_DATA.map((f) => ({
       '@type': 'Question',
       name: f.q,
       acceptedAnswer: {
@@ -205,6 +212,9 @@ interface EventSchemaProps {
   endDate: string;
   venue: string;
   venueAddress?: string;
+  addressLocality?: string;    // e.g. "Melbourne", "Nerang"
+  addressRegion?: string;      // e.g. "VIC", "QLD"
+  postalCode?: string;         // e.g. "3000", "4211"
   ticketPrice?: number;
   ticketUrl?: string;
   imageUrl?: string;
@@ -222,6 +232,9 @@ export function EventSchema({
   endDate,
   venue,
   venueAddress,
+  addressLocality,
+  addressRegion,
+  postalCode,
   ticketPrice,
   ticketUrl = 'https://collectorsparadise.au/events',
   imageUrl,
@@ -233,6 +246,23 @@ export function EventSchema({
     completed: 'https://schema.org/EventPassed',
     cancelled: 'https://schema.org/EventCancelled',
   };
+  // Build location: Place name always, address only when we have a real
+  // street address. Omitting address means Google falls back to the Place
+  // name / venue for geocoding.
+  const location: Record<string, unknown> = {
+    '@type': 'Place',
+    name: venue,
+  };
+  if (venueAddress) {
+    const address: Record<string, string> = {
+      '@type': 'PostalAddress',
+      streetAddress: venueAddress,
+    };
+    if (addressLocality) address.addressLocality = addressLocality;
+    if (addressRegion) address.addressRegion = addressRegion;
+    if (postalCode) address.postalCode = postalCode;
+    location.address = address;
+  }
 
   const schema: Record<string, unknown> = {
     '@context': 'https://schema.org',
@@ -243,16 +273,7 @@ export function EventSchema({
     endDate,
     eventStatus: eventStatusMap[status] || 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    location: {
-      '@type': 'Place',
-      name: venue,
-      address: {
-        '@type': 'PostalAddress',
-        streetAddress: venueAddress || venue,
-        addressLocality: 'Melbourne',
-        addressCountry: 'AU',
-      },
-    },
+    location,
     organizer: {
       '@type': 'Organization',
       name: "Collector's Paradise",

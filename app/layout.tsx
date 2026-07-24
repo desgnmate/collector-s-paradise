@@ -6,7 +6,6 @@ import ClientRuntime from "@/components/ClientRuntime";
 import {
   OrganizationSchema,
   LocalBusinessSchema,
-  FAQSchema,
   EventSeriesSchema,
 } from "@/components/StructuredData";
 
@@ -136,7 +135,6 @@ export default function RootLayout({
         <OrganizationSchema />
         <LocalBusinessSchema />
         <EventSeriesSchema />
-        <FAQSchema />
         <ClientRuntime>
           {children}
         </ClientRuntime>

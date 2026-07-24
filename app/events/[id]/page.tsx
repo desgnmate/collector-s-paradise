@@ -12,6 +12,23 @@ export const revalidate = 3600;
 
 const EVENT_COVER_FALLBACK = '/images/event-experience.png';
 
+/**
+ * Parse a venue address like "61 Cayuga St, Nerang QLD 4211" into
+ * structured locality/region/postcode. Returns partial fields or undefined.
+ */
+function parseAddress(addr: string | null | undefined): {
+  locality?: string;
+  region?: string;
+  postcode?: string;
+} {
+  if (!addr) return {};
+  // Match only the final comma segment: ", Suburb STATE POSTCODE"
+  // Case-insensitive for state abbreviations.
+  const m = addr.match(/,\s*([^,]+?)\s+(ACT|NSW|NT|QLD|SA|TAS|VIC|WA)\s+(\d{4})\s*$/i);
+  if (!m) return {};
+  return { locality: m[1], region: m[2].toUpperCase(), postcode: m[3] };
+}
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -30,23 +47,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     year: 'numeric',
   });
 
+  const { locality, region } = parseAddress(event.venue_address);
+  const locationLabel = locality || 'Australia';
+
   return {
-    title: `${event.title} — ${dateStr} | Melbourne Trading Card Event`,
+    title: `${event.title} — ${dateStr} | ${locationLabel} Trading Card Event`,
     description:
       event.description ||
-      `Join ${event.title} on ${dateStr} at ${event.venue}, Melbourne. Buy tickets, meet vendors, trade Pokémon TCG, Yu-Gi-Oh!, One Piece and more.`,
+      `Join ${event.title} on ${dateStr} at ${event.venue || 'our venue'}. Buy tickets, meet vendors, trade Pokémon TCG, Yu-Gi-Oh!, One Piece and more.`,
     keywords: [
       event.title,
-      `${event.title} Melbourne`,
-      'Pokemon TCG event Melbourne',
+      `${event.title} ${locality || 'Australia'}`,
+      'Pokemon TCG event',
       'trading card event Australia',
       `${event.venue} event`,
     ],
     openGraph: {
-      title: `${event.title} | Collector's Paradise Melbourne`,
+      title: `${event.title} | ${locationLabel} Trading Card Event`,
       description:
         event.description ||
-        `${event.title} — ${dateStr} at ${event.venue}, Melbourne. Buy tickets now.`,
+        `${event.title} — ${dateStr} at ${event.venue || 'our venue'}. Buy tickets now.`,
+      url: `https://collectorsparadise.au/events/${id}`,
       type: 'website',
       locale: 'en_AU',
       ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
@@ -56,7 +77,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: `${event.title} — ${dateStr}`,
-      description: event.description || `Trading card event in Melbourne on ${dateStr}.`,
+      description: event.description || `Trading card event in ${locationLabel} on ${dateStr}.`,
       ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
         images: [event.cover_image_url],
       } : {}),
@@ -65,8 +86,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       canonical: `https://collectorsparadise.au/events/${id}`,
     },
     other: {
-      'geo.region': 'AU-VIC',
-      'geo.placename': event.venue || 'Melbourne',
+      ...(region ? { 'geo.region': `AU-${region}` } : {}),
+      ...(locality ? { 'geo.placename': locality } : {}),
     },
   };
 }
@@ -80,6 +101,9 @@ export default async function EventDetailPage({ params }: Props) {
   if (!event) {
     notFound();
   }
+
+  const { locality, region, postcode } = parseAddress(event.venue_address);
+  const locationLabel = locality || 'Australia';
 
   const formatTime = (time: string) => {
     const [h, m] = time.split(':');
@@ -118,11 +142,14 @@ export default async function EventDetailPage({ params }: Props) {
 
       <EventSchema
         name={event.title}
-        description={event.description || `${event.title} — trading card event in Melbourne, Australia.`}
+        description={event.description || `${event.title} — trading card event in ${locationLabel}.`}
         startDate={`${event.event_date}T${event.start_time || '09:00'}:00`}
         endDate={`${event.event_date}T${event.end_time || '17:00'}:00`}
-        venue={event.venue || 'Melbourne'}
+        venue={event.venue || 'Event Venue'}
         venueAddress={event.venue_address || undefined}
+        addressLocality={locality}
+        addressRegion={region}
+        postalCode={postcode}
         ticketPrice={event.ticket_price ?? undefined}
         ticketUrl={`https://collectorsparadise.au/events/${event.id}`}
         imageUrl={event.cover_image_url || undefined}
