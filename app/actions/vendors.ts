@@ -24,6 +24,7 @@ export type Vendor = {
   application_status: 'pending' | 'approved' | 'rejected' | 'waitlisted';
   booth_assignment: string | null;
   event_id: string | null;
+  event_name?: string | null;
   rejection_reason: string | null;
   location_state: string;
   applied_at: string;
@@ -31,6 +32,21 @@ export type Vendor = {
 
 // Column selection for admin queries - only fetch what's needed
 const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
+
+async function attachEventNames<T extends { event_id: string | null }>(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  vendors: T[],
+): Promise<Array<T & { event_name: string | null }>> {
+  const eventIds = [...new Set(vendors.map((vendor) => vendor.event_id).filter(Boolean))];
+  if (eventIds.length === 0) return vendors.map((vendor) => ({ ...vendor, event_name: null }));
+
+  const { data: events } = await supabase.from('events').select('id, title').in('id', eventIds);
+  const eventNames = new Map((events || []).map((event) => [event.id, event.title]));
+  return vendors.map((vendor) => ({
+    ...vendor,
+    event_name: vendor.event_id ? eventNames.get(vendor.event_id) || null : null,
+  }));
+}
 
 // ============================================
 // Validation Schema
@@ -47,6 +63,7 @@ const vendorApplicationSchema = z.object({
   tables_requested: z.string().min(1, 'Please select the number of tables'),
   power_requirements: z.string().optional(),
   additional_notes: z.string().optional(),
+  event_id: z.string().uuid('Please select a valid event').optional().or(z.literal('')),
   agreement: z.literal(true).refine((val) => val === true, { message: 'You must agree to the Terms and Conditions' }),
 });
 
@@ -70,6 +87,7 @@ type VendorApplicationFields = {
   tables_requested: string;
   power_requirements: string;
   additional_notes: string;
+  event_id: string;
   agreement: boolean;
 };
 
@@ -111,6 +129,7 @@ const vendorUpdateSchema = z.object({
   tables_requested: z.string().optional().default(''),
   power_requirements: z.string().optional().default(''),
   additional_notes: z.string().optional().default(''),
+  event_id: z.string().uuid('Please select a valid event').optional().or(z.literal('')),
   booth_assignment: z.string().optional().default(''),
 });
 
@@ -171,6 +190,11 @@ export async function syncAllVendorsToSheet() {
     return { success: false, message: 'Failed to fetch vendors.' };
   }
 
+  const { data: events } = await supabase
+    .from('events')
+    .select('id, title');
+  const eventNames = new Map((events || []).map((event) => [event.id, event.title]));
+
   for (const v of vendors) {
     const result = await sendToGoogleSheet({
       id: v.id,
@@ -180,6 +204,8 @@ export async function syncAllVendorsToSheet() {
       phone: v.phone || '',
       location_state: v.location_state || '',
       categories: v.categories || [],
+      event_id: v.event_id || '',
+      event_name: v.event_id ? eventNames.get(v.event_id) || '' : '',
       tables_requested: v.tables_requested || '',
       power_requirements: v.power_requirements || '',
       social_links: v.social_links || '',
@@ -221,6 +247,7 @@ export async function submitVendorApplication(
     tables_requested: formData.get('tables_requested') as string || '',
     power_requirements: formData.get('power_requirements') as string || '',
     additional_notes: formData.get('additional_notes') as string || '',
+    event_id: formData.get('event_id') as string || '',
     agreement: formData.get('agreement') === 'on',
   };
 
@@ -236,6 +263,7 @@ export async function submitVendorApplication(
     tables_requested: fields.tables_requested,
     power_requirements: fields.power_requirements || undefined,
     additional_notes: fields.additional_notes || undefined,
+    event_id: fields.event_id || undefined,
     agreement: fields.agreement,
   });
 
@@ -256,6 +284,24 @@ export async function submitVendorApplication(
   }
   if (!ALLOWED_LOGO_TYPES.has(logo.type)) {
     return { message: 'Logo must be a JPG, PNG, WebP, or GIF image.', fields };
+  }
+
+  let selectedEventId: string | null = null;
+  let selectedEventName = '';
+  if (validatedFields.data.event_id) {
+    const { data: selectedEvent, error: eventError } = await supabase
+      .from('events')
+      .select('id, title')
+      .eq('id', validatedFields.data.event_id)
+      .gte('event_date', new Date().toISOString().slice(0, 10))
+      .eq('status', 'upcoming')
+      .maybeSingle();
+
+    if (eventError || !selectedEvent) {
+      return { message: 'Please select an available upcoming event.', fields };
+    }
+    selectedEventId = selectedEvent.id;
+    selectedEventName = selectedEvent.title;
   }
 
   // 1. Check if business name is already taken (optimized: only select id)
@@ -327,6 +373,7 @@ export async function submitVendorApplication(
     power_requirements: validatedFields.data.power_requirements || null,
     additional_notes: validatedFields.data.additional_notes || null,
     application_status: 'pending',
+    event_id: selectedEventId,
   });
 
   if (dbError) {
@@ -338,7 +385,7 @@ export async function submitVendorApplication(
     
     if (dbError.code === '42703') {
       return { 
-        message: 'Database schema mismatch: One or more required columns are missing from the vendors table. Please run the provided SQL migration in lib/supabase/vendor_auth_update.sql in your Supabase SQL Editor.',
+        message: 'Database schema mismatch: One or more required columns are missing from the vendors table. Please run the provided SQL migration in lib/supabase/vendor_event_selection.sql in your Supabase SQL Editor.',
         fields
       };
     }
@@ -375,6 +422,8 @@ export async function submitVendorApplication(
     description: validatedFields.data.description,
     logo_url: logoUrl,
     additional_notes: validatedFields.data.additional_notes || '',
+    event_id: selectedEventId || '',
+    event_name: selectedEventName,
     booth_assignment: '',
     application_status: 'pending',
     applied_at: new Date().toISOString(),
@@ -458,7 +507,7 @@ export async function getAllVendors(): Promise<Vendor[]> {
     return [];
   }
 
-  return data as Vendor[];
+  return attachEventNames(supabase, data as Vendor[]);
 }
 
 /** Get pending vendor applications (admin only) - OPTIMIZED: selects only needed columns */
@@ -479,7 +528,7 @@ export async function getPendingVendors(): Promise<Vendor[]> {
     return [];
   }
 
-  return data as Vendor[];
+  return attachEventNames(supabase, data as Vendor[]);
 }
 
 /** Approve a vendor application */
@@ -619,6 +668,7 @@ export async function updateVendor(
     tables_requested: fields.tables_requested || null,
     power_requirements: fields.power_requirements || null,
     additional_notes: fields.additional_notes || null,
+    event_id: fields.event_id || null,
     booth_assignment: fields.booth_assignment || null,
   };
 
@@ -652,6 +702,10 @@ export async function updateVendor(
     description: fields.description || '',
     logo_url: existing.logo_url || '',
     additional_notes: fields.additional_notes || '',
+    event_id: fields.event_id || '',
+    event_name: fields.event_id
+      ? (await supabase.from('events').select('title').eq('id', fields.event_id).maybeSingle()).data?.title || ''
+      : '',
     booth_assignment: fields.booth_assignment || '',
     application_status: existing.application_status || 'pending',
     applied_at: existing.applied_at || new Date().toISOString(),
@@ -710,5 +764,5 @@ export async function getApprovedVendorsAdmin(): Promise<Vendor[]> {
     return [];
   }
 
-  return data as Vendor[];
+  return attachEventNames(supabase, data as Vendor[]);
 }

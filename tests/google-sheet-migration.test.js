@@ -88,7 +88,7 @@ function assertEq(actual, expected, label) {
 }
 
 // --------------------------------------------------------------------------
-// Test 1: Old 13-col → 16-col migration
+// Test 1: Old 13-col → 18-col migration
 // --------------------------------------------------------------------------
 (function() {
   var oldHeaders = ['Applied At','Business Name','Contact Name','Email','Phone','State','Categories','Social Links','Description','Logo URL','Additional Notes','Booth Assignment','Status'];
@@ -101,22 +101,23 @@ function assertEq(actual, expected, label) {
   ensureHeaders_(sheet);
   var h = sheet._rows[0], d = sheet._rows[1];
 
-  assertEq(h.length, 16, 'T1: header count after migration');
+  assertEq(h.length, 18, 'T1: header count after migration');
   for (var i = 0; i < HEADERS.length; i++) assertEq(h[i], HEADERS[i], 'T1: header[' + i + ']');
   assertEq(d[0], '', 'T1: col A (Vendor ID) blank for old row');
-  assertEq(d[8], '', 'T1: col I (Tables Requested) blank');
-  assertEq(d[9], '', 'T1: col J (Power Requirements) blank');
-  assertEq(d[10], 'https://insta.com/melb', 'T1: col K (Social Links) = Instagram URL, NOT logo URL');
-  assertEq(d[12], 'https://storage/logo.png', 'T1: col M (Logo URL) = storage URL');
+  assertEq(d[8], '', 'T1: col I (Event ID) blank');
+  assertEq(d[9], '', 'T1: col J (Event Name) blank');
+  assertEq(d[10], '', 'T1: col K (Tables Requested) blank');
+  assertEq(d[12], 'https://insta.com/melb', 'T1: col M (Social Links) = Instagram URL, NOT logo URL');
+  assertEq(d[14], 'https://storage/logo.png', 'T1: col O (Logo URL) = storage URL');
 })();
 
 // --------------------------------------------------------------------------
-// Test 2: Already correct 16-col — no-op
+// Test 2: Already correct 18-col — no-op
 // --------------------------------------------------------------------------
 (function() {
   var sheet = mockSheet([HEADERS.slice()]);
   ensureHeaders_(sheet);
-  assertEq(sheet._rows[0].length, 16, 'T2: no extra columns');
+  assertEq(sheet._rows[0].length, 18, 'T2: no extra columns');
   assertEq(sheet._rows[0][0], HEADERS[0], 'T2: first header preserved');
 })();
 
@@ -127,28 +128,29 @@ function assertEq(actual, expected, label) {
   var sheet = mockSheet([]);
   ensureHeaders_(sheet);
   assertEq(sheet._rows.length, 1, 'T3: one row');
-  assertEq(sheet._rows[0].length, 16, 'T3: 16 header columns');
+  assertEq(sheet._rows[0].length, 18, 'T3: 18 header columns');
 })();
 
 // --------------------------------------------------------------------------
-// Test 4: buildRow returns 16 values in HEADERS order
+// Test 4: buildRow returns 18 values in HEADERS order
 // --------------------------------------------------------------------------
 (function() {
   // Full data
-  var data = { id:'v1', applied_at:'2025-01-01', business_name:'Biz', contact_name:'Bob', email:'b@b.com', phone:'1', location_state:'NSW', categories:['X'], tables_requested:'3', power_requirements:'No', social_links:'https://ig.com/biz', description:'desc', logo_url:'https://logo.com/x.png', additional_notes:'notes', booth_assignment:'B5', application_status:'active' };
+  var data = { id:'v1', applied_at:'2025-01-01', business_name:'Biz', contact_name:'Bob', email:'b@b.com', phone:'1', location_state:'NSW', categories:['X'], event_id:'e1', event_name:'Gold Coast Show', tables_requested:'3', power_requirements:'No', social_links:'https://ig.com/biz', description:'desc', logo_url:'https://logo.com/x.png', additional_notes:'notes', booth_assignment:'B5', application_status:'active' };
   var row = buildRow(data);
-  assertEq(row.length, 16, 'T4a: 16 values');
+  assertEq(row.length, 18, 'T4a: 18 values');
   assertEq(row[0], 'v1', 'T4a: [0] Vendor ID');
-  assertEq(row[8], '3', 'T4a: [8] Tables Requested');
-  assertEq(row[9], 'No', 'T4a: [9] Power Requirements');
-  assertEq(row[10], 'https://ig.com/biz', 'T4a: [10] Social Links');
-  assertEq(row[12], 'https://logo.com/x.png', 'T4a: [12] Logo URL');
+  assertEq(row[8], 'e1', 'T4a: [8] Event ID');
+  assertEq(row[9], 'Gold Coast Show', 'T4a: [9] Event Name');
+  assertEq(row[10], '3', 'T4a: [10] Tables Requested');
+  assertEq(row[12], 'https://ig.com/biz', 'T4a: [12] Social Links');
+  assertEq(row[14], 'https://logo.com/x.png', 'T4a: [14] Logo URL');
 
   // Empty data
   var empty = buildRow({});
-  assertEq(empty.length, 16, 'T4b: empty → 16 values');
+  assertEq(empty.length, 18, 'T4b: empty → 18 values');
   assertEq(empty[0], '', 'T4b: empty id');
-  assertEq(empty[15], 'pending', 'T4b: default status');
+  assertEq(empty[17], 'pending', 'T4b: default status');
 })();
 
 // --------------------------------------------------------------------------

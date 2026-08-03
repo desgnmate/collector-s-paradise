@@ -4,6 +4,13 @@ import { useActionState, useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { submitVendorApplication } from '@/app/actions/vendors';
 
+export type VendorApplicationEvent = {
+  id: string;
+  title: string;
+  event_date: string;
+  venue: string | null;
+};
+
 const AUSTRALIAN_STATES = [
   'New South Wales',
   'Victoria',
@@ -32,7 +39,7 @@ const VENDOR_CATEGORIES = [
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;
 const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-export default function VendorApplicationForm() {
+export default function VendorApplicationForm({ events }: { events: VendorApplicationEvent[] }) {
   const [state, formAction, isPending] = useActionState(submitVendorApplication, {
     message: '',
   });
@@ -360,6 +367,33 @@ export default function VendorApplicationForm() {
             />
             <span className="vendor-form-hint">Share your Instagram, Facebook, or other social profiles.</span>
           </div>
+        </div>
+      </div>
+
+      {/* Event Availability */}
+      <div className="vendor-form-section">
+        <h3 className="vendor-form-section-title">Which event can you sell at?</h3>
+        <p className="vendor-form-section-hint">Select one upcoming event, or choose None if you are applying for future opportunities. This is your preferred event, not a guarantee of acceptance.</p>
+        <div className="vendor-form-group vendor-form-group-wide">
+          <label htmlFor="event_id">Preferred event</label>
+          <select
+            id="event_id"
+            name="event_id"
+            defaultValue={state.fields?.event_id || ''}
+          >
+            <option value="">None / future opportunities</option>
+            {events.map((event) => (
+              <option key={event.id} value={event.id}>
+                {event.title} — {new Date(`${event.event_date}T00:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}{event.venue ? ` · ${event.venue}` : ''}
+              </option>
+            ))}
+          </select>
+          {events.length === 0 && (
+            <span className="vendor-form-hint">No upcoming events are currently available.</span>
+          )}
+          {state.errors?.event_id && (
+            <span className="vendor-form-error">{state.errors.event_id[0]}</span>
+          )}
         </div>
       </div>
 

@@ -171,7 +171,7 @@ export default function AdminVendorsClient() {
 
     const headers = [
       'Business Name', 'Contact Name', 'Email', 'Phone', 'State',
-      'Categories', 'Status', 'Tables', 'Power', 'Social Links',
+      'Categories', 'Event', 'Status', 'Tables', 'Power', 'Social Links',
       'Description', 'Logo URL', 'Applied At',
     ];
 
@@ -190,6 +190,7 @@ export default function AdminVendorsClient() {
       escapeCsv(v.phone),
       escapeCsv(v.location_state),
       escapeCsv((v.categories || []).join('; ')),
+      escapeCsv(v.event_name),
       escapeCsv(v.application_status),
       escapeCsv(v.tables_requested),
       escapeCsv(v.power_requirements),
@@ -365,6 +366,9 @@ export default function AdminVendorsClient() {
                     )}
                   </div>
                 )}
+                <div className="vendor-req-item" style={{ marginBottom: '4px' }}>
+                  Event: {vendor.event_name || 'None / future opportunities'}
+                </div>
                 {vendor.social_links && (
                   <div className="vendor-req-item" style={{ marginBottom: '4px' }}>
                     <a href={vendor.social_links} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--admin-yellow)', textDecoration: 'underline' }}>Social Profile</a>
@@ -617,6 +621,10 @@ export default function AdminVendorsClient() {
                   </div>
                   <div className="edit-form-grid">
                     <div>
+                      <label className="vendor-edit-label">Preferred Event ID</label>
+                      <input value={editData.event_id} onChange={e => setEditData({ ...editData, event_id: e.target.value })} className="vendor-edit-input" placeholder="Optional event UUID" />
+                    </div>
+                    <div>
                       <label className="vendor-edit-label">Tables Requested</label>
                       <input value={editData.tables_requested} onChange={e => setEditData({ ...editData, tables_requested: e.target.value })} className="vendor-edit-input" />
                     </div>
@@ -684,6 +692,7 @@ export default function AdminVendorsClient() {
                   <div className="modal-section">
                     <h4 className="modal-section-title">Event Requirements</h4>
                     <div className="info-grid">
+                      <div><p className="info-label">Preferred Event</p><p className="info-value">{selectedVendor.event_name || 'None / future opportunities'}</p></div>
                       <div><p className="info-label">Tables Requested</p><p className="info-value">{selectedVendor.tables_requested || <span className="info-value-muted">Not specified</span>}</p></div>
                       <div><p className="info-label">Power Requirements</p><p className="info-value">{selectedVendor.power_requirements || <span className="info-value-muted">Not specified</span>}</p></div>
                     </div>

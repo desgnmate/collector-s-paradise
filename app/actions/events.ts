@@ -277,6 +277,7 @@ export async function createEvent(
   }
 
   revalidatePath('/events');
+  revalidatePath('/vendors/apply');
   revalidateTag('events', 'max');
   revalidatePath('/admin/events');
   return { message: 'Event created successfully!', success: true };
@@ -372,6 +373,7 @@ export async function updateEvent(
   }
 
   revalidatePath('/events');
+  revalidatePath('/vendors/apply');
   revalidateTag('events', 'max');
   revalidatePath('/admin/events');
   return { message: 'Event updated successfully!', success: true };
@@ -394,6 +396,7 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
   }
 
   revalidatePath('/events');
+  revalidatePath('/vendors/apply');
   revalidateTag('events', 'max');
   revalidatePath('/admin/events');
   return { message: 'Event deleted successfully!', success: true };
