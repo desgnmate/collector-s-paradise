@@ -36,11 +36,9 @@ export default function FaqAccordion({ items }: FaqAccordionProps) {
               <span className="faq-toggle-icon" aria-hidden="true" />
             </button>
 
-            {isOpen && (
-              <div className="faq-answer-wrap" id={answerId}>
-                <p className="faq-answer">{faq.a}</p>
-              </div>
-            )}
+            <div className="faq-answer-wrap" id={answerId} hidden={!isOpen}>
+              <p className="faq-answer">{faq.a}</p>
+            </div>
           </article>
         );
       })}

@@ -6,7 +6,7 @@
 - Local:         http://localhost:3000
 - Network:       http://192.168.68.103:3000
 - Environments: .env.local
-✓ Ready in 200ms
+✓ Ready in 217ms
 ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 ⚠ You are using an experimental edge runtime, the API might change.
 - Experiments (use with caution):
@@ -14,91 +14,27 @@
   · serverActions
   · staleTimes
 
- GET /manifest.webmanifest 200 in 52ms (next.js: 43ms, proxy.ts: 3ms, application-code: 5ms)
- GET /vendors 200 in 3.7s (next.js: 355ms, proxy.ts: 98ms, application-code: 3.2s)
+ GET /manifest.webmanifest 200 in 49ms (next.js: 37ms, proxy.ts: 4ms, application-code: 8ms)
+ GET / 200 in 6.9s (next.js: 141ms, proxy.ts: 75ms, application-code: 6.7s)
+ GET /about 200 in 63ms (next.js: 31ms, proxy.ts: 6ms, application-code: 26ms)
+ GET /manifest.webmanifest 200 in 8ms (next.js: 2ms, proxy.ts: 2ms, application-code: 3ms)
 [browser] Image with src "http://localhost:3000/_next/static/media/footer-card-3.0k96bk8n5-agg.jpg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. (file:///Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
+ GET /events 200 in 98ms (next.js: 39ms, proxy.ts: 6ms, application-code: 53ms)
+ GET /manifest.webmanifest 200 in 13ms (next.js: 5ms, proxy.ts: 5ms, application-code: 2ms)
 [browser] Image with src "http://localhost:3000/_next/static/media/footer-card-2.0voz.i4j9rhr0.jpg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. (file:///Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
 [browser] Image with src "http://localhost:3000/_next/static/media/footer-logo.0c0i7f7ysqjnv.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. (file:///Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
- GET /vendors?page=1 200 in 2.2s (next.js: 1729µs, proxy.ts: 1655µs, application-code: 2.2s)
-⚠ You are using an experimental edge runtime, the API might change.
-⚠ You are using an experimental edge runtime, the API might change.
-✓ Compiled in 15ms
- GET /vendors 200 in 10.4s (next.js: 2ms, proxy.ts: 4ms, application-code: 10.4s)
- GET /vendors 200 in 11.6s (next.js: 20ms, proxy.ts: 8ms, application-code: 11.6s)
- GET /vendors 200 in 11.6s (next.js: 1283µs, proxy.ts: 1589µs, application-code: 11.6s)
- GET /vendors 200 in 12.0s (next.js: 72ms, proxy.ts: 28ms, application-code: 11.9s)
- GET /vendors 200 in 12.3s (next.js: 3ms, proxy.ts: 1366µs, application-code: 12.3s)
- GET /vendors 200 in 12.4s (next.js: 1284µs, proxy.ts: 1715µs, application-code: 12.4s)
-Error fetching vendors from Supabase: {
-  "code": "57014",
-  "details": null,
-  "hint": null,
-  "message": "canceling statement due to statement timeout"
-}
-Error fetching vendors from Supabase: {
-  "code": "57014",
-  "details": null,
-  "hint": null,
-  "message": "canceling statement due to statement timeout"
-}
- GET /vendors 200 in 7.0s (next.js: 1543µs, proxy.ts: 1625µs, application-code: 7.0s)
- GET /vendors 200 in 7.1s (next.js: 1397µs, proxy.ts: 1391µs, application-code: 7.1s)
- GET /manifest.webmanifest 200 in 45ms (next.js: 31ms, proxy.ts: 3ms, application-code: 11ms)
-Error fetching vendors from Supabase: {
-  "code": "57014",
-  "details": null,
-  "hint": null,
-  "message": "canceling statement due to statement timeout"
-}
- GET /vendors 200 in 7.8s (next.js: 1109µs, proxy.ts: 1717µs, application-code: 7.8s)
- GET /vendors 200 in 9.3s (next.js: 1674µs, proxy.ts: 1625µs, application-code: 9.3s)
- GET /vendors 200 in 10.3s (next.js: 3ms, proxy.ts: 2ms, application-code: 10.3s)
- GET /vendors 200 in 9.6s (next.js: 3ms, proxy.ts: 1489µs, application-code: 9.6s)
-⚠ You are using an experimental edge runtime, the API might change.
-✓ Compiled in 117ms
- GET /vendors?page=1 200 in 3.3s (next.js: 6ms, proxy.ts: 3ms, application-code: 3.2s)
- GET /vendors 200 in 22ms (next.js: 7ms, proxy.ts: 5ms, application-code: 10ms)
- GET /manifest.webmanifest 200 in 19ms (next.js: 6ms, proxy.ts: 5ms, application-code: 8ms)
- GET /vendors 200 in 4.0s (next.js: 6ms, proxy.ts: 3ms, application-code: 4.0s)
-[browser] Image with src "http://localhost:3000/_next/static/media/footer-card-3.0k96bk8n5-agg.jpg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. (file:///Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
-[browser] Image with src "http://localhost:3000/_next/static/media/footer-card-2.0voz.i4j9rhr0.jpg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. (file:///Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
-⚠ You are using an experimental edge runtime, the API might change.
- GET /vendors 200 in 2.5s (next.js: 3ms, proxy.ts: 1468µs, application-code: 2.5s)
- GET /manifest.webmanifest 200 in 4ms (next.js: 1170µs, proxy.ts: 1663µs, application-code: 1577µs)
-⚠ You are using an experimental edge runtime, the API might change.
-✓ Compiled in 50ms
-⚠ You are using an experimental edge runtime, the API might change.
- GET /vendors 200 in 9.4s (next.js: 76ms, proxy.ts: 30ms, application-code: 9.3s)
- GET /vendors 200 in 9.7s (next.js: 1150µs, proxy.ts: 3ms, application-code: 9.7s)
- GET /vendors 200 in 10.4s (next.js: 1413µs, proxy.ts: 1638µs, application-code: 10.3s)
- GET /vendors 200 in 10.4s (next.js: 1135µs, proxy.ts: 3ms, application-code: 10.4s)
- GET /vendors 200 in 10.5s (next.js: 9ms, proxy.ts: 2ms, application-code: 10.5s)
- GET /vendors 200 in 11.1s (next.js: 8ms, proxy.ts: 4ms, application-code: 11.1s)
- GET /vendors?page=1 200 in 5.5s (next.js: 1880µs, proxy.ts: 1423µs, application-code: 5.5s)
-Error fetching vendors from Supabase: {
-  "code": "57014",
-  "details": null,
-  "hint": null,
-  "message": "canceling statement due to statement timeout"
-}
- GET /vendors 200 in 5.4s (next.js: 1471µs, proxy.ts: 1387µs, application-code: 5.4s)
-[browser] Image with src "http://localhost:3000/_next/static/media/footer-logo.0c0i7f7ysqjnv.png" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio. (file:///Volumes/External/Desgnmate/Collectors Paradise/CP Landing page/collectors-paradise-web/.next/dev/static/chunks/node_modules_next_dist_115brz8._.js:2431:13)
- GET /manifest.webmanifest 200 in 33ms (next.js: 25ms, proxy.ts: 4ms, application-code: 4ms)
-Error fetching vendors from Supabase: {
-  "code": "57014",
-  "details": null,
-  "hint": null,
-  "message": "canceling statement due to statement timeout"
-}
-Error fetching vendors from Supabase: {
-  "code": "57014",
-  "details": null,
-  "hint": null,
-  "message": "canceling statement due to statement timeout"
-}
- GET /vendors 200 in 5.6s (next.js: 1176µs, proxy.ts: 1364µs, application-code: 5.6s)
- GET /vendors 200 in 5.7s (next.js: 1141µs, proxy.ts: 1302µs, application-code: 5.7s)
- GET /vendors 200 in 7.2s (next.js: 962µs, proxy.ts: 1211µs, application-code: 7.2s)
- GET /vendors 200 in 7.8s (next.js: 3ms, proxy.ts: 1410µs, application-code: 7.8s)
- HEAD / 200 in 201ms (next.js: 57ms, proxy.ts: 15ms, application-code: 129ms)
-[?25h
+ GET /sponsorship 200 in 43ms (next.js: 23ms, proxy.ts: 4ms, application-code: 17ms)
+ GET /manifest.webmanifest 200 in 9ms (next.js: 4ms, proxy.ts: 3ms, application-code: 1816µs)
+ GET /api/events/ace240b2-2ef6-49f0-b1cb-4c5a132a4cda/cover 200 in 3.0s (next.js: 529ms, proxy.ts: 10ms, application-code: 2.4s)
+ GET /volunteers 200 in 77ms (next.js: 39ms, proxy.ts: 5ms, application-code: 32ms)
+ GET /manifest.webmanifest 200 in 20ms (next.js: 13ms, proxy.ts: 4ms, application-code: 3ms)
+ GET /manifest.webmanifest 200 in 8ms (next.js: 1938µs, proxy.ts: 4ms, application-code: 2ms)
+ GET /vendors 200 in 3.0s (next.js: 57ms, proxy.ts: 4ms, application-code: 2.9s)
+ GET /manifest.webmanifest 200 in 19ms (next.js: 5ms, proxy.ts: 5ms, application-code: 9ms)
+ GET / 200 in 2.3s (next.js: 9ms, proxy.ts: 5ms, application-code: 2.3s)
+ GET /events/6d542277-58f2-46c1-a5da-73f88a2a4e72 200 in 1577ms (next.js: 322ms, proxy.ts: 4ms, application-code: 1251ms)
+ GET /manifest.webmanifest 200 in 8ms (next.js: 2ms, proxy.ts: 1458µs, application-code: 4ms)
+ GET /api/events/6d542277-58f2-46c1-a5da-73f88a2a4e72/cover 200 in 497ms (next.js: 12ms, proxy.ts: 3ms, application-code: 482ms)
+ GET /api/events/6d6ea8a4-0f0d-45d7-aae7-21c043d20384/cover 200 in 1225ms (next.js: 10ms, proxy.ts: 4ms, application-code: 1211ms)
+ GET /api/events/0968c25b-fa8d-4215-be41-6740017db3ec/cover 200 in 1286ms (next.js: 6ms, proxy.ts: 6ms, application-code: 1274ms)
+ GET /manifest.webmanifest 200 in 26ms (next.js: 8ms, proxy.ts: 5ms, application-code: 13ms)

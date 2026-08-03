@@ -2,10 +2,10 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Collector's Paradise Melbourne",
+    name: "Collector's Paradise",
     short_name: 'CP Events',
     description:
-      "Australia’s Community Collectibles Market! Pokemon, One Piece, Sports Cards, TCG, Games, Art, Accessories and more! Buy, Sell, Trade with hundreds of vendors!",
+      "Australia’s Collectibles Market. Buy, sell and trade your favourite TCGs, discover rare finds, and connect with collectors",
     start_url: '/',
     display: 'standalone',
     orientation: 'portrait',

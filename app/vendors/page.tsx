@@ -14,18 +14,18 @@ type VendorsPageProps = {
 };
 
 export const metadata: Metadata = {
-  title: 'Trading Card Vendors Melbourne | Pokémon TCG Sellers Australia',
+  title: "Trading Card Vendors Australia | Collector's Paradise",
   description:
-    "Meet approved trading card vendors at Collector's Paradise Melbourne. Rare Pokémon TCG, Yu-Gi-Oh!, One Piece, sports cards, graded cards, and vintage collectibles from Australian sellers.",
+    "Meet approved trading card vendors at Collector's Paradise. Discover Pokémon TCG, Yu-Gi-Oh!, One Piece, sports cards, and rare collectibles.",
   keywords: [
-    'trading card vendors Melbourne',
+    'trading card vendors Australia',
     'Pokemon TCG sellers Australia',
-    'rare card vendors Victoria',
-    'vintage collectibles Melbourne',
+    'rare card vendors Australia',
+    'vintage collectibles Australia',
     'graded cards Australia',
   ],
   openGraph: {
-    title: "Approved Vendors | Collector's Paradise Melbourne",
+    title: "Approved Trading Card Vendors | Collector's Paradise",
     description:
       "Discover approved Australian trading card vendors — rare Pokémon, Yu-Gi-Oh!, One Piece, sports cards, and graded cards.",
     url: "https://collectorsparadise.au/vendors",

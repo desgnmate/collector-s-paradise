@@ -7,9 +7,9 @@ import type { Metadata } from 'next';
 export const revalidate = 3600; // Cache for 1 hour to improve navigation speed
 
 export const metadata: Metadata = {
-  title: "Pokémon TCG & Trading Card Events in Melbourne | Upcoming & Past",
+  title: "Pokémon TCG & Trading Card Events in Australia | Collector's Paradise",
   description:
-    "Browse upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic: The Gathering, and sports card events in Melbourne, Australia. Buy tickets, meet vendors, and join Australia's largest collector community.",
+    "Australia’s Pokémon TCG, Yu-Gi-Oh!, One Piece and sports card events. Buy tickets, meet vendors, and connect with collectors.",
   keywords: [
     'Pokemon events Melbourne',
     'trading card events Australia',
@@ -19,9 +19,9 @@ export const metadata: Metadata = {
     'past Pokemon events Australia',
   ],
   openGraph: {
-    title: "Melbourne Trading Card Events | Collector's Paradise",
+    title: "Australian Trading Card Events | Collector's Paradise",
     description:
-      "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events in Melbourne. Buy tickets, meet vendors.",
+      "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events across Australia. Buy tickets and meet vendors.",
     url: "https://collectorsparadise.au/events",
   },
   alternates: {

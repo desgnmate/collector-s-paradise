@@ -43,8 +43,8 @@ export const viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://collectorsparadise.au"),
   title: {
-    default: "Collector's Paradise | Pokémon Trading Card Events in Melbourne, Australia",
-    template: "%s | Collector's Paradise",
+    default: "Australia's TCG & Trading Card Events | Collector's Paradise",
+    template: "%s",
   },
   description: siteDescription,
   keywords: [
@@ -79,7 +79,7 @@ export const metadata: Metadata = {
   category: "Events",
   classification: "Trading Card & Collectibles Events",
   openGraph: {
-    title: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
+    title: "Australia's TCG & Trading Card Events | Collector's Paradise",
     type: "website",
     siteName: "Collector's Paradise",
     locale: "en_AU",
@@ -91,13 +91,13 @@ export const metadata: Metadata = {
         url: '/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: "Collector's Paradise - Pokémon Trading Card Events in Melbourne, Australia",
+        alt: "Collector's Paradise - Australian Pokémon TCG and trading card events",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Collector's Paradise | Pokémon Trading Card Events in Melbourne",
+    title: "Australia's TCG & Trading Card Events | Collector's Paradise",
     description: siteDescription,
     images: ['/og-image.jpg'],
   },

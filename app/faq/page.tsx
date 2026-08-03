@@ -6,20 +6,20 @@ import { FAQ_DATA, FAQSchema } from '@/components/StructuredData';
 import FaqAccordion from '@/components/FaqAccordion';
 
 export const metadata: Metadata = {
-  title: 'Frequently Asked Questions | Trading Card Events Melbourne',
+  title: "Frequently Asked Questions | Collector's Paradise",
   description:
-    "Answers to common questions about Collector's Paradise trading card and collectibles events — tickets, vendors, venue info, and more.",
+    "Answers about Collector's Paradise trading card events across Australia — tickets, vendors, venues, and how to get involved.",
   keywords: [
     'Collectors Paradise FAQ',
-    'trading card event questions Melbourne',
+    'trading card event questions Australia',
     'Pokemon TCG event tickets',
     'how to become vendor trading cards',
-    'Melbourne card show FAQ',
+    'Australian card show FAQ',
   ],
   openGraph: {
-    title: "FAQ | Collector's Paradise Melbourne",
+    title: "FAQ | Collector's Paradise",
     description:
-      "Everything you need to know about Collector's Paradise trading card events — tickets, vendors, venue, and community.",
+      "Everything you need to know about Collector's Paradise trading card events — tickets, vendors, venues, and community.",
     url: 'https://collectorsparadise.au/faq',
   },
   alternates: {

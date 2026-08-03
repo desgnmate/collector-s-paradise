@@ -1,7 +1,7 @@
 import React from 'react';
 
 const siteDescription =
-  "Australia’s Community Collectibles Market! Pokemon, One Piece, Sports Cards, TCG, Games, Art, Accessories and more! Buy, Sell, Trade with hundreds of vendors!";
+  "Australia’s Collectibles Market. Buy, sell and trade your favourite TCGs, discover rare finds, and connect with collectors";
 
 interface OrganizationSchemaProps {
   name?: string;
@@ -11,9 +11,8 @@ interface OrganizationSchemaProps {
 }
 
 /**
- * Renders LocalBusiness JSON-LD for a venue hosting recurring events in
- * Melbourne. Helps Google surface the site for "near me" / Melbourne
- * searches and feeds business data to AI assistants.
+ * Renders LocalBusiness JSON-LD for the event organiser and its Australian
+ * service area. Event pages carry exact venue details.
  */
 export function LocalBusinessSchema() {
   const schema = {
@@ -21,7 +20,7 @@ export function LocalBusinessSchema() {
     '@type': ['LocalBusiness', 'EventVenue'],
     '@id': 'https://collectorsparadise.au/#localbusiness',
     name: "Collector's Paradise",
-    alternateName: "Collector's Paradise Melbourne",
+    alternateName: "Collector's Paradise Australia",
     description: siteDescription,
     url: 'https://collectorsparadise.au',
     logo: 'https://collectorsparadise.au/images/logo.png',
@@ -39,11 +38,7 @@ export function LocalBusinessSchema() {
       latitude: -37.8136,
       longitude: 144.9631,
     },
-    areaServed: [
-      { '@type': 'City', name: 'Melbourne' },
-      { '@type': 'State', name: 'Victoria' },
-      { '@type': 'Country', name: 'Australia' },
-    ],
+    areaServed: { '@type': 'Country', name: 'Australia' },
     sameAs: [
       'https://www.instagram.com/collectorsparadisemelbourne',
       'https://www.facebook.com/collectorsparadisemelbourne',
@@ -72,7 +67,7 @@ export function LocalBusinessSchema() {
 export const FAQ_DATA = [
   {
     q: 'What is Collector\'s Paradise?',
-    a: "Collector's Paradise is Melbourne's premier trading card and collectibles event series. We host live Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic: The Gathering, and sports card events where collectors buy, sell, trade, and connect.",
+    a: "Collector's Paradise is an Australian trading card and collectibles event series. We host live Pokémon TCG, Yu-Gi-Oh!, One Piece, Magic: The Gathering, and sports card events where collectors buy, sell, trade, and connect.",
   },
   {
     q: 'Where is the next Collector\'s Paradise event?',
@@ -92,7 +87,7 @@ export const FAQ_DATA = [
   },
   {
     q: 'Does Collector\'s Paradise run events outside Melbourne?',
-    a: 'Our flagship series is based in Melbourne, Victoria, Australia. We occasionally run events in other regions — check the Events page for upcoming dates and locations.',
+    a: 'Yes. Collector\'s Paradise hosts events across Australia. Check the Events page for upcoming dates, locations, venue addresses, and ticket availability.'
   },
 ];
 
@@ -125,7 +120,7 @@ export function EventSeriesSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'EventSeries',
-    name: "Collector's Paradise Melbourne Trading Card Events",
+    name: "Collector's Paradise Australian Trading Card Events",
     description: siteDescription,
     url: 'https://collectorsparadise.au/events',
     organizer: {
@@ -133,16 +128,7 @@ export function EventSeriesSchema() {
       name: "Collector's Paradise",
       url: 'https://collectorsparadise.au',
     },
-    location: {
-      '@type': 'Place',
-      name: 'Melbourne',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: 'Melbourne',
-        addressRegion: 'VIC',
-        addressCountry: 'AU',
-      },
-    },
+    areaServed: { '@type': 'Country', name: 'Australia' },
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     eventStatus: 'https://schema.org/EventScheduled',
   };
@@ -171,11 +157,7 @@ export function OrganizationSchema({
     url,
     logo,
     description,
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Melbourne',
-      addressCountry: 'AU',
-    },
+    areaServed: { '@type': 'Country', name: 'Australia' },
     contactPoint: {
       '@type': 'ContactPoint',
       email: 'hello@collectorsparadise.au',

@@ -43,7 +43,7 @@ export default function Hero() {
       {/* Cards fan at the bottom */}
       <div className="hero-cards-fan">
         <div className="hero-card hero-card-left">
-          <Image src={cardLeft} alt="Pokémon trading card on display at Collector's Paradise Melbourne event" width={190} height={265} priority />
+          <Image src={cardLeft} alt="Pokémon trading card on display at Collector's Paradise event" width={190} height={265} priority />
         </div>
         <div className="hero-card hero-card-center">
           <Image src={cardCenter} alt="Rare Pokémon TCG card featured at a Collector's Paradise trading card show" width={210} height={290} priority />

@@ -6,19 +6,19 @@ import AboutHero from '@/components/about/AboutHero';
 import StackingCards from '@/components/about/StackingCards';
 
 export const metadata: Metadata = {
-  title: 'About Us | Melbourne Pokémon & Trading Card Event Organisers',
+  title: "About Collector's Paradise | Australian Trading Card Events",
   description:
-    "Learn about Collector's Paradise — Melbourne's leading Pokémon TCG and trading card event organisers. Our story, mission, and the Australian collector community we serve.",
+    "Learn about Collector's Paradise, an Australian Pokémon TCG and trading card event organiser building welcoming collector communities across the country.",
   keywords: [
     'about Collectors Paradise',
-    'Melbourne trading card event organisers',
+    'Australian trading card event organisers',
     'Pokémon TCG community Australia',
     'collector events Victoria',
   ],
   openGraph: {
-    title: "About Collector's Paradise | Melbourne Trading Card Events",
+    title: "About Collector's Paradise | Australian Trading Card Events",
     description:
-      "Melbourne's leading trading card and Pokémon TCG event organisers. Meet the team behind Australia's most passionate collector events.",
+      "Meet the team behind Collector's Paradise trading card events and the collector community we are building across Australia.",
     url: "https://collectorsparadise.au/about",
   },
   alternates: {
