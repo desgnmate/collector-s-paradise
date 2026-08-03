@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import type { Event } from '@/app/actions/events';
+import { getEffectiveEventStatus, getLocalDateKey } from '@/lib/events/status';
 
 const EVENT_COVER_FALLBACK = '/images/event-experience.png';
 
@@ -22,13 +23,7 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
     year: 'numeric',
   });
 
-  // Compute "today" in the same YYYY-MM-DD shape as event_date so
-  // the comparison is timezone-safe. If the date is in the past,
-  // the event is past — regardless of the DB status field (which
-  // admins may not have updated yet).
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-  const isPast = event.event_date < todayStr;
+  const isPast = event.event_date < getLocalDateKey();
 
   const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
     upcoming: { label: 'UPCOMING', color: '#2E7D32', bg: '#E8F5E9' },
@@ -37,9 +32,7 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
     cancelled: { label: 'CANCELLED', color: '#C62828', bg: '#FFEBEE' },
   };
 
-  // Past date wins over the DB status — that's the whole point of
-  // this guard. Cancelled events stay cancelled.
-  const effectiveKey = isPast && event.status !== 'cancelled' ? 'completed' : event.status;
+  const effectiveKey = getEffectiveEventStatus(event);
   const status = statusConfig[effectiveKey] || statusConfig.upcoming;
 
   // If the card is rendered in the "upcoming" group but the date has

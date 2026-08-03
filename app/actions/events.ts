@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
 import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
 import { z } from 'zod';
+import { getEffectiveEventStatus } from '@/lib/events/status';
 
 // ============================================
 // Types
@@ -62,8 +63,9 @@ const createPublicEventsClient = () => createClient(
 // Legacy records may contain multi-megabyte base64 images. Sending those
 // inside an RSC payload makes transitions slow and can exceed Next.js's
 // data-cache limits, so expose those covers through a small image route.
-const normalizePublicEventCover = (event: Event): Event => ({
+const normalizeEvent = (event: Event): Event => ({
   ...event,
+  status: getEffectiveEventStatus(event),
   cover_image_url: event.cover_image_url?.startsWith('data:')
     ? `/api/events/${event.id}/cover`
     : event.cover_image_url,
@@ -84,7 +86,7 @@ const getCachedEvents = unstable_cache(
       return [];
     }
 
-    return (data as Event[]).map(normalizePublicEventCover);
+    return (data as Event[]).map(normalizeEvent);
   },
   ['public-events-v2'],
   { revalidate: 3600, tags: ['events'] }
@@ -104,7 +106,7 @@ const getCachedEventById = unstable_cache(
       return null;
     }
 
-    return normalizePublicEventCover(data as Event);
+    return normalizeEvent(data as Event);
   },
   ['public-event-v2'],
   { revalidate: 3600, tags: ['events'] }
@@ -128,7 +130,7 @@ const getCachedEventsByMonth = unstable_cache(
       return [];
     }
 
-    return data as unknown as Event[];
+    return (data as unknown as Event[]).map(normalizeEvent);
   },
   ['public-events-by-month'],
   { revalidate: 3600, tags: ['events'] }
@@ -419,5 +421,5 @@ export async function getAdminEvents(): Promise<Event[]> {
     return [];
   }
 
-  return data as Event[];
+  return (data as Event[]).map(normalizeEvent);
 }
