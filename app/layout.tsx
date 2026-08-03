@@ -30,7 +30,7 @@ const poppins = Poppins({
 });
 
 const siteDescription =
-  "Australia’s Community Collectibles Market! Pokemon, One Piece, Sports Cards, TCG, Games, Art, Accessories and more! Buy, Sell, Trade with hundreds of vendors!";
+  "Australia’s Collectibles Market. Buy, sell and trade your favourite TCGs, discover rare finds, and connect with collectors";
 
 export const viewport = {
   width: 'device-width',

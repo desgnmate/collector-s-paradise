@@ -394,35 +394,47 @@ export async function submitVendorApplication(
   }
 }
 
-/** Get all approved vendors (publicly accessible for vendor list) */
-export async function getApprovedVendors(): Promise<Partial<Vendor>[]> {
+/** Get one page of approved vendors (publicly accessible for vendor list). */
+export async function getApprovedVendors(
+  page = 1,
+  perPage = 6,
+): Promise<{ vendors: Partial<Vendor>[]; totalCount: number }> {
   const supabase = await createSupabaseServerClient();
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+  const safePerPage = Number.isInteger(perPage) && perPage > 0 ? perPage : 6;
+  const from = (safePage - 1) * safePerPage;
+  const to = from + safePerPage - 1;
+  const columns = 'id, business_name, contact_name, description, categories, booth_assignment, logo_url, social_links';
 
-  // OPTIMIZED: Only select columns needed for public display
-  const { data, error } = await supabase
+  // Paginate in Supabase. Fetching every vendor on each numbered page caused statement timeouts.
+  const { data, count, error } = await supabase
     .from('vendors')
-    .select('id, business_name, contact_name, description, categories, booth_assignment, logo_url')
+    .select(columns, { count: 'estimated' })
     .eq('application_status', 'approved')
-    .order('business_name', { ascending: true });
+    // Primary-key ordering avoids sorting the full vendors table on every page request.
+    .order('id', { ascending: true })
+    .range(from, to);
 
-  if (error) {
-    console.error('Error fetching vendors from Supabase:', JSON.stringify(error, null, 2));
-    
-    if (error.code === '42703') {
-      console.warn('DATABASE ALERT: logo_url or other required columns are missing. Attempting fallback fetch.');
-      const { data: fallbackData, error: fallbackError } = await supabase
-        .from('vendors')
-        .select('id, business_name, contact_name, description, categories, booth_assignment')
-        .eq('application_status', 'approved')
-        .order('business_name', { ascending: true });
-      
-      if (!fallbackError) return fallbackData as Partial<Vendor>[];
-    }
-    
-    return [];
+  if (!error) {
+    return { vendors: data as Partial<Vendor>[], totalCount: count ?? 0 };
   }
 
-  return data as Partial<Vendor>[];
+  if (error.code === '42703') {
+    console.warn('DATABASE ALERT: logo_url is missing. Fetching vendors without logo_url.');
+    const { data: fallbackData, count: fallbackCount, error: fallbackError } = await supabase
+      .from('vendors')
+      .select('id, business_name, contact_name, description, categories, booth_assignment, social_links', { count: 'estimated' })
+      .eq('application_status', 'approved')
+      .order('id', { ascending: true })
+      .range(from, to);
+
+    if (!fallbackError) {
+      return { vendors: fallbackData as Partial<Vendor>[], totalCount: fallbackCount ?? 0 };
+    }
+  }
+
+  console.error('Error fetching vendors from Supabase:', JSON.stringify(error, null, 2));
+  return { vendors: [], totalCount: 0 };
 }
 
 // ============================================

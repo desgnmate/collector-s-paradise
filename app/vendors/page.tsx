@@ -7,6 +7,12 @@ import { getApprovedVendors } from '@/app/actions/vendors';
 
 export const revalidate = 3600;
 
+const VENDORS_PER_PAGE = 6;
+
+type VendorsPageProps = {
+  searchParams: Promise<{ page?: string | string[] | undefined }>;
+};
+
 export const metadata: Metadata = {
   title: 'Trading Card Vendors Melbourne | Pokémon TCG Sellers Australia',
   description:
@@ -29,8 +35,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function VendorsPage() {
-  const vendors = await getApprovedVendors();
+export default async function VendorsPage({ searchParams }: VendorsPageProps) {
+  const { page: rawPage } = await searchParams;
+  const requestedPage = Number(Array.isArray(rawPage) ? rawPage[0] : rawPage);
+  const currentPage = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
+  let { vendors: visibleVendors, totalCount } = await getApprovedVendors(currentPage, VENDORS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(totalCount / VENDORS_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  if (safeCurrentPage !== currentPage) {
+    ({ vendors: visibleVendors, totalCount } = await getApprovedVendors(safeCurrentPage, VENDORS_PER_PAGE));
+  }
 
   return (
     <main>
@@ -55,7 +70,7 @@ export default async function VendorsPage() {
       {/* Vendors Grid */}
       <section className="vendors-grid-section">
         <div className="container">
-          {vendors.length === 0 ? (
+          {totalCount === 0 ? (
             <div className="vendors-empty-state">
               <div className="vendors-empty-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -68,13 +83,16 @@ export default async function VendorsPage() {
               </p>
             </div>
           ) : (
-            <div className="vendors-cards-grid">
-              {vendors.map((vendor, index) => (
+            <>
+              <div className="vendors-cards-grid">
+              {visibleVendors.map((vendor, index) => (
                 <div
                   key={vendor.id}
                   className="vendor-card"
+                  data-card-number={String(index + 1).padStart(2, '0')}
                 >
                   <div className="vendor-card-logo">
+                    <span className="vendor-card-logo-label">APPROVED VENDOR</span>
                     <Image
                       src={vendor.logo_url || '/images/logo.png'}
                       alt={`${vendor.business_name} logo`}
@@ -101,15 +119,80 @@ export default async function VendorsPage() {
                       <p className="vendor-card-desc">{vendor.description}</p>
                     )}
 
-                    <div className="vendor-card-tags">
-                      {(vendor.categories || []).map(cat => (
-                        <span key={cat} className="vendor-card-tag">{cat}</span>
-                      ))}
+                    <div className="vendor-card-footer">
+                      {vendor.categories && vendor.categories.length > 0 && (
+                        <div className="vendor-card-tags" aria-label="Vendor categories">
+                          <span className="vendor-card-tags-label">Specialties</span>
+                          <div className="vendor-card-tags-list">
+                            {vendor.categories.slice(0, 4).map(cat => (
+                              <span key={cat} className="vendor-card-tag">{cat}</span>
+                            ))}
+                            {vendor.categories.length > 4 && (
+                              <span className="vendor-card-tag vendor-card-tag-more">
+                                +{vendor.categories.length - 4}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {vendor.social_links && (
+                        <a
+                          href={vendor.social_links}
+                          className="vendor-card-social-link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="3" y="3" width="18" height="18" rx="5" />
+                            <circle cx="12" cy="12" r="4" />
+                            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
+                          </svg>
+                          Follow vendor
+                          <span aria-hidden="true">↗</span>
+                        </a>
+                      )}
                     </div>
                   </div>
                 </div>
               ))}
             </div>
+
+              {totalPages > 1 && (
+                <nav className="vendors-pagination" aria-label="Vendor pages">
+                <Link
+                  href={`/vendors?page=${safeCurrentPage - 1}`}
+                  className="vendors-pagination-link vendors-pagination-arrow"
+                  aria-disabled={safeCurrentPage === 1}
+                  tabIndex={safeCurrentPage === 1 ? -1 : undefined}
+                >
+                  Previous
+                </Link>
+
+                <div className="vendors-pagination-numbers">
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+                    <Link
+                      key={pageNumber}
+                      href={`/vendors?page=${pageNumber}`}
+                      className={`vendors-pagination-link ${pageNumber === safeCurrentPage ? 'is-active' : ''}`}
+                      aria-current={pageNumber === safeCurrentPage ? 'page' : undefined}
+                    >
+                      {pageNumber}
+                    </Link>
+                  ))}
+                </div>
+
+                <Link
+                  href={`/vendors?page=${safeCurrentPage + 1}`}
+                  className="vendors-pagination-link vendors-pagination-arrow"
+                  aria-disabled={safeCurrentPage === totalPages}
+                  tabIndex={safeCurrentPage === totalPages ? -1 : undefined}
+                >
+                  Next
+                </Link>
+                </nav>
+              )}
+            </>
           )}
         </div>
       </section>
