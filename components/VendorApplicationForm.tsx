@@ -111,9 +111,9 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
     return (
       <div className="vendor-form-success">
         <div className="vendor-success-icon">✓</div>
-        <h2 className="vendor-success-title">Application Submitted!</h2>
+        <h2 className="vendor-success-title">Application submitted</h2>
         <p className="vendor-success-text">
-          Thank you for your interest in joining Collector&apos;s Paradise as a vendor. We&apos;ve received your application and will be in touch via email once it has been reviewed.
+          We received your application for every selected event. Each event will be reviewed separately, and we&apos;ll contact you by email with each decision.
         </p>
       </div>
     );
@@ -372,29 +372,42 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
 
       {/* Event Availability */}
       <div className="vendor-form-section">
-        <h3 className="vendor-form-section-title">Which event can you sell at?</h3>
-        <p className="vendor-form-section-hint">Select one upcoming event, or choose None if you are applying for future opportunities. This is your preferred event, not a guarantee of acceptance.</p>
-        <div className="vendor-form-group vendor-form-group-wide">
-          <label htmlFor="event_id">Preferred event</label>
-          <select
-            id="event_id"
-            name="event_id"
-            defaultValue={state.fields?.event_id || ''}
-          >
-            <option value="">None / future opportunities</option>
+        <h3 className="vendor-form-section-title">Choose your events *</h3>
+        <p className="vendor-form-section-hint">
+          Tick every event you want to sell at. One application covers all selected events, but our team reviews each event separately.
+        </p>
+        {events.length > 0 ? (
+          <fieldset className="vendor-event-checklist">
+            <legend className="sr-only">Events you want to sell at</legend>
             {events.map((event) => (
-              <option key={event.id} value={event.id}>
-                {event.title} — {new Date(`${event.event_date}T00:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}{event.venue ? ` · ${event.venue}` : ''}
-              </option>
+              <label key={event.id} className="vendor-event-option">
+                <input
+                  type="checkbox"
+                  name="event_ids"
+                  value={event.id}
+                  defaultChecked={state.fields?.event_ids?.includes(event.id)}
+                />
+                <span className="vendor-event-option-check" aria-hidden="true">✓</span>
+                <span className="vendor-event-option-copy">
+                  <strong>{event.title}</strong>
+                  <span>
+                    {new Date(`${event.event_date}T00:00:00`).toLocaleDateString('en-AU', {
+                      weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+                    })}
+                    {event.venue ? ` · ${event.venue}` : ''}
+                  </span>
+                </span>
+              </label>
             ))}
-          </select>
-          {events.length === 0 && (
-            <span className="vendor-form-hint">No upcoming events are currently available.</span>
-          )}
-          {state.errors?.event_id && (
-            <span className="vendor-form-error">{state.errors.event_id[0]}</span>
-          )}
-        </div>
+          </fieldset>
+        ) : (
+          <div className="vendor-form-alert">
+            No upcoming events are accepting vendor applications right now.
+          </div>
+        )}
+        {state.errors?.event_ids && (
+          <span className="vendor-form-error">{state.errors.event_ids[0]}</span>
+        )}
       </div>
 
       {/* Event Requirements */}
@@ -478,7 +491,7 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
       <button
         type="submit"
         className="btn btn-yellow vendor-submit-btn"
-        disabled={isPending}
+        disabled={isPending || events.length === 0}
       >
         {isPending ? 'Submitting...' : 'Submit Application'}
       </button>

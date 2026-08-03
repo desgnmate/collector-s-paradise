@@ -50,7 +50,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [lastFetchedAt, setLastFetchedAt] = useState(Date.now());
+  const [lastFetchedAt, setLastFetchedAt] = useState(0);
   
   const fetchLock = useRef(false);
 

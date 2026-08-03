@@ -88,7 +88,7 @@ function assertEq(actual, expected, label) {
 }
 
 // --------------------------------------------------------------------------
-// Test 1: Old 13-col → 18-col migration
+// Test 1: Old 13-col → 19-col migration
 // --------------------------------------------------------------------------
 (function() {
   var oldHeaders = ['Applied At','Business Name','Contact Name','Email','Phone','State','Categories','Social Links','Description','Logo URL','Additional Notes','Booth Assignment','Status'];
@@ -101,23 +101,24 @@ function assertEq(actual, expected, label) {
   ensureHeaders_(sheet);
   var h = sheet._rows[0], d = sheet._rows[1];
 
-  assertEq(h.length, 18, 'T1: header count after migration');
+  assertEq(h.length, 19, 'T1: header count after migration');
   for (var i = 0; i < HEADERS.length; i++) assertEq(h[i], HEADERS[i], 'T1: header[' + i + ']');
-  assertEq(d[0], '', 'T1: col A (Vendor ID) blank for old row');
-  assertEq(d[8], '', 'T1: col I (Event ID) blank');
-  assertEq(d[9], '', 'T1: col J (Event Name) blank');
-  assertEq(d[10], '', 'T1: col K (Tables Requested) blank');
-  assertEq(d[12], 'https://insta.com/melb', 'T1: col M (Social Links) = Instagram URL, NOT logo URL');
-  assertEq(d[14], 'https://storage/logo.png', 'T1: col O (Logo URL) = storage URL');
+  assertEq(d[0], '', 'T1: col A (Application ID) blank for old row');
+  assertEq(d[1], '', 'T1: col B (Vendor ID) blank for old row');
+  assertEq(d[9], '', 'T1: col J (Event ID) blank');
+  assertEq(d[10], '', 'T1: col K (Event Name) blank');
+  assertEq(d[11], '', 'T1: col L (Tables Requested) blank');
+  assertEq(d[13], 'https://insta.com/melb', 'T1: col N (Social Links) = Instagram URL, NOT logo URL');
+  assertEq(d[15], 'https://storage/logo.png', 'T1: col P (Logo URL) = storage URL');
 })();
 
 // --------------------------------------------------------------------------
-// Test 2: Already correct 18-col — no-op
+// Test 2: Already correct 19-col — no-op
 // --------------------------------------------------------------------------
 (function() {
   var sheet = mockSheet([HEADERS.slice()]);
   ensureHeaders_(sheet);
-  assertEq(sheet._rows[0].length, 18, 'T2: no extra columns');
+  assertEq(sheet._rows[0].length, 19, 'T2: no extra columns');
   assertEq(sheet._rows[0][0], HEADERS[0], 'T2: first header preserved');
 })();
 
@@ -128,46 +129,47 @@ function assertEq(actual, expected, label) {
   var sheet = mockSheet([]);
   ensureHeaders_(sheet);
   assertEq(sheet._rows.length, 1, 'T3: one row');
-  assertEq(sheet._rows[0].length, 18, 'T3: 18 header columns');
+  assertEq(sheet._rows[0].length, 19, 'T3: 19 header columns');
 })();
 
 // --------------------------------------------------------------------------
-// Test 4: buildRow returns 18 values in HEADERS order
+// Test 4: buildRow returns 19 values in HEADERS order
 // --------------------------------------------------------------------------
 (function() {
   // Full data
-  var data = { id:'v1', applied_at:'2025-01-01', business_name:'Biz', contact_name:'Bob', email:'b@b.com', phone:'1', location_state:'NSW', categories:['X'], event_id:'e1', event_name:'Gold Coast Show', tables_requested:'3', power_requirements:'No', social_links:'https://ig.com/biz', description:'desc', logo_url:'https://logo.com/x.png', additional_notes:'notes', booth_assignment:'B5', application_status:'active' };
+  var data = { application_id:'a1', id:'v1', applied_at:'2025-01-01', business_name:'Biz', contact_name:'Bob', email:'b@b.com', phone:'1', location_state:'NSW', categories:['X'], event_id:'e1', event_name:'Gold Coast Show', tables_requested:'3', power_requirements:'No', social_links:'https://ig.com/biz', description:'desc', logo_url:'https://logo.com/x.png', additional_notes:'notes', booth_assignment:'B5', application_status:'active' };
   var row = buildRow(data);
-  assertEq(row.length, 18, 'T4a: 18 values');
-  assertEq(row[0], 'v1', 'T4a: [0] Vendor ID');
-  assertEq(row[8], 'e1', 'T4a: [8] Event ID');
-  assertEq(row[9], 'Gold Coast Show', 'T4a: [9] Event Name');
-  assertEq(row[10], '3', 'T4a: [10] Tables Requested');
-  assertEq(row[12], 'https://ig.com/biz', 'T4a: [12] Social Links');
-  assertEq(row[14], 'https://logo.com/x.png', 'T4a: [14] Logo URL');
+  assertEq(row.length, 19, 'T4a: 19 values');
+  assertEq(row[0], 'a1', 'T4a: [0] Application ID');
+  assertEq(row[1], 'v1', 'T4a: [1] Vendor ID');
+  assertEq(row[9], 'e1', 'T4a: [9] Event ID');
+  assertEq(row[10], 'Gold Coast Show', 'T4a: [10] Event Name');
+  assertEq(row[11], '3', 'T4a: [11] Tables Requested');
+  assertEq(row[13], 'https://ig.com/biz', 'T4a: [13] Social Links');
+  assertEq(row[15], 'https://logo.com/x.png', 'T4a: [15] Logo URL');
 
   // Empty data
   var empty = buildRow({});
-  assertEq(empty.length, 18, 'T4b: empty → 18 values');
+  assertEq(empty.length, 19, 'T4b: empty → 19 values');
   assertEq(empty[0], '', 'T4b: empty id');
-  assertEq(empty[17], 'pending', 'T4b: default status');
+  assertEq(empty[18], 'pending', 'T4b: default status');
 })();
 
 // --------------------------------------------------------------------------
-// Test 5: findVendorRow_ by ID and email fallback
+// Test 5: findVendorRow_ keeps each vendor/event application independent
 // --------------------------------------------------------------------------
 (function() {
   var sheet = mockSheet([HEADERS.slice()]);
-  sheet.appendRow(['','2025-01-01','OldCo','Old','old@test.com','1','VIC','X','','','https://ig.com/old','desc','','notes','','approved']);
-  sheet.appendRow(['v2','2025-02-01','NewCo','New','new@test.com','2','NSW','Y','1','No','https://ig.com/new','desc2','','','','pending']);
+  sheet.appendRow(['a-old','v1','2025-01-01','OldCo','Old','old@test.com','1','VIC','X','e1','Gold Coast','','','','','','','','approved']);
+  sheet.appendRow(['a-new','v1','2025-02-01','OldCo','Old','old@test.com','1','VIC','X','e2','Sydney','','','','','','','','pending']);
 
-  var m = findVendorRow_(sheet, { id: 'v2', email: 'new@test.com' });
-  assertEq(m.row, 3, 'T5a: by ID returns row 3');
-  assertEq(m.matchedBy, 'id', 'T5b: matched by id');
+  var m = findVendorRow_(sheet, { application_id: 'a-new', id: 'v1', email: 'old@test.com', event_id: 'e2' });
+  assertEq(m.row, 3, 'T5a: application ID returns event-specific row');
+  assertEq(m.matchedBy, 'application_id', 'T5b: matched by application ID');
 
-  m = findVendorRow_(sheet, { email: 'old@test.com' });
-  assertEq(m.row, 2, 'T5c: by email returns row 2');
-  assertEq(m.matchedBy, 'email', 'T5d: matched by email');
+  m = findVendorRow_(sheet, { id: 'v1', email: 'old@test.com', event_id: 'e1' });
+  assertEq(m.row, 2, 'T5c: vendor/event fallback returns correct row');
+  assertEq(m.matchedBy, 'vendor_event', 'T5d: matched by vendor/event');
 })();
 
 // --------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { createContext, useContext, useCallback, ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 
 export type AdminRoute = '/admin' | '/admin/events' | '/admin/vendors' | '/admin/volunteers' | '/admin/sponsors' | '/admin/about';
 
@@ -11,35 +11,30 @@ interface AdminRouterContext {
   isLoading: boolean;
 }
 
+const validRoutes: AdminRoute[] = [
+  '/admin',
+  '/admin/events',
+  '/admin/vendors',
+  '/admin/volunteers',
+  '/admin/sponsors',
+  '/admin/about',
+];
+
 const AdminRouterContext = createContext<AdminRouterContext | null>(null);
 
 export function AdminRouterProvider({ children }: { children: ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const [currentRoute, setCurrentRoute] = useState<AdminRoute>(
-    (pathname as AdminRoute) || '/admin'
-  );
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Sync with browser navigation (back/forward buttons)
-  useEffect(() => {
-    const validRoutes: AdminRoute[] = ['/admin', '/admin/events', '/admin/vendors', '/admin/volunteers', '/admin/sponsors', '/admin/about'];
-    if (validRoutes.includes(pathname as AdminRoute)) {
-      setCurrentRoute(pathname as AdminRoute);
-    }
-  }, [pathname]);
+  const currentRoute = validRoutes.includes(pathname as AdminRoute)
+    ? pathname as AdminRoute
+    : '/admin';
 
   const navigate = useCallback((route: AdminRoute) => {
-    setIsLoading(true);
-    // Update URL without triggering full page reload
-    router.push(route, { scroll: false });
-    setCurrentRoute(route);
-    // Small delay to simulate loading (remove if instant preferred)
-    setTimeout(() => setIsLoading(false), 100);
-  }, [router]);
+    if (route === currentRoute) return;
+    window.history.pushState(null, '', route);
+  }, [currentRoute]);
 
   return (
-    <AdminRouterContext.Provider value={{ currentRoute, navigate, isLoading }}>
+    <AdminRouterContext.Provider value={{ currentRoute, navigate, isLoading: false }}>
       {children}
     </AdminRouterContext.Provider>
   );

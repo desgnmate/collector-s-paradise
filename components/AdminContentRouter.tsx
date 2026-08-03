@@ -1,6 +1,6 @@
 'use client';
 
-import { useAdminRouter } from '@/contexts/AdminRouterContext';
+import { useAdminRouter, type AdminRoute } from '@/contexts/AdminRouterContext';
 import DashboardContent from '@/components/DashboardContent';
 import VendorsContent from '@/app/admin/vendors/AdminVendorsClient';
 import VolunteersContent from '@/app/admin/volunteers/AdminVolunteersClient';
@@ -8,24 +8,33 @@ import SponsorsContent from '@/app/admin/sponsors/AdminSponsorsClient';
 import EventsContent from '@/components/EventsContent';
 import AboutContent from '@/components/AboutContent';
 
+const adminViews: Array<{ route: AdminRoute; content: React.ReactNode }> = [
+  { route: '/admin', content: <DashboardContent /> },
+  { route: '/admin/vendors', content: <VendorsContent /> },
+  { route: '/admin/volunteers', content: <VolunteersContent /> },
+  { route: '/admin/sponsors', content: <SponsorsContent /> },
+  { route: '/admin/events', content: <EventsContent /> },
+  { route: '/admin/about', content: <AboutContent /> },
+];
+
 export default function AdminContentRouter() {
   const { currentRoute } = useAdminRouter();
 
-  // Render content based on route - all client-side, no server fetch
-  switch (currentRoute) {
-    case '/admin':
-      return <DashboardContent />;
-    case '/admin/vendors':
-      return <VendorsContent />;
-    case '/admin/volunteers':
-      return <VolunteersContent />;
-    case '/admin/sponsors':
-      return <SponsorsContent />;
-    case '/admin/events':
-      return <EventsContent />;
-    case '/admin/about':
-      return <AboutContent />;
-    default:
-      return <DashboardContent />;
-  }
+  // Static wrapper tree keeps SSR and hydration identical. Views stay mounted,
+  // so filters, pagination, and fetched data survive admin tab navigation.
+  return adminViews.map(({ route, content }) => {
+    const isActive = route === currentRoute;
+
+    return (
+      <section
+        key={route}
+        className="admin-route-view"
+        hidden={!isActive}
+        aria-hidden={!isActive}
+        inert={!isActive}
+      >
+        {content}
+      </section>
+    );
+  });
 }

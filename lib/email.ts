@@ -71,7 +71,8 @@ export async function sendNewApplicationEmail(
 export async function sendApprovalEmail(
   vendorEmail: string,
   businessName: string,
-  contactName: string
+  contactName: string,
+  eventName?: string,
 ) {
   const resend = getResend();
   if (!resend) {
@@ -82,14 +83,16 @@ export async function sendApprovalEmail(
     await resend.emails.send({
       from: "Collector's Paradise <" + FROM_EMAIL + ">",
       to: vendorEmail,
-      subject: `Welcome Aboard! 🎉 Your Application is Approved`,
+      subject: eventName
+        ? `Vendor application approved — ${eventName}`
+        : 'Vendor application approved — Collector\'s Paradise',
       html:
         '<div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">' +
         '<div style="background: #0f0f0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 32px;">' +
         '<h1 style="color: #4ade80; margin: 0 0 8px 0; font-size: 24px;">Application Approved!</h1>' +
         '<p style="color: rgba(255,255,255,0.8); margin: 0 0 24px 0;">Hi ' + contactName + ',</p>' +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 16px 0;">Great news! Your vendor application for <strong>' + businessName + '</strong> has been <strong style="color: #4ade80;">approved</strong>!</p>' +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 24px 0;">You can now access your vendor dashboard to manage your booth, view events, and update your profile.</p>' +
+        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 16px 0;">Great news. Your vendor application for <strong>' + businessName + '</strong>' + (eventName ? ' at <strong>' + eventName + '</strong>' : '') + ' has been <strong style="color: #4ade80;">approved</strong>.</p>' +
+        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 24px 0;">Our team will contact you with booth and event details.</p>' +
         '<div style="text-align: center; margin: 32px 0;">' +
         '<a href="' + (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000') + '/login" style="display: inline-block; background: #F4C542; color: #0f0f0f; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: 600;">Go to Dashboard</a>' +
         '</div>' +
@@ -109,7 +112,8 @@ export async function sendRejectionEmail(
   vendorEmail: string,
   businessName: string,
   contactName: string,
-  reason?: string
+  reason?: string,
+  eventName?: string,
 ) {
   const resend = getResend();
   if (!resend) {
@@ -126,7 +130,7 @@ export async function sendRejectionEmail(
         '<div style="background: #0f0f0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 32px;">' +
         '<h1 style="color: #f87171; margin: 0 0 8px 0; font-size: 24px;">Application Update</h1>' +
         '<p style="color: rgba(255,255,255,0.8); margin: 0 0 24px 0;">Hi ' + contactName + ',</p>' +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 16px 0;">Thank you for your interest in becoming a vendor at Collector\'s Paradise. After careful review, we regret to inform you that your application for <strong>' + businessName + '</strong> was not approved at this time.</p>' +
+        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 16px 0;">Thank you for your interest in becoming a vendor at Collector\'s Paradise. Your application for <strong>' + businessName + '</strong>' + (eventName ? ' at <strong>' + eventName + '</strong>' : '') + ' was not approved at this time.</p>' +
         (reason ? '<div style="background: rgba(239,68,68,0.1); border-left: 3px solid #f87171; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;"><p style="color: rgba(255,255,255,0.7); margin: 0;"><strong>Reason:</strong> ' + reason + '</p></div>' : '') +
         '<p style="color: rgba(255,255,255,0.7); margin: 0 0 24px 0;">We encourage you to apply again in the future. You\'re always welcome to reach out if you have questions.</p>' +
         '<p style="color: rgba(255,255,255,0.5); font-size: 14px; margin: 0;">Thank you for understanding.</p>' +

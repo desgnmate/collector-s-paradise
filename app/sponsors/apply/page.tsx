@@ -94,18 +94,14 @@ export default function SponsorApplyPage() {
     return (
       <main>
         <Navbar />
-        <div className="container" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content modal-lg" style={{ maxWidth: '600px', margin: '2rem auto' }}>
-            <div className="modal-header" style={{ borderBottom: '2px solid var(--color-yellow)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-              <h3 className="modal-title" style={{ margin: 0, color: 'var(--color-dark)' }}>Application Submitted!</h3>
-            </div>
-            <div className="modal-body" style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}></div>
-              <p style={{ fontSize: '1.1rem', color: '#666', marginBottom: '1.5rem' }}>{state.message}</p>
-              <p style={{ fontSize: '0.95rem', color: '#888' }}>Our partnerships team will review your application and contact you within 2-3 business days.</p>
-            </div>
-            <div className="modal-footer" style={{ borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '1.5rem' }}>
-              <Link href="/" className="vendors-cta-btn-primary" style={{ display: 'inline-block', width: 'auto', padding: '0.75rem 2rem' }}>
+        <div className="container application-success-layout">
+          <div className="vendor-form-success">
+            <div className="vendor-success-icon" aria-hidden="true">✓</div>
+            <h2 className="vendor-success-title">Application submitted</h2>
+            <p className="vendor-success-text">{state.message}</p>
+            <p className="vendor-success-note">Our partnerships team will review your application and contact you within 2-3 business days.</p>
+            <div className="application-success-actions">
+              <Link href="/" className="btn btn-yellow vendor-submit-btn">
                 Back to Home
               </Link>
             </div>
@@ -121,9 +117,9 @@ export default function SponsorApplyPage() {
       <Navbar />
 
       {/* Page Header */}
-      <section className="vendors-page-header-section">
+      <section className="vendor-apply-section">
         <div className="container">
-          <div className="vendors-page-header">
+          <div className="vendor-apply-header">
             <span className="eyebrow-badge">SPONSORSHIP APPLICATION</span>
             <h1 className="section-title">
               PARTNER WITH US
@@ -132,32 +128,24 @@ export default function SponsorApplyPage() {
               Fill out the form below to explore sponsorship opportunities. We&apos;ll get back to you with a custom proposal.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Application Form */}
-      <section className="section" style={{ padding: '4rem 0' }}>
-        <div className="container">
-          <form action={formAction} className="vendor-application-form" style={{ maxWidth: '900px', margin: '0 auto' }}>
-            
+          <div className="vendor-apply-layout">
+          <form action={formAction} className="vendor-apply-form application-form-consistent">
+            {state.message && !state.success && (
+              <div className="vendor-form-alert vendor-form-alert-error" role="alert">
+                {state.message}
+              </div>
+            )}
+
             {/* Company Information */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Company Information
               </h3>
-              
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="company_name" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="company_name" className="form-label">
                     Company Name *
                   </label>
                   <input
@@ -166,22 +154,15 @@ export default function SponsorApplyPage() {
                     name="company_name"
                     required
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                   {state.errors?.company_name && (
-                    <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.25rem' }}>{state.errors.company_name[0]}</p>
+                    <p className="vendor-form-error">{state.errors.company_name[0]}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="website" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="website" className="form-label">
                     Company Website
                   </label>
                   <input
@@ -190,21 +171,14 @@ export default function SponsorApplyPage() {
                     name="website"
                     placeholder="https://yourcompany.com"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
               </div>
 
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="industry" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="industry" className="form-label">
                     Industry
                   </label>
                   <input
@@ -213,33 +187,19 @@ export default function SponsorApplyPage() {
                     name="industry"
                     placeholder="e.g., Gaming, Retail, Food & Beverage"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="company_size" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="company_size" className="form-label">
                     Company Size
                   </label>
                   <select
                     id="company_size"
                     name="company_size"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   >
                     <option value="">Select size...</option>
                     {COMPANY_SIZES.map(size => (
@@ -251,23 +211,14 @@ export default function SponsorApplyPage() {
             </div>
 
             {/* Contact Information */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Contact Information
               </h3>
-              
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="contact_name" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="contact_name" className="form-label">
                     Contact Name *
                   </label>
                   <input
@@ -276,22 +227,15 @@ export default function SponsorApplyPage() {
                     name="contact_name"
                     required
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                   {state.errors?.contact_name && (
-                    <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.25rem' }}>{state.errors.contact_name[0]}</p>
+                    <p className="vendor-form-error">{state.errors.contact_name[0]}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="contact_position" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="contact_position" className="form-label">
                     Position/Title
                   </label>
                   <input
@@ -300,21 +244,14 @@ export default function SponsorApplyPage() {
                     name="contact_position"
                     placeholder="e.g., Marketing Director, CEO"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
               </div>
 
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="contact_email" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="contact_email" className="form-label">
                     Email Address *
                   </label>
                   <input
@@ -323,22 +260,15 @@ export default function SponsorApplyPage() {
                     name="contact_email"
                     required
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                   {state.errors?.contact_email && (
-                    <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.25rem' }}>{state.errors.contact_email[0]}</p>
+                    <p className="vendor-form-error">{state.errors.contact_email[0]}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="contact_phone" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="contact_phone" className="form-label">
                     Phone Number
                   </label>
                   <input
@@ -346,50 +276,27 @@ export default function SponsorApplyPage() {
                     id="contact_phone"
                     name="contact_phone"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
               </div>
             </div>
 
             {/* Sponsorship Details */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Sponsorship Details
               </h3>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="sponsorship_tier" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="sponsorship_tier" className="form-label">
                   Preferred Sponsorship Tier
                 </label>
                 <select
                   id="sponsorship_tier"
                   name="sponsorship_tier"
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 >
                   <option value="">Select a tier...</option>
                   {SPONSORSHIP_TIERS.map(tier => (
@@ -398,62 +305,42 @@ export default function SponsorApplyPage() {
                 </select>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label className="form-label">
                   Sponsorship Interests * (Select all that apply)
                 </label>
-                <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                <div className="application-choice-grid">
                   {SPONSORSHIP_INTERESTS.map(interest => (
-                    <label key={interest.id} className="checkbox-label" style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.75rem',
-                      padding: '1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      ...(selectedInterests.includes(interest.id) ? {
-                        borderColor: 'var(--color-yellow)',
-                        background: 'rgba(244, 197, 66, 0.05)'
-                      } : {})
-                    }}>
+                    <label key={interest.id} className="application-choice">
                       <input
                         type="checkbox"
                         name="sponsorship_interest"
                         value={interest.name}
                         checked={selectedInterests.includes(interest.id)}
                         onChange={() => handleInterestToggle(interest.id)}
-                        style={{ marginTop: '0.25rem', accentColor: 'var(--color-yellow)' }}
+
                       />
                       <div>
-                        <span style={{ fontWeight: 600, color: 'var(--color-dark)', display: 'block' }}>{interest.name}</span>
-                        <span style={{ fontSize: '0.9rem', color: '#666' }}>{interest.description}</span>
+                        <span>{interest.name}</span>
+                        <span>{interest.description}</span>
                       </div>
                     </label>
                   ))}
                 </div>
                 {state.errors?.sponsorship_interest && (
-                  <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{state.errors.sponsorship_interest[0]}</p>
+                  <p className="vendor-form-error">{state.errors.sponsorship_interest[0]}</p>
                 )}
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="budget_range" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="budget_range" className="form-label">
                   Budget Range
                 </label>
                 <select
                   id="budget_range"
                   name="budget_range"
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 >
                   <option value="">Select budget range...</option>
                   {BUDGET_RANGES.map(range => (
@@ -462,45 +349,31 @@ export default function SponsorApplyPage() {
                 </select>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="previous_sponsor" className="checkbox-label" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.75rem',
-                  cursor: 'pointer'
-                }}>
+              <div className="vendor-form-group">
+                <label htmlFor="previous_sponsor" className="application-choice">
                   <input
                     type="checkbox"
                     id="previous_sponsor"
                     name="previous_sponsor"
-                    style={{ accentColor: 'var(--color-yellow)' }}
+
                   />
-                  <span style={{ fontWeight: 600, color: 'var(--color-dark)' }}>We have sponsored Collector&apos;s Paradise events before</span>
+                  <span>We have sponsored Collector&apos;s Paradise events before</span>
                 </label>
               </div>
 
               {state.errors?.brand_description && (
-                <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{state.errors.brand_description[0]}</p>
+                <p className="vendor-form-error">{state.errors.brand_description[0]}</p>
               )}
             </div>
 
             {/* Brand & Marketing */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Brand & Marketing
               </h3>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="brand_description" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="brand_description" className="form-label">
                   Brand Description * (Brief overview of your company/brand)
                 </label>
                 <textarea
@@ -510,20 +383,12 @@ export default function SponsorApplyPage() {
                   rows={4}
                   placeholder="Tell us about your brand, products, and target audience..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="social_media_links" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="social_media_links" className="form-label">
                   Social Media Links
                 </label>
                 <input
@@ -532,19 +397,12 @@ export default function SponsorApplyPage() {
                   name="social_media_links"
                   placeholder="https://instagram.com/yourbrand or https://facebook.com/yourbrand"
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="marketing_goals" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="marketing_goals" className="form-label">
                   Marketing Goals (What do you hope to achieve?)
                 </label>
                 <textarea
@@ -553,104 +411,61 @@ export default function SponsorApplyPage() {
                   rows={3}
                   placeholder="e.g., Brand awareness, product launches, community engagement..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
             </div>
 
             {/* Event Preferences */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Event Preferences
               </h3>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label className="form-label">
                   Events Interested In
                 </label>
-                <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="application-choice-grid">
                   {EVENTS_INTEREST.map(event => (
-                    <label key={event} className="checkbox-label" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.75rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      ...(selectedEvents.includes(event) ? {
-                        borderColor: 'var(--color-yellow)',
-                        background: 'rgba(244, 197, 66, 0.05)'
-                      } : {})
-                    }}>
+                    <label key={event} className="application-choice">
                       <input
                         type="checkbox"
                         name="events_interested"
                         value={event}
                         checked={selectedEvents.includes(event)}
                         onChange={() => handleEventToggle(event)}
-                        style={{ accentColor: 'var(--color-yellow)' }}
+
                       />
-                      <span style={{ fontWeight: 500, color: 'var(--color-dark)' }}>{event}</span>
+                      <span>{event}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label className="form-label">
                   Additional Services
                 </label>
-                <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div className="application-choice-grid">
                   {ADDITIONAL_SERVICES.map(service => (
-                    <label key={service} className="checkbox-label" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem',
-                      padding: '0.75rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      ...(selectedServices.includes(service) ? {
-                        borderColor: 'var(--color-yellow)',
-                        background: 'rgba(244, 197, 66, 0.05)'
-                      } : {})
-                    }}>
+                    <label key={service} className="application-choice">
                       <input
                         type="checkbox"
                         name="additional_services"
                         value={service}
                         checked={selectedServices.includes(service)}
                         onChange={() => handleServiceToggle(service)}
-                        style={{ accentColor: 'var(--color-yellow)' }}
+
                       />
-                      <span style={{ fontWeight: 500, color: 'var(--color-dark)' }}>{service}</span>
+                      <span>{service}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="preferred_booth_size" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="preferred_booth_size" className="form-label">
                   Preferred Booth Size
                 </label>
                 <input
@@ -659,49 +474,26 @@ export default function SponsorApplyPage() {
                   name="preferred_booth_size"
                   placeholder="e.g., Standard table, 3x3m booth, Custom setup"
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
             </div>
 
             {/* Additional Information */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Additional Information
               </h3>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="how_heard_about" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="how_heard_about" className="form-label">
                   How did you hear about sponsorship opportunities?
                 </label>
                 <select
                   id="how_heard_about"
                   name="how_heard_about"
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 >
                   <option value="">Select an option...</option>
                   {HOW_HEARD_OPTIONS.map(option => (
@@ -710,8 +502,8 @@ export default function SponsorApplyPage() {
                 </select>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="custom_proposal" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="custom_proposal" className="form-label">
                   Custom Proposal (Optional)
                 </label>
                 <textarea
@@ -720,20 +512,12 @@ export default function SponsorApplyPage() {
                   rows={3}
                   placeholder="If you have a custom sponsorship idea, tell us about it..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="additional_notes" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="additional_notes" className="form-label">
                   Additional Notes (Optional)
                 </label>
                 <textarea
@@ -742,58 +526,28 @@ export default function SponsorApplyPage() {
                   rows={3}
                   placeholder="Any other information you&apos;d like to share..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
             </div>
 
             {/* Submit Button */}
-            <div className="form-actions" style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              paddingTop: '2rem',
-              borderTop: '1px solid rgba(0,0,0,0.1)'
-            }}>
+            <div className="application-form-actions">
               <button
                 type="submit"
                 disabled={isPending}
-                className="vendors-cta-btn-primary"
-                style={{
-                  minWidth: '200px',
-                  opacity: isPending ? 0.7 : 1,
-                  cursor: isPending ? 'not-allowed' : 'pointer'
-                }}
+                className="btn btn-yellow vendor-submit-btn"
+
               >
                 {isPending ? 'Submitting...' : 'Submit Application'}
               </button>
-              <Link href="/sponsorship" className="vendors-cta-btn-secondary">
+              <Link href="/sponsorship" className="application-form-cancel">
                 Cancel
               </Link>
             </div>
 
-            {state.message && !state.success && (
-              <div className="form-message" style={{
-                marginTop: '1.5rem',
-                padding: '1rem',
-                background: '#fef3c7',
-                border: '1px solid #f59e0b',
-                borderRadius: '6px',
-                color: '#92400e',
-                textAlign: 'center'
-              }}>
-                {state.message}
-              </div>
-            )}
           </form>
+          </div>
         </div>
       </section>
       <Footer />

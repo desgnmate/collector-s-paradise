@@ -1,777 +1,736 @@
 'use client';
 
-import { useState } from 'react';
-import { useAdminData } from '@/contexts/AdminDataContext';
-import { approveVendor, rejectVendor, waitlistVendor, deleteVendor, updateVendor, syncAllVendorsToSheet } from '@/app/actions/vendors';
-import type { Vendor, VendorUpdateData } from '@/app/actions/vendors';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
+import { useAdminData } from '@/contexts/AdminDataContext';
+import { getAdminEvents, type Event } from '@/app/actions/events';
+import {
+  assignVendorsToEvents,
+  deleteVendor,
+  removeVendorEventApplication,
+  syncAllVendorsToSheet,
+  updateVendor,
+  updateVendorEventApplication,
+  type Vendor,
+  type VendorApplicationStatus,
+  type VendorEventApplication,
+  type VendorUpdateData,
+} from '@/app/actions/vendors';
 
+type View = 'events' | 'unassigned' | 'vendors';
+type StatusFilter = 'all' | VendorApplicationStatus;
+type ApplicationRow = VendorEventApplication & { vendor: Vendor };
 
-type TabType = 'all' | 'pending' | 'approved' | 'rejected' | 'waitlisted';
+type Notice = { type: 'success' | 'error'; message: string };
 
-export default function AdminVendorsClient() {
-  const { vendors, loading, error, invalidateCache, refreshData } = useAdminData();
-  const [activeTab, setActiveTab] = useState<TabType>('all');
-  const [processingId, setProcessingId] = useState<string | null>(null);
-  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
-  const [showModal, setShowModal] = useState(false);
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [modalAction, setModalAction] = useState<'approve' | 'reject' | 'waitlist' | 'delete' | null>(null);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<VendorUpdateData | null>(null);
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [editStatus, setEditStatus] = useState<{ success: boolean; message: string } | null>(null);
+const vendorsPerPage = 20;
 
-  const tabs: { key: TabType; label: string; count: number }[] = [
-    { key: 'all', label: 'All', count: vendors.length },
-    { key: 'pending', label: 'Pending', count: vendors.filter(v => v.application_status === 'pending').length },
-    { key: 'approved', label: 'Approved', count: vendors.filter(v => v.application_status === 'approved').length },
-    { key: 'rejected', label: 'Rejected', count: vendors.filter(v => v.application_status === 'rejected').length },
-    { key: 'waitlisted', label: 'Waitlisted', count: vendors.filter(v => v.application_status === 'waitlisted').length },
-  ];
+const statusLabels: Record<VendorApplicationStatus, string> = {
+  pending: 'Pending',
+  approved: 'Approved',
+  rejected: 'Rejected',
+  waitlisted: 'Waitlisted',
+};
 
-  const filteredVendors = vendors.filter(v => 
-    activeTab === 'all' || v.application_status === activeTab
+const australianStates = [
+  'New South Wales',
+  'Victoria',
+  'Queensland',
+  'Western Australia',
+  'South Australia',
+  'Tasmania',
+  'Australian Capital Territory',
+  'Northern Territory',
+];
+
+const vendorCategories = [
+  'Pokémon TCG',
+  'Yu-Gi-Oh!',
+  'Magic: The Gathering',
+  'One Piece TCG',
+  'Dragon Ball Super',
+  'Sports Cards',
+  'Vintage / Retro Cards',
+  'Card Accessories & Supplies',
+  'Graded Cards',
+  'Art',
+  'Other Collectibles',
+];
+
+function formatEventDate(value: string) {
+  if (!value) return 'Date unavailable';
+  return new Date(`${value}T00:00:00`).toLocaleDateString('en-AU', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+}
+
+function StatusBadge({ status }: { status: VendorApplicationStatus }) {
+  return <span className={`vendor-management-status is-${status}`}>{statusLabels[status]}</span>;
+}
+
+function Pagination({
+  currentPage,
+  totalItems,
+  onPageChange,
+}: {
+  currentPage: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
+}) {
+  const totalPages = Math.max(1, Math.ceil(totalItems / vendorsPerPage));
+  if (totalPages <= 1) return null;
+
+  const start = Math.max(1, Math.min(currentPage - 2, totalPages - 4));
+  const pageNumbers = Array.from(
+    { length: Math.min(5, totalPages) },
+    (_, index) => start + index,
   );
 
-  const handleAction = async (vendor: Vendor, action: 'approve' | 'reject' | 'waitlist' | 'delete') => {
-    setSelectedVendor(vendor);
-    setModalAction(action);
-    setRejectionReason('');
-    setShowModal(true);
-  };
-
-  const handleViewInfo = (vendor: Vendor) => {
-    setIsEditing(false);
-    setEditData(null);
-    setEditStatus(null);
-    setSelectedVendor(vendor);
-    setShowViewModal(true);
-  };
-
-  const handleEdit = (vendor: Vendor) => {
-    setEditData({
-      business_name: vendor.business_name,
-      contact_name: vendor.contact_name,
-      email: vendor.email,
-      phone: vendor.phone || '',
-      location_state: vendor.location_state || '',
-      description: vendor.description || '',
-      categories: vendor.categories || [],
-      social_links: vendor.social_links || '',
-      tables_requested: vendor.tables_requested || '',
-      power_requirements: vendor.power_requirements || '',
-      additional_notes: vendor.additional_notes || '',
-      booth_assignment: vendor.booth_assignment || '',
-    });
-    setEditStatus(null);
-    setIsEditing(true);
-  };
-
-  const handleSaveEdit = async () => {
-    if (!selectedVendor || !editData) return;
-    setSavingEdit(true);
-    setEditStatus(null);
-
-    // Sanitize categories — trim whitespace and remove empties
-    const cleanData: VendorUpdateData = {
-      ...editData,
-      categories: editData.categories.map(s => s.trim()).filter(Boolean),
-    };
-
-    try {
-      const result = await updateVendor(selectedVendor.id, cleanData);
-      if (result?.success) {
-        invalidateCache('vendors');
-        setShowViewModal(false);
-        setIsEditing(false);
-        setEditData(null);
-        setEditStatus(null);
-      } else {
-        setEditStatus({ success: false, message: result?.message || 'Update failed.' });
-      }
-    } catch (err) {
-      console.error('Edit save error:', err);
-      setEditStatus({ success: false, message: 'Something went wrong. Please try again.' });
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    setEditData(null);
-    setEditStatus(null);
-  };
-
-  const closeViewModal = () => {
-    setIsEditing(false);
-    setEditData(null);
-    setEditStatus(null);
-    setShowViewModal(false);
-  };
-
-  const confirmAction = async () => {
-    if (!selectedVendor || !modalAction) return;
-    
-    setProcessingId(selectedVendor.id);
-    
-    try {
-      let result;
-      switch (modalAction) {
-        case 'approve':
-          result = await approveVendor(selectedVendor.id);
-          break;
-        case 'reject':
-          result = await rejectVendor(selectedVendor.id, rejectionReason || undefined);
-          break;
-        case 'waitlist':
-          result = await waitlistVendor(selectedVendor.id);
-          break;
-        case 'delete':
-          result = await deleteVendor(selectedVendor.id);
-          break;
-      }
-      
-      if (result?.success) {
-        invalidateCache('vendors');
-        invalidateCache('stats');
-      } else {
-        alert(result?.message || 'Action failed');
-      }
-    } catch (err) {
-      console.error('Action error:', err);
-      alert('Something went wrong. Please try again.');
-    } finally {
-      setProcessingId(null);
-      setShowModal(false);
-      setSelectedVendor(null);
-      setModalAction(null);
-      setRejectionReason('');
-    }
-  };
-
-  const getStatusBadge = (status: Vendor['application_status']) => {
-    const config = {
-      pending: { bg: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b', border: 'rgba(245, 158, 11, 0.25)', label: 'Pending' },
-      approved: { bg: 'rgba(34, 197, 94, 0.12)', color: '#4ade80', border: 'rgba(34, 197, 94, 0.25)', label: 'Approved' },
-      rejected: { bg: 'rgba(239, 68, 68, 0.12)', color: '#f87171', border: 'rgba(239, 68, 68, 0.25)', label: 'Rejected' },
-      waitlisted: { bg: 'rgba(139, 92, 246, 0.12)', color: '#a78bfa', border: 'rgba(139, 92, 246, 0.25)', label: 'Waitlisted' },
-    };
-    const c = config[status];
-    return (
-      <span className="status-badge" style={{ background: c.bg, color: c.color, border: `1px solid ${c.border}` }}>
-        {c.label}
+  return (
+    <nav className="vendor-management-pagination" aria-label="Vendor pages">
+      <span className="vendor-management-pagination-summary">
+        Page {currentPage} of {totalPages}
       </span>
-    );
+      <div className="vendor-management-pagination-controls">
+        <button type="button" onClick={() => onPageChange(currentPage - 1)} disabled={currentPage === 1}>
+          Previous
+        </button>
+        <div className="vendor-management-pagination-pages">
+          {pageNumbers.map((page) => (
+            <button
+              key={page}
+              type="button"
+              className={page === currentPage ? 'is-active' : ''}
+              aria-current={page === currentPage ? 'page' : undefined}
+              onClick={() => onPageChange(page)}
+            >
+              {page}
+            </button>
+          ))}
+        </div>
+        <button type="button" onClick={() => onPageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+          Next
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+export default function AdminVendorsClient() {
+  const { vendors, loading, error, refreshData } = useAdminData();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
+  const [view, setView] = useState<View>('unassigned');
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [search, setSearch] = useState('');
+  const [notice, setNotice] = useState<Notice | null>(null);
+  const [activeApplication, setActiveApplication] = useState<ApplicationRow | null>(null);
+  const [nextStatus, setNextStatus] = useState<VendorApplicationStatus>('pending');
+  const [boothAssignment, setBoothAssignment] = useState('');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
+  const [editData, setEditData] = useState<VendorUpdateData | null>(null);
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
+  const [showAssignment, setShowAssignment] = useState(false);
+  const [assignmentEventIds, setAssignmentEventIds] = useState<string[]>([]);
+  const [assignmentStatus, setAssignmentStatus] = useState<VendorApplicationStatus | 'preserve'>('pending');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [processing, setProcessing] = useState(false);
+
+  useEffect(() => {
+    getAdminEvents()
+      .then(setEvents)
+      .catch((fetchError) => {
+        console.error('Failed to fetch events for vendor management:', fetchError);
+        setNotice({ type: 'error', message: 'Events could not be loaded.' });
+      })
+      .finally(() => setEventsLoading(false));
+  }, []);
+
+  const applications = useMemo<ApplicationRow[]>(
+    () => vendors.flatMap((vendor) =>
+      vendor.event_applications.map((application) => ({ ...application, vendor })),
+    ),
+    [vendors],
+  );
+
+  const manageableEvents = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    return events
+      .filter((event) => (
+        event.event_date >= today &&
+        (event.status === 'upcoming' || event.status === 'active')
+      ))
+      .sort((a, b) => a.event_date.localeCompare(b.event_date));
+  }, [events]);
+  const eventSummaries = useMemo(() => manageableEvents.map((event) => {
+    const eventApplications = applications.filter((application) => application.event_id === event.id);
+    return {
+      event,
+      applications: eventApplications,
+      pending: eventApplications.filter((application) => application.application_status === 'pending').length,
+      approved: eventApplications.filter((application) => application.application_status === 'approved').length,
+      waitlisted: eventApplications.filter((application) => application.application_status === 'waitlisted').length,
+      rejected: eventApplications.filter((application) => application.application_status === 'rejected').length,
+    };
+  }), [applications, manageableEvents]);
+
+  const selectedEvent = eventSummaries.find(({ event }) => event.id === selectedEventId);
+  const normalizedSearch = search.trim().toLowerCase();
+  const visibleApplications = (selectedEvent?.applications || []).filter((application) => {
+    const matchesStatus = statusFilter === 'all' || application.application_status === statusFilter;
+    const matchesSearch = !normalizedSearch || [
+      application.vendor.business_name,
+      application.vendor.contact_name,
+      application.vendor.email,
+      ...(application.vendor.categories || []),
+    ].some((value) => value?.toLowerCase().includes(normalizedSearch));
+    return matchesStatus && matchesSearch;
+  });
+  const unassignedVendors = vendors.filter((vendor) => vendor.event_applications.length === 0);
+  const filterVendor = (vendor: Vendor) => !normalizedSearch || [
+    vendor.business_name,
+    vendor.contact_name,
+    vendor.email,
+    ...(vendor.categories || []),
+  ].some((value) => value?.toLowerCase().includes(normalizedSearch));
+  const visibleVendors = vendors.filter(filterVendor);
+  const visibleUnassignedVendors = unassignedVendors.filter((vendor) => (
+    (statusFilter === 'all' || vendor.application_status === statusFilter) && filterVendor(vendor)
+  ));
+  const paginate = <T,>(items: T[]) => items.slice(
+    (currentPage - 1) * vendorsPerPage,
+    currentPage * vendorsPerPage,
+  );
+  const paginatedApplications = paginate(visibleApplications);
+  const paginatedVendors = paginate(visibleVendors);
+  const paginatedUnassignedVendors = paginate(visibleUnassignedVendors);
+
+  const changePage = (page: number, totalItems: number) => {
+    const totalPages = Math.max(1, Math.ceil(totalItems / vendorsPerPage));
+    setCurrentPage(Math.min(Math.max(page, 1), totalPages));
+    document.querySelector('.vendor-management')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const handleExportCSV = () => {
-    const exportData = activeTab === 'all' ? vendors : filteredVendors;
+  const toggleSelectedVendor = (vendorId: string) => {
+    setSelectedVendorIds((current) => current.includes(vendorId)
+      ? current.filter((id) => id !== vendorId)
+      : [...current, vendorId]);
+  };
 
-    const headers = [
-      'Business Name', 'Contact Name', 'Email', 'Phone', 'State',
-      'Categories', 'Event', 'Status', 'Tables', 'Power', 'Social Links',
-      'Description', 'Logo URL', 'Applied At',
-    ];
+  const openAssignment = (vendorIds: string[]) => {
+    setSelectedVendorIds(vendorIds);
+    setAssignmentEventIds([]);
+    setAssignmentStatus('pending');
+    setShowAssignment(true);
+    setNotice(null);
+  };
 
-    const escapeCsv = (val: unknown): string => {
-      const str = String(val ?? '');
-      if (str.includes(',') || str.includes('"') || str.includes('\n')) {
-        return `"${str.replace(/"/g, '""')}"`;
-      }
-      return str;
+  const saveAssignments = async () => {
+    setProcessing(true);
+    const result = await assignVendorsToEvents({
+      vendor_ids: selectedVendorIds,
+      event_ids: assignmentEventIds,
+      starting_status: assignmentStatus,
+    });
+    setProcessing(false);
+    if (!result.success) {
+      setNotice({ type: 'error', message: result.message });
+      return;
+    }
+    setShowAssignment(false);
+    setSelectedVendorIds([]);
+    setNotice({ type: 'success', message: result.message });
+    await refreshData();
+  };
+
+  const openApplication = (application: ApplicationRow) => {
+    setActiveApplication(application);
+    setNextStatus(application.application_status);
+    setBoothAssignment(application.booth_assignment || '');
+    setRejectionReason(application.rejection_reason || '');
+    setNotice(null);
+  };
+
+  const openVendor = (vendor: Vendor) => {
+    setSelectedVendor(vendor);
+    setEditData(null);
+    setNotice(null);
+  };
+
+  const startVendorEdit = () => {
+    if (!selectedVendor) return;
+    setEditData({
+      business_name: selectedVendor.business_name,
+      contact_name: selectedVendor.contact_name,
+      email: selectedVendor.email,
+      phone: selectedVendor.phone || '',
+      location_state: selectedVendor.location_state || '',
+      description: selectedVendor.description || '',
+      categories: selectedVendor.categories || [],
+      social_links: selectedVendor.social_links || '',
+      tables_requested: selectedVendor.tables_requested || '',
+      power_requirements: selectedVendor.power_requirements || '',
+      additional_notes: selectedVendor.additional_notes || '',
+      booth_assignment: selectedVendor.booth_assignment || '',
+    });
+  };
+
+  const saveApplication = async () => {
+    if (!activeApplication) return;
+    setProcessing(true);
+    const result = await updateVendorEventApplication(activeApplication.id, {
+      status: nextStatus,
+      booth_assignment: boothAssignment,
+      rejection_reason: rejectionReason,
+    });
+    setProcessing(false);
+    if (!result.success) {
+      setNotice({ type: 'error', message: result.message });
+      return;
+    }
+    setActiveApplication(null);
+    setNotice({ type: 'success', message: result.message });
+    await refreshData();
+  };
+
+  const removeApplication = async () => {
+    if (!activeApplication) return;
+    if (!window.confirm(`Remove ${activeApplication.vendor.business_name} from ${activeApplication.event_name}? Vendor profile will remain.`)) return;
+    setProcessing(true);
+    const result = await removeVendorEventApplication(activeApplication.id);
+    setProcessing(false);
+    if (!result.success) {
+      setNotice({ type: 'error', message: result.message });
+      return;
+    }
+    setActiveApplication(null);
+    setNotice({ type: 'success', message: result.message });
+    await refreshData();
+  };
+
+  const saveVendor = async () => {
+    if (!selectedVendor || !editData) return;
+    setProcessing(true);
+    const cleanData = {
+      ...editData,
+      categories: editData.categories.map((category) => category.trim()).filter(Boolean),
     };
+    const result = await updateVendor(selectedVendor.id, cleanData);
+    setProcessing(false);
+    if (!result.success) {
+      setNotice({ type: 'error', message: result.message });
+      return;
+    }
+    setSelectedVendor(null);
+    setEditData(null);
+    setNotice({ type: 'success', message: result.message });
+    await refreshData();
+  };
 
-    const rows = exportData.map((v) => [
-      escapeCsv(v.business_name),
-      escapeCsv(v.contact_name),
-      escapeCsv(v.email),
-      escapeCsv(v.phone),
-      escapeCsv(v.location_state),
-      escapeCsv((v.categories || []).join('; ')),
-      escapeCsv(v.event_name),
-      escapeCsv(v.application_status),
-      escapeCsv(v.tables_requested),
-      escapeCsv(v.power_requirements),
-      escapeCsv(v.social_links),
-      escapeCsv(v.description),
-      escapeCsv(v.logo_url),
-      escapeCsv(v.applied_at ? new Date(v.applied_at).toLocaleDateString('en-AU') : ''),
-    ]);
+  const permanentlyDeleteVendor = async () => {
+    if (!selectedVendor) return;
+    const confirmed = window.confirm(
+      `Permanently delete ${selectedVendor.business_name} and every event application? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+    setProcessing(true);
+    const result = await deleteVendor(selectedVendor.id);
+    setProcessing(false);
+    if (!result.success) {
+      setNotice({ type: 'error', message: result.message });
+      return;
+    }
+    setSelectedVendor(null);
+    setNotice({ type: 'success', message: result.message });
+    await refreshData();
+  };
 
-    const bom = '\uFEFF';
-    const csv = bom + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const exportEventCsv = () => {
+    if (!selectedEvent) return;
+    const escapeCsv = (value: unknown) => {
+      const text = String(value ?? '');
+      return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    };
+    const headers = ['Business', 'Contact', 'Email', 'Phone', 'Categories', 'Tables', 'Power', 'Booth', 'Status'];
+    const rows = visibleApplications.map((application) => [
+      application.vendor.business_name,
+      application.vendor.contact_name,
+      application.vendor.email,
+      application.vendor.phone,
+      application.vendor.categories.join('; '),
+      application.tables_requested,
+      application.power_requirements,
+      application.booth_assignment,
+      application.application_status,
+    ].map(escapeCsv).join(','));
+    const blob = new Blob([`\uFEFF${[headers.join(','), ...rows].join('\n')}`], { type: 'text/csv;charset=utf-8' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `vendor-applications-${new Date().toISOString().slice(0, 10)}.csv`;
-    a.click();
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${selectedEvent.event.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-vendors.csv`;
+    link.click();
     URL.revokeObjectURL(url);
   };
 
-  if (loading) {
-    return (
-      <div className="admin-content-panel">
-        <div className="flex items-center justify-center h-64">
-          <div className="admin-vendor-loading-spinner"></div>
-          <span className="ml-3 text-gray-600">Loading vendors...</span>
-        </div>
-      </div>
-    );
+  if (loading || eventsLoading) {
+    return <div className="admin-content-panel vendor-management-loading"><div className="admin-spinner" /><span>Loading vendor management...</span></div>;
   }
 
   if (error) {
-    return (
-      <div className="admin-content-panel">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-800 font-medium">Error loading vendors</p>
-          <p className="text-red-600 text-sm mt-1">{error}</p>
-          <button 
-            onClick={() => refreshData()} 
-            className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+    return <div className="admin-content-panel"><div className="admin-alert admin-alert-error">{error}</div></div>;
   }
 
   return (
-    <div className="admin-content-panel">
-      <div className="vendor-page-header">
+    <div className="admin-content-panel vendor-management">
+      <header className="vendor-page-header">
         <div>
-          <h2 className="vendor-page-title">Vendor Applications</h2>
-          <p className="vendor-page-subtitle">Review and manage vendor applications</p>
+          <h2 className="vendor-page-title">Vendor Management</h2>
+          <p className="vendor-page-subtitle">Review vendors by event, then manage reusable vendor profiles.</p>
         </div>
-        {vendors.length > 0 && (
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <button
-              onClick={handleExportCSV}
-              className="admin-tab"
-              style={{ padding: '8px 16px', gap: '8px', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-sm)', cursor: 'pointer', background: 'var(--admin-surface)', color: 'var(--admin-text-secondary)', display: 'flex', alignItems: 'center', fontFamily: 'inherit', fontSize: '0.8125rem' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              Export CSV
-            </button>
-            <button
-              onClick={async () => {
-                const result = await syncAllVendorsToSheet();
-                alert(result.message || 'Sync completed.');
-              }}
-              className="admin-tab"
-              style={{ padding: '8px 16px', gap: '8px', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-sm)', cursor: 'pointer', background: 'var(--admin-surface)', color: 'var(--admin-text-secondary)', display: 'flex', alignItems: 'center', fontFamily: 'inherit', fontSize: '0.8125rem' }}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-              Sync to Sheet
-            </button>
-            {process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL && (
-              <a
-                href={process.env.NEXT_PUBLIC_GOOGLE_SHEET_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="admin-tab"
-                style={{ padding: '8px 16px', gap: '8px', border: '1px solid var(--admin-border)', borderRadius: 'var(--admin-radius-sm)', cursor: 'pointer', background: 'var(--admin-surface)', color: 'var(--admin-text-secondary)', display: 'flex', alignItems: 'center', textDecoration: 'none', fontFamily: 'inherit', fontSize: '0.8125rem' }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                  <line x1="3" y1="9" x2="21" y2="9" />
-                  <line x1="9" y1="21" x2="9" y2="9" />
-                </svg>
-                View Sheet
-              </a>
-            )}
-          </div>
-        )}
+        <button
+          type="button"
+          className="vendor-management-secondary-button"
+          onClick={async () => {
+            setProcessing(true);
+            const result = await syncAllVendorsToSheet();
+            setProcessing(false);
+            setNotice({ type: result.success ? 'success' : 'error', message: result.message });
+          }}
+          disabled={processing}
+        >
+          Sync to Sheet
+        </button>
+      </header>
+
+      {notice && <div className={`admin-alert admin-alert-${notice.type}`}>{notice.message}</div>}
+
+      <div className="vendor-management-view-switch" role="tablist" aria-label="Vendor management views">
+        <button type="button" role="tab" aria-selected={view === 'events'} className={view === 'events' ? 'active' : ''} onClick={() => { setView('events'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
+          By event <span>{applications.length}</span>
+        </button>
+        <button type="button" role="tab" aria-selected={view === 'unassigned'} className={view === 'unassigned' ? 'active' : ''} onClick={() => { setView('unassigned'); setSelectedEventId(null); setSelectedVendorIds([]); setStatusFilter('all'); setSearch(''); setCurrentPage(1); }}>
+          Unassigned <span>{unassignedVendors.length}</span>
+        </button>
+        <button type="button" role="tab" aria-selected={view === 'vendors'} className={view === 'vendors' ? 'active' : ''} onClick={() => { setView('vendors'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
+          All profiles <span>{vendors.length}</span>
+        </button>
       </div>
 
-      <div className="admin-tabs">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`admin-tab ${activeTab === tab.key ? 'active' : ''}`}
-          >
-            {tab.label}
-            <span className="tab-count">{tab.count}</span>
-          </button>
-        ))}
-      </div>
+      {view === 'events' && !selectedEvent && (
+        <section className="vendor-management-event-grid">
+          {eventSummaries.length === 0 ? (
+            <div className="empty-state"><p>No events created yet.</p></div>
+          ) : eventSummaries.map((summary) => (
+            <button key={summary.event.id} type="button" className="vendor-management-event-card" onClick={() => { setSelectedEventId(summary.event.id); setCurrentPage(1); }}>
+              <span className={`vendor-management-event-state is-${summary.event.status}`}>{summary.event.status}</span>
+              <strong>{summary.event.title}</strong>
+              <span className="vendor-management-event-meta">{formatEventDate(summary.event.event_date)}</span>
+              <span className="vendor-management-event-meta">{summary.event.venue || 'Venue not set'}</span>
+              <span className="vendor-management-event-counts">
+                <span><b>{summary.pending}</b> pending</span>
+                <span><b>{summary.approved}</b> approved</span>
+                <span><b>{summary.waitlisted}</b> waitlisted</span>
+                <span><b>{summary.rejected}</b> rejected</span>
+              </span>
+              <span className="vendor-management-card-link">View applications →</span>
+            </button>
+          ))}
+        </section>
+      )}
 
-      <div className="admin-vendor-list">
-        {filteredVendors.length === 0 ? (
-          <div className="empty-state">
-            <div className="empty-state-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M8 15h8" />
-                <circle cx="9" cy="9" r="1" />
-                <circle cx="15" cy="9" r="1" />
-              </svg>
+      {view === 'events' && selectedEvent && (
+        <section>
+          <div className="vendor-management-roster-header">
+            <button type="button" className="vendor-management-back" onClick={() => { setSelectedEventId(null); setStatusFilter('all'); setSearch(''); setCurrentPage(1); }}>← All events</button>
+            <div>
+              <h3>{selectedEvent.event.title}</h3>
+              <p>{formatEventDate(selectedEvent.event.event_date)} · {selectedEvent.event.venue || 'Venue not set'}</p>
             </div>
-            <p>No vendors found for this status.</p>
+            <button type="button" className="vendor-management-secondary-button" onClick={exportEventCsv}>Export roster</button>
           </div>
-        ) : (
-          filteredVendors.map(vendor => (
-            <div key={vendor.id} className="admin-vendor-card">
-              <div className="vendor-header">
-                <div className="vendor-info">
-                  <div className="vendor-name-row">
-                    <h3 className="vendor-name">{vendor.business_name}</h3>
-                    {getStatusBadge(vendor.application_status)}
-                  </div>
-                  <p className="vendor-contact">{vendor.contact_name} • {vendor.email}</p>
-                  {vendor.phone && <p className="vendor-phone">{vendor.phone}</p>}
-                </div>
-                <span className="vendor-date">
-                  {new Date(vendor.applied_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+
+          <div className="vendor-management-toolbar">
+            <div className="admin-tabs">
+              {(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => (
+                <button key={status} type="button" className={`admin-tab ${statusFilter === status ? 'active' : ''}`} onClick={() => { setStatusFilter(status); setCurrentPage(1); }}>
+                  {status === 'all' ? 'All' : statusLabels[status]}
+                  <span className="tab-count">{status === 'all' ? selectedEvent.applications.length : selectedEvent.applications.filter((application) => application.application_status === status).length}</span>
+                </button>
+              ))}
+            </div>
+            <input className="vendor-management-search" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder="Search this roster" aria-label="Search this event roster" />
+          </div>
+
+          <div className="vendor-management-table-wrap">
+            <table className="vendor-management-table">
+              <thead><tr><th>Vendor</th><th>Categories</th><th>Requirements</th><th>Booth</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
+              <tbody>
+                {paginatedApplications.map((application) => (
+                  <tr key={application.id}>
+                    <td><strong>{application.vendor.business_name}</strong><span>{application.vendor.contact_name}<br />{application.vendor.email}</span></td>
+                    <td>{application.vendor.categories.slice(0, 3).join(', ') || 'Not provided'}</td>
+                    <td>{application.tables_requested || '—'} table(s)<br /><span>{application.power_requirements || 'No power request'}</span></td>
+                    <td>{application.booth_assignment || 'Unassigned'}</td>
+                    <td><StatusBadge status={application.application_status} /></td>
+                    <td><button type="button" className="vendor-management-row-action" onClick={() => openApplication(application)}>Review</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {visibleApplications.length === 0 && <div className="vendor-management-empty">No applications match this view.</div>}
+          </div>
+          <Pagination currentPage={currentPage} totalItems={visibleApplications.length} onPageChange={(page) => changePage(page, visibleApplications.length)} />
+        </section>
+      )}
+
+      {view === 'unassigned' && (
+        <section>
+          <div className="vendor-management-directory-header">
+            <div>
+              <h3>Unassigned vendors</h3>
+              <p>Legacy status preserved. Assign vendors to events without changing existing profile data.</p>
+            </div>
+            <button
+              type="button"
+              className="vendor-management-secondary-button"
+              disabled={selectedVendorIds.length === 0}
+              onClick={() => openAssignment(selectedVendorIds)}
+            >
+              Assign selected ({selectedVendorIds.length})
+            </button>
+          </div>
+          <div className="vendor-management-toolbar vendor-management-unassigned-toolbar">
+            <div className="admin-tabs">
+              {(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => (
+                <button key={status} type="button" className={`admin-tab ${statusFilter === status ? 'active' : ''}`} onClick={() => { setStatusFilter(status); setCurrentPage(1); }}>
+                  {status === 'all' ? 'All statuses' : statusLabels[status]}
+                  <span className="tab-count">{status === 'all' ? unassignedVendors.length : unassignedVendors.filter((vendor) => vendor.application_status === status).length}</span>
+                </button>
+              ))}
+            </div>
+            <input className="vendor-management-search" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder="Search unassigned vendors" aria-label="Search unassigned vendors" />
+          </div>
+          <div className="vendor-management-bulk-bar">
+            <label>
+              <input
+                type="checkbox"
+                checked={paginatedUnassignedVendors.length > 0 && paginatedUnassignedVendors.every((vendor) => selectedVendorIds.includes(vendor.id))}
+                onChange={(event) => {
+                  const pageIds = paginatedUnassignedVendors.map((vendor) => vendor.id);
+                  setSelectedVendorIds((current) => event.target.checked
+                    ? [...new Set([...current, ...pageIds])]
+                    : current.filter((id) => !pageIds.includes(id)));
+                }}
+              />
+              Select this page
+            </label>
+            <span>{visibleUnassignedVendors.length} vendor{visibleUnassignedVendors.length === 1 ? '' : 's'} · 20 per page</span>
+          </div>
+          <div className="vendor-management-directory vendor-management-unassigned-list">
+            {paginatedUnassignedVendors.map((vendor) => (
+              <div key={vendor.id} className={`vendor-management-profile-card ${selectedVendorIds.includes(vendor.id) ? 'is-selected' : ''}`}>
+                <input type="checkbox" checked={selectedVendorIds.includes(vendor.id)} onChange={() => toggleSelectedVendor(vendor.id)} aria-label={`Select ${vendor.business_name}`} />
+                <span className="vendor-management-avatar">
+                  {vendor.logo_url ? <Image src={vendor.logo_url} alt="" fill unoptimized sizes="48px" /> : vendor.business_name.slice(0, 2).toUpperCase()}
                 </span>
-              </div>
-              
-              {vendor.description && (
-                <p className="vendor-description">{vendor.description}</p>
-              )}
-              
-              {vendor.categories && vendor.categories.length > 0 && (
-                <div className="vendor-categories">
-                  {vendor.categories.map((cat, i) => (
-                    <span key={i} className="category-tag">{cat}</span>
-                  ))}
-                </div>
-              )}
-              
-              <div className="vendor-event-reqs">
-                {(vendor.tables_requested || vendor.power_requirements) && (
-                  <div className="vendor-req-row">
-                    {vendor.tables_requested && (
-                      <span className="vendor-req-item">
-                        Tables: {vendor.tables_requested}
-                      </span>
-                    )}
-                    {vendor.power_requirements && (
-                      <span className="vendor-req-item">
-                        Power: {vendor.power_requirements}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div className="vendor-req-item" style={{ marginBottom: '4px' }}>
-                  Event: {vendor.event_name || 'None / future opportunities'}
-                </div>
-                {vendor.social_links && (
-                  <div className="vendor-req-item" style={{ marginBottom: '4px' }}>
-                    <a href={vendor.social_links} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--admin-yellow)', textDecoration: 'underline' }}>Social Profile</a>
-                  </div>
-                )}
-                {vendor.additional_notes && (
-                  <div className="vendor-req-item" style={{ fontStyle: 'italic' }}>
-                    {vendor.additional_notes}
-                  </div>
-                )}
-              </div>
-              
-              {vendor.rejection_reason && (
-                <div className="rejection-reason">
-                  <strong>Rejection Reason:</strong> {vendor.rejection_reason}
-                </div>
-              )}
-              
-              <div className="vendor-actions">
-                <button
-                  onClick={() => handleViewInfo(vendor)}
-                  className="btn-view-info"
-                >
-                  View Information
+                <button type="button" className="vendor-management-profile-copy" onClick={() => openVendor(vendor)}>
+                  <strong>{vendor.business_name}</strong><span>{vendor.contact_name} · {vendor.email}</span>
                 </button>
-                {vendor.application_status === 'pending' && (
-                  <>
-                    <button
-                      onClick={() => handleAction(vendor, 'approve')}
-                      disabled={processingId === vendor.id}
-                      className="btn-approve"
-                    >
-                      {processingId === vendor.id ? 'Processing...' : 'Approve'}
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'reject')}
-                      disabled={processingId === vendor.id}
-                      className="btn-reject"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'waitlist')}
-                      disabled={processingId === vendor.id}
-                      className="btn-waitlist"
-                    >
-                      Waitlist
-                    </button>
-                  </>
-                )}
-                {vendor.application_status === 'approved' && (
-                  <>
-                    <button
-                      onClick={() => handleAction(vendor, 'reject')}
-                      disabled={processingId === vendor.id}
-                      className="btn-reject"
-                    >
-                      Unapprove
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'waitlist')}
-                      disabled={processingId === vendor.id}
-                      className="btn-waitlist"
-                    >
-                      Waitlist
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'delete')}
-                      disabled={processingId === vendor.id}
-                      className="btn-delete"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                      Delete
-                    </button>
-                  </>
-                )}
-                {vendor.application_status === 'rejected' && (
-                  <>
-                    <button
-                      onClick={() => handleAction(vendor, 'approve')}
-                      disabled={processingId === vendor.id}
-                      className="btn-approve"
-                    >
-                      {processingId === vendor.id ? 'Processing...' : 'Re-approve'}
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'waitlist')}
-                      disabled={processingId === vendor.id}
-                      className="btn-waitlist"
-                    >
-                      Waitlist
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'delete')}
-                      disabled={processingId === vendor.id}
-                      className="btn-delete"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                      Delete
-                    </button>
-                  </>
-                )}
-                {vendor.application_status === 'waitlisted' && (
-                  <>
-                    <button
-                      onClick={() => handleAction(vendor, 'approve')}
-                      disabled={processingId === vendor.id}
-                      className="btn-approve"
-                    >
-                      {processingId === vendor.id ? 'Processing...' : 'Approve'}
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'reject')}
-                      disabled={processingId === vendor.id}
-                      className="btn-reject"
-                    >
-                      Reject
-                    </button>
-                    <button
-                      onClick={() => handleAction(vendor, 'delete')}
-                      disabled={processingId === vendor.id}
-                      className="btn-delete"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                      Delete
-                    </button>
-                  </>
-                )}
+                <span className="vendor-management-legacy-status"><small>Legacy status</small><StatusBadge status={vendor.application_status} /></span>
+                <button type="button" className="vendor-management-row-action" onClick={() => openAssignment([vendor.id])}>Assign</button>
               </div>
-            </div>
-          ))
-        )}
-      </div>
+            ))}
+            {visibleUnassignedVendors.length === 0 && <div className="vendor-management-empty">No unassigned vendors match this view.</div>}
+          </div>
+          <Pagination currentPage={currentPage} totalItems={visibleUnassignedVendors.length} onPageChange={(page) => changePage(page, visibleUnassignedVendors.length)} />
+        </section>
+      )}
 
-      {showModal && selectedVendor && modalAction && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal-content modal-sm" onClick={e => e.stopPropagation()}>
+      {view === 'vendors' && (
+        <section>
+          <div className="vendor-management-directory-header">
+            <div><h3>Vendor directory</h3><p>Profiles stay separate from decisions made for each event.</p></div>
+            <input className="vendor-management-search" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder="Search all vendors" aria-label="Search all vendors" />
+          </div>
+          <div className="vendor-management-directory">
+            {paginatedVendors.map((vendor) => (
+              <button key={vendor.id} type="button" className="vendor-management-profile-card" onClick={() => openVendor(vendor)}>
+                <span className="vendor-management-avatar">
+                  {vendor.logo_url ? <Image src={vendor.logo_url} alt="" fill unoptimized sizes="48px" /> : vendor.business_name.slice(0, 2).toUpperCase()}
+                </span>
+                <span className="vendor-management-profile-copy"><strong>{vendor.business_name}</strong><span>{vendor.contact_name} · {vendor.email}</span></span>
+                <span className="vendor-management-profile-summary"><StatusBadge status={vendor.application_status} /><small>{vendor.event_applications.length} event{vendor.event_applications.length === 1 ? '' : 's'}</small></span>
+                <span aria-hidden="true">→</span>
+              </button>
+            ))}
+            {visibleVendors.length === 0 && <div className="vendor-management-empty">No vendor profiles match your search.</div>}
+          </div>
+          <Pagination currentPage={currentPage} totalItems={visibleVendors.length} onPageChange={(page) => changePage(page, visibleVendors.length)} />
+        </section>
+      )}
+
+      {showAssignment && (
+        <div className="modal-overlay" onClick={() => setShowAssignment(false)}>
+          <div className="modal-content modal-lg vendor-management-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="assignment-title">
             <div className="modal-header">
-              <h3 className="modal-title" style={modalAction === 'delete' ? { color: '#f87171' } : {}}>
-                {modalAction === 'approve' && 'Approve Vendor'}
-                {modalAction === 'reject' && 'Reject Application'}
-                {modalAction === 'waitlist' && 'Waitlist Vendor'}
-                {modalAction === 'delete' && 'Delete Vendor'}
-              </h3>
+              <button type="button" className="modal-close-btn" onClick={() => setShowAssignment(false)} aria-label="Close">✕</button>
+              <p className="vendor-management-modal-kicker">Event assignment</p>
+              <h3 className="modal-title" id="assignment-title">Assign {selectedVendorIds.length} vendor{selectedVendorIds.length === 1 ? '' : 's'}</h3>
+              <p className="modal-vendor-name">Existing profiles and legacy statuses remain stored.</p>
             </div>
-            
-            <div className="modal-body">
-              <p className="modal-vendor-name" style={{ margin: 0, marginBottom: modalAction === 'reject' || modalAction === 'delete' ? '12px' : '0' }}>
-                {modalAction === 'delete' ? 
-                  `Are you sure you want to delete "${selectedVendor.business_name}"?` :
-                  selectedVendor.business_name
-                }
-              </p>
-              
-              {modalAction === 'delete' && (
-                <p className="modal-warning" style={{ margin: 0, color: '#f87171', fontSize: '0.9rem' }}>
-                  This will permanently remove this vendor from the database. This action cannot be undone.
-                </p>
-              )}
-              
-              {modalAction === 'reject' && (
-                <div className="modal-field">
-                  <label>Rejection Reason (Optional):</label>
-                  <textarea
-                    value={rejectionReason}
-                    onChange={e => setRejectionReason(e.target.value)}
-                    placeholder="Provide a reason for rejection..."
-                    rows={3}
-                    className="modal-textarea"
-                  />
+            <div className="modal-body vendor-management-assignment-form">
+              <fieldset>
+                <legend>Choose one or more events</legend>
+                <div className="vendor-management-assignment-events">
+                  {manageableEvents.map((event) => (
+                    <label key={event.id}>
+                      <input
+                        type="checkbox"
+                        checked={assignmentEventIds.includes(event.id)}
+                        onChange={(changeEvent) => setAssignmentEventIds((current) => changeEvent.target.checked ? [...current, event.id] : current.filter((id) => id !== event.id))}
+                      />
+                      <span><strong>{event.title}</strong><small>{formatEventDate(event.event_date)} · {event.venue || 'Venue not set'}</small></span>
+                    </label>
+                  ))}
+                  {manageableEvents.length === 0 && (
+                    <p className="vendor-management-assignment-empty">No current or upcoming events available.</p>
+                  )}
                 </div>
-              )}
+              </fieldset>
+              <fieldset>
+                <legend>Starting status for selected events</legend>
+                <label className="vendor-management-status-choice"><input type="radio" name="starting_status" checked={assignmentStatus === 'pending'} onChange={() => setAssignmentStatus('pending')} /><span><strong>Pending</strong><small>Recommended. Review each vendor for each event.</small></span></label>
+                <label className="vendor-management-status-choice"><input type="radio" name="starting_status" checked={assignmentStatus === 'preserve'} onChange={() => setAssignmentStatus('preserve')} /><span><strong>Preserve legacy status</strong><small>Copies each vendor&apos;s old approved, pending, waitlisted, or rejected status.</small></span></label>
+              </fieldset>
+              <p className="vendor-management-assignment-note">Existing assignments are never overwritten. Approval and rejection emails are not sent during migration assignment.</p>
             </div>
-            
-            <div className="modal-footer">
-              <div className="modal-actions" style={{ marginTop: 0 }}>
-                <button onClick={() => setShowModal(false)} className="btn-cancel">
-                  Cancel
-                </button>
-                <button 
-                  onClick={confirmAction} 
-                  className={
-                    modalAction === 'approve' ? 'btn-confirm-approve' :
-                    modalAction === 'reject' ? 'btn-confirm-reject' :
-                    modalAction === 'delete' ? 'btn-confirm-reject' :
-                    'btn-confirm-waitlist'
-                  }
-                  disabled={processingId !== null}
-                >
-                  {processingId ? 'Processing...' : modalAction === 'delete' ? 'Delete Permanently' : 'Confirm'}
-                </button>
-              </div>
+            <div className="modal-footer vendor-management-modal-actions">
+              <span />
+              <div><button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setShowAssignment(false)} disabled={processing}>Cancel</button><button type="button" className="modal-footer-btn modal-footer-primary" onClick={saveAssignments} disabled={processing || assignmentEventIds.length === 0}>{processing ? 'Assigning...' : 'Assign vendors'}</button></div>
             </div>
           </div>
         </div>
       )}
 
-      {/* View Information Modal */}
-      {showViewModal && selectedVendor && (
-        <div className="modal-overlay" onClick={closeViewModal}>
-          <div className="modal-content modal-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }} role="dialog" aria-modal="true" aria-labelledby="vendor-detail-title">
+      {activeApplication && (
+        <div className="modal-overlay" onClick={() => setActiveApplication(null)}>
+          <div className="modal-content modal-lg vendor-management-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="application-review-title">
             <div className="modal-header">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3 className="modal-title" style={{ margin: 0 }} id="vendor-detail-title">Vendor Application Details</h3>
-                <button onClick={closeViewModal} className="modal-close-btn" aria-label="Close vendor details">
-                  ✕
-                </button>
+              <button type="button" className="modal-close-btn" onClick={() => setActiveApplication(null)} aria-label="Close">✕</button>
+              <p className="vendor-management-modal-kicker">{activeApplication.event_name}</p>
+              <h3 className="modal-title" id="application-review-title">{activeApplication.vendor.business_name}</h3>
+              <p className="modal-vendor-name">{activeApplication.vendor.contact_name} · {activeApplication.vendor.email}</p>
+            </div>
+            <div className="modal-body vendor-management-review-grid">
+              <div className="vendor-management-review-profile">
+                <h4>Vendor profile</h4>
+                <p>{activeApplication.vendor.description || 'No business description.'}</p>
+                <dl>
+                  <div><dt>Categories</dt><dd>{activeApplication.vendor.categories.join(', ') || 'Not provided'}</dd></div>
+                  <div><dt>Tables</dt><dd>{activeApplication.tables_requested || 'Not specified'}</dd></div>
+                  <div><dt>Power</dt><dd>{activeApplication.power_requirements || 'Not specified'}</dd></div>
+                  <div><dt>Applied</dt><dd>{new Date(activeApplication.applied_at).toLocaleDateString('en-AU')}</dd></div>
+                </dl>
+              </div>
+              <div className="vendor-management-decision-form">
+                <label>Status<select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as VendorApplicationStatus)}><option value="pending">Pending</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+                <label>Booth assignment<input value={boothAssignment} onChange={(event) => setBoothAssignment(event.target.value)} placeholder="e.g. B12" /></label>
+                {nextStatus === 'rejected' && <label>Rejection reason<textarea value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} rows={4} placeholder="Optional reason included in email" /></label>}
               </div>
             </div>
-            
+            <div className="modal-footer vendor-management-modal-actions">
+              <button type="button" className="modal-footer-btn modal-footer-danger" onClick={removeApplication} disabled={processing}>Remove from event</button>
+              <div><button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setActiveApplication(null)} disabled={processing}>Cancel</button><button type="button" className="modal-footer-btn modal-footer-primary" onClick={saveApplication} disabled={processing}>{processing ? 'Saving...' : 'Save decision'}</button></div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedVendor && (
+        <div className="modal-overlay" onClick={() => setSelectedVendor(null)}>
+          <div className="modal-content modal-lg vendor-management-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="vendor-profile-title">
+            <div className="modal-header">
+              <button type="button" className="modal-close-btn" onClick={() => setSelectedVendor(null)} aria-label="Close">✕</button>
+              <p className="vendor-management-modal-kicker">Vendor profile</p>
+              <h3 className="modal-title" id="vendor-profile-title">{selectedVendor.business_name}</h3>
+            </div>
             <div className="modal-body">
-              {isEditing && editData ? (
-                /* ── Edit Mode ── */
-                <form id="vendor-edit-form" onSubmit={(e) => { e.preventDefault(); handleSaveEdit(); }} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div className="edit-form-grid">
-                    <div>
-                      <label className="vendor-edit-label">Business Name</label>
-                      <input value={editData.business_name} onChange={e => setEditData({ ...editData, business_name: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                    <div>
-                      <label className="vendor-edit-label">Contact Person</label>
-                      <input value={editData.contact_name} onChange={e => setEditData({ ...editData, contact_name: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                    <div>
-                      <label className="vendor-edit-label">Email Address</label>
-                      <input value={editData.email} onChange={e => setEditData({ ...editData, email: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                    <div>
-                      <label className="vendor-edit-label">Phone Number</label>
-                      <input value={editData.phone} onChange={e => setEditData({ ...editData, phone: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                  </div>
-                  <div className="edit-form-grid">
-                    <div>
-                      <label className="vendor-edit-label">State</label>
-                      <input value={editData.location_state} onChange={e => setEditData({ ...editData, location_state: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                    <div>
-                      <label className="vendor-edit-label">Social Links</label>
-                      <input value={editData.social_links} onChange={e => setEditData({ ...editData, social_links: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="vendor-edit-label">Categories (comma-separated)</label>
-                    <input value={editData.categories.join(', ')} onChange={e => setEditData({ ...editData, categories: e.target.value.split(',').map(s => s.trim()) })} className="vendor-edit-input" />
-                  </div>
-                  <div>
-                    <label className="vendor-edit-label">Business Description</label>
-                    <textarea value={editData.description} onChange={e => setEditData({ ...editData, description: e.target.value })} rows={3} className="vendor-edit-input" style={{ resize: 'vertical' }} />
-                  </div>
-                  <div className="edit-form-grid">
-                    <div>
-                      <label className="vendor-edit-label">Preferred Event ID</label>
-                      <input value={editData.event_id} onChange={e => setEditData({ ...editData, event_id: e.target.value })} className="vendor-edit-input" placeholder="Optional event UUID" />
-                    </div>
-                    <div>
-                      <label className="vendor-edit-label">Tables Requested</label>
-                      <input value={editData.tables_requested} onChange={e => setEditData({ ...editData, tables_requested: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                    <div>
-                      <label className="vendor-edit-label">Power Requirements</label>
-                      <input value={editData.power_requirements} onChange={e => setEditData({ ...editData, power_requirements: e.target.value })} className="vendor-edit-input" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="vendor-edit-label">Additional Notes</label>
-                    <textarea value={editData.additional_notes} onChange={e => setEditData({ ...editData, additional_notes: e.target.value })} rows={3} className="vendor-edit-input" style={{ resize: 'vertical' }} />
-                  </div>
-                  <div>
-                    <label className="vendor-edit-label">Booth Assignment</label>
-                    <input value={editData.booth_assignment} onChange={e => setEditData({ ...editData, booth_assignment: e.target.value })} className="vendor-edit-input" />
-                  </div>
-                </form>
-              ) : (
-                /* ── Read-Only Mode ── */
-                <div>
-                  {/* Business Info Section */}
-                  <div className="modal-section">
-                    <h4 className="modal-section-title">Business Information</h4>
-                    <div className="info-grid">
-                      <div><p className="info-label">Business Name</p><p className="info-value">{selectedVendor.business_name}</p></div>
-                      <div><p className="info-label">Contact Person</p><p className="info-value">{selectedVendor.contact_name}</p></div>
-                      <div><p className="info-label">Email Address</p><p className="info-value">{selectedVendor.email}</p></div>
-                      <div><p className="info-label">Phone Number</p><p className="info-value">{selectedVendor.phone || <span className="info-value-muted">Not provided</span>}</p></div>
-                      <div><p className="info-label">State</p><p className="info-value">{selectedVendor.location_state || <span className="info-value-muted">Not provided</span>}</p></div>
-                    </div>
-                    {selectedVendor.logo_url && (
-                      <div style={{ marginTop: '16px' }}>
-                        <p className="info-label" style={{ marginBottom: '8px' }}>Business Logo</p>
-                        <Image src={selectedVendor.logo_url} alt={`${selectedVendor.business_name} logo`} width={100} height={100} unoptimized className="vendor-logo-img" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Social Media Section */}
-                  {selectedVendor.social_links && (
-                    <div className="modal-section">
-                      <h4 className="modal-section-title">Social Media</h4>
-                      <a href={selectedVendor.social_links} target="_blank" rel="noopener noreferrer" className="social-link">
-                        {selectedVendor.social_links}
-                      </a>
-                    </div>
-                  )}
-
-                  {/* Products & Categories Section */}
-                  <div className="modal-section">
-                    <h4 className="modal-section-title">Products & Categories</h4>
-                    {selectedVendor.categories && selectedVendor.categories.length > 0 && (
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '16px' }}>
-                        {selectedVendor.categories.map((cat, i) => (
-                          <span key={i} className="view-category-tag">{cat}</span>
+              {editData ? (
+                <form className="vendor-management-edit-form" onSubmit={(event) => { event.preventDefault(); saveVendor(); }}>
+                  <label>Business name<input required value={editData.business_name} onChange={(event) => setEditData({ ...editData, business_name: event.target.value })} /></label>
+                  <label>Contact name<input required value={editData.contact_name} onChange={(event) => setEditData({ ...editData, contact_name: event.target.value })} /></label>
+                  <label>Email<input required type="email" value={editData.email} onChange={(event) => setEditData({ ...editData, email: event.target.value })} /></label>
+                  <label>Phone<input value={editData.phone} onChange={(event) => setEditData({ ...editData, phone: event.target.value })} /></label>
+                  <label>State
+                    <select required value={editData.location_state} onChange={(event) => setEditData({ ...editData, location_state: event.target.value })}>
+                      <option value="">Select state</option>
+                      {australianStates.map((state) => <option key={state} value={state}>{state}</option>)}
+                    </select>
+                  </label>
+                  <label>Social link<input type="url" value={editData.social_links} onChange={(event) => setEditData({ ...editData, social_links: event.target.value })} /></label>
+                  <div className="full vendor-management-edit-categories">
+                    <span className="vendor-management-edit-label">Categories</span>
+                    <details className="vendor-management-category-select">
+                      <summary>
+                        <span>{editData.categories.length > 0 ? editData.categories.join(', ') : 'Select categories'}</span>
+                        <span aria-hidden="true">⌄</span>
+                      </summary>
+                      <div className="vendor-management-category-menu">
+                        {vendorCategories.map((category) => (
+                          <label key={category}>
+                            <input
+                              type="checkbox"
+                              checked={editData.categories.includes(category)}
+                              onChange={(event) => setEditData({
+                                ...editData,
+                                categories: event.target.checked
+                                  ? [...editData.categories, category]
+                                  : editData.categories.filter((item) => item !== category),
+                              })}
+                            />
+                            <span>{category}</span>
+                          </label>
                         ))}
                       </div>
-                    )}
-                    {selectedVendor.description && (
-                      <div><p className="info-label">Business Description</p><p className="info-value-muted" style={{ lineHeight: 1.6, marginTop: '4px' }}>{selectedVendor.description}</p></div>
-                    )}
+                    </details>
+                    {editData.categories.length === 0 && <span className="vendor-management-field-error">Select at least one category.</span>}
                   </div>
-
-                  {/* Event Requirements Section */}
-                  <div className="modal-section">
-                    <h4 className="modal-section-title">Event Requirements</h4>
-                    <div className="info-grid">
-                      <div><p className="info-label">Preferred Event</p><p className="info-value">{selectedVendor.event_name || 'None / future opportunities'}</p></div>
-                      <div><p className="info-label">Tables Requested</p><p className="info-value">{selectedVendor.tables_requested || <span className="info-value-muted">Not specified</span>}</p></div>
-                      <div><p className="info-label">Power Requirements</p><p className="info-value">{selectedVendor.power_requirements || <span className="info-value-muted">Not specified</span>}</p></div>
-                    </div>
-                  </div>
-
-                  {/* Additional Notes Section */}
-                  {selectedVendor.additional_notes && (
-                    <div className="modal-section">
-                      <h4 className="modal-section-title">Additional Notes</h4>
-                      <p className="notes-display">{selectedVendor.additional_notes}</p>
+                  <label className="full">Description<textarea rows={4} value={editData.description} onChange={(event) => setEditData({ ...editData, description: event.target.value })} /></label>
+                  <label className="full">Additional notes<textarea rows={3} value={editData.additional_notes} onChange={(event) => setEditData({ ...editData, additional_notes: event.target.value })} /></label>
+                </form>
+              ) : (
+                <div className="vendor-management-profile-detail">
+                  <div className="vendor-management-profile-facts"><span><b>Contact</b>{selectedVendor.contact_name}</span><span><b>Email</b>{selectedVendor.email}</span><span><b>Phone</b>{selectedVendor.phone || 'Not provided'}</span><span><b>State</b>{selectedVendor.location_state}</span><span><b>Legacy status</b><StatusBadge status={selectedVendor.application_status} /></span><span><b>Event assignments</b>{selectedVendor.event_applications.length}</span></div>
+                  <p>{selectedVendor.description || 'No business description.'}</p>
+                  {selectedVendor.event_applications.length === 0 && (
+                    <div className="vendor-management-profile-empty">
+                      <span>No event applications yet</span>
+                      <button type="button" className="vendor-management-secondary-button" onClick={() => { setSelectedVendor(null); openAssignment([selectedVendor.id]); }}>Assign to events</button>
                     </div>
                   )}
-
-                  {/* Application Status Section */}
-                  <div className="status-block">
-                    <div className="info-grid">
-                      <div>
-                        <p className="info-label">Application Status</p>
-                        <p className="info-value" style={{
-                          color: selectedVendor.application_status === 'approved' ? '#22c55e' :
-                                 selectedVendor.application_status === 'rejected' ? '#ef4444' :
-                                 selectedVendor.application_status === 'waitlisted' ? '#8b5cf6' : '#f59e0b'
-                        }}>{selectedVendor.application_status}</p>
-                      </div>
-                      <div>
-                        <p className="info-label">Applied On</p>
-                        <p className="info-value">{new Date(selectedVendor.applied_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
-                      </div>
-                    </div>
-                    {selectedVendor.booth_assignment && (
-                      <div style={{ marginTop: '12px' }}>
-                        <p className="info-label">Booth Assignment</p>
-                        <p className="info-value">{selectedVendor.booth_assignment}</p>
-                      </div>
-                    )}
+                  <h4>Event applications</h4>
+                  <div className="vendor-management-profile-application-list">
+                    {selectedVendor.event_applications.map((application) => <div key={application.id}><span><strong>{application.event_name}</strong><small>{formatEventDate(application.event_date)}</small></span><StatusBadge status={application.application_status} /></div>)}
+                    {selectedVendor.event_applications.length === 0 && <p>No event applications.</p>}
                   </div>
+                  <section className="vendor-management-danger-zone" aria-labelledby="vendor-danger-title">
+                    <div>
+                      <h4 id="vendor-danger-title">Delete vendor profile</h4>
+                      <p>Removes profile and every event application permanently.</p>
+                    </div>
+                    <button type="button" className="modal-footer-btn modal-footer-danger" onClick={permanentlyDeleteVendor} disabled={processing}>Delete permanently</button>
+                  </section>
                 </div>
               )}
             </div>
-            
-            <div className="modal-footer" style={{ borderTop: '1px solid var(--admin-border)', paddingTop: '16px', marginTop: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {/* Edit status feedback */}
-              {editStatus && (
-                <span style={{ fontSize: '0.85rem', color: editStatus.success ? '#22c55e' : '#ef4444', fontWeight: 500 }}>
-                  {editStatus.message}
-                </span>
-              )}
-              <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-                {isEditing ? (
-                  <>
-                    <button
-                      onClick={handleCancelEdit}
-                      className="modal-footer-btn modal-footer-secondary"
-                      disabled={savingEdit}
-                    >
-                      Cancel
-                    </button>
-                    <button type="submit" form="vendor-edit-form" disabled={savingEdit}
-                      className="modal-footer-btn modal-footer-primary"
-                    >
-                      {savingEdit ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      onClick={handleEdit.bind(null, selectedVendor!)}
-                      className="modal-footer-btn modal-footer-secondary"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={closeViewModal}
-                      className="modal-footer-btn modal-footer-primary"
-                    >
-                      Close
-                    </button>
-                  </>
-                )}
+            <div className="modal-footer vendor-management-modal-actions vendor-management-profile-actions">
+              <div>
+                {editData ? <><button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setEditData(null)} disabled={processing}>Cancel edit</button><button type="button" className="modal-footer-btn modal-footer-primary" onClick={saveVendor} disabled={processing}>{processing ? 'Saving...' : 'Save profile'}</button></> : <button type="button" className="modal-footer-btn modal-footer-primary" onClick={startVendorEdit}>Edit profile</button>}
               </div>
             </div>
           </div>

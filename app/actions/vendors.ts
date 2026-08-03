@@ -8,6 +8,24 @@ import { sendNewApplicationEmail, sendApprovalEmail, sendRejectionEmail } from '
 // ============================================
 // Types
 // ============================================
+export type VendorApplicationStatus = 'pending' | 'approved' | 'rejected' | 'waitlisted';
+
+export type VendorEventApplication = {
+  id: string;
+  vendor_id: string;
+  event_id: string;
+  application_status: VendorApplicationStatus;
+  tables_requested: string | null;
+  power_requirements: string | null;
+  booth_assignment: string | null;
+  rejection_reason: string | null;
+  applied_at: string;
+  updated_at: string;
+  event_name: string;
+  event_date: string;
+  event_venue: string | null;
+};
+
 export type Vendor = {
   id: string;
   business_name: string;
@@ -21,31 +39,79 @@ export type Vendor = {
   tables_requested: string | null;
   power_requirements: string | null;
   additional_notes: string | null;
-  application_status: 'pending' | 'approved' | 'rejected' | 'waitlisted';
+  application_status: VendorApplicationStatus;
   booth_assignment: string | null;
   event_id: string | null;
   event_name?: string | null;
+  event_applications: VendorEventApplication[];
   rejection_reason: string | null;
   location_state: string;
   applied_at: string;
 };
 
+export type VendorManagementEvent = {
+  id: string;
+  title: string;
+  event_date: string;
+  venue: string | null;
+  status: string;
+  applications: Array<VendorEventApplication & { vendor: Vendor }>;
+};
+
 // Column selection for admin queries - only fetch what's needed
 const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
 
-async function attachEventNames<T extends { event_id: string | null }>(
+async function attachEventApplications(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
-  vendors: T[],
-): Promise<Array<T & { event_name: string | null }>> {
-  const eventIds = [...new Set(vendors.map((vendor) => vendor.event_id).filter(Boolean))];
-  if (eventIds.length === 0) return vendors.map((vendor) => ({ ...vendor, event_name: null }));
+  vendors: Omit<Vendor, 'event_applications'>[],
+): Promise<Vendor[]> {
+  if (vendors.length === 0) return [];
 
-  const { data: events } = await supabase.from('events').select('id, title').in('id', eventIds);
-  const eventNames = new Map((events || []).map((event) => [event.id, event.title]));
-  return vendors.map((vendor) => ({
-    ...vendor,
-    event_name: vendor.event_id ? eventNames.get(vendor.event_id) || null : null,
-  }));
+  const { data: applications, error } = await supabase
+    .from('vendor_event_applications')
+    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, booth_assignment, rejection_reason, applied_at, updated_at, events(title, event_date, venue)')
+    .in('vendor_id', vendors.map((vendor) => vendor.id))
+    .order('applied_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching vendor event applications:', JSON.stringify(error, null, 2));
+    return vendors.map((vendor) => ({
+      ...vendor,
+      event_name: null,
+      event_applications: [],
+    }));
+  }
+
+  const byVendor = new Map<string, VendorEventApplication[]>();
+  for (const row of applications || []) {
+    const eventValue = row.events as unknown as { title: string; event_date: string; venue: string | null } | { title: string; event_date: string; venue: string | null }[] | null;
+    const event = Array.isArray(eventValue) ? eventValue[0] : eventValue;
+    const application: VendorEventApplication = {
+      id: row.id,
+      vendor_id: row.vendor_id,
+      event_id: row.event_id,
+      application_status: row.application_status,
+      tables_requested: row.tables_requested,
+      power_requirements: row.power_requirements,
+      booth_assignment: row.booth_assignment,
+      rejection_reason: row.rejection_reason,
+      applied_at: row.applied_at,
+      updated_at: row.updated_at,
+      event_name: event?.title || 'Deleted event',
+      event_date: event?.event_date || '',
+      event_venue: event?.venue || null,
+    };
+    byVendor.set(row.vendor_id, [...(byVendor.get(row.vendor_id) || []), application]);
+  }
+
+  return vendors.map((vendor) => {
+    const eventApplications = byVendor.get(vendor.id) || [];
+    return {
+      ...vendor,
+      event_name: eventApplications.map((application) => application.event_name).join(', ') || null,
+      event_applications: eventApplications,
+    };
+  });
 }
 
 // ============================================
@@ -63,7 +129,7 @@ const vendorApplicationSchema = z.object({
   tables_requested: z.string().min(1, 'Please select the number of tables'),
   power_requirements: z.string().optional(),
   additional_notes: z.string().optional(),
-  event_id: z.string().uuid('Please select a valid event').optional().or(z.literal('')),
+  event_ids: z.array(z.string().uuid('Please select valid events')).min(1, 'Please select at least one event'),
   agreement: z.literal(true).refine((val) => val === true, { message: 'You must agree to the Terms and Conditions' }),
 });
 
@@ -87,7 +153,7 @@ type VendorApplicationFields = {
   tables_requested: string;
   power_requirements: string;
   additional_notes: string;
-  event_id: string;
+  event_ids: string[];
   agreement: boolean;
 };
 
@@ -129,7 +195,6 @@ const vendorUpdateSchema = z.object({
   tables_requested: z.string().optional().default(''),
   power_requirements: z.string().optional().default(''),
   additional_notes: z.string().optional().default(''),
-  event_id: z.string().uuid('Please select a valid event').optional().or(z.literal('')),
   booth_assignment: z.string().optional().default(''),
 });
 
@@ -183,46 +248,64 @@ export async function syncAllVendorsToSheet() {
   const supabase = await createSupabaseServerClient();
   const { data: vendors, error } = await supabase
     .from('vendors')
-    .select('*')
+    .select(ADMIN_VENDOR_COLUMNS)
     .order('applied_at', { ascending: false });
 
-  if (error || !vendors) {
-    return { success: false, message: 'Failed to fetch vendors.' };
-  }
+  if (error || !vendors) return { success: false, message: 'Failed to fetch vendors.' };
 
-  const { data: events } = await supabase
-    .from('events')
-    .select('id, title');
-  const eventNames = new Map((events || []).map((event) => [event.id, event.title]));
+  const vendorsWithApplications = await attachEventApplications(
+    supabase,
+    vendors as Omit<Vendor, 'event_applications'>[],
+  );
+  let synced = 0;
 
-  for (const v of vendors) {
-    const result = await sendToGoogleSheet({
-      id: v.id,
-      business_name: v.business_name,
-      contact_name: v.contact_name,
-      email: v.email,
-      phone: v.phone || '',
-      location_state: v.location_state || '',
-      categories: v.categories || [],
-      event_id: v.event_id || '',
-      event_name: v.event_id ? eventNames.get(v.event_id) || '' : '',
-      tables_requested: v.tables_requested || '',
-      power_requirements: v.power_requirements || '',
-      social_links: v.social_links || '',
-      description: v.description || '',
-      logo_url: v.logo_url || '',
-      additional_notes: v.additional_notes || '',
-      booth_assignment: v.booth_assignment || '',
-      application_status: v.application_status,
-      applied_at: v.applied_at || new Date().toISOString(),
-    });
+  for (const vendor of vendorsWithApplications) {
+    const rows = vendor.event_applications.length > 0
+      ? vendor.event_applications
+      : [{
+          id: 'legacy',
+          event_id: vendor.event_id || '',
+          event_name: vendor.event_name || '',
+          tables_requested: vendor.tables_requested,
+          power_requirements: vendor.power_requirements,
+          booth_assignment: vendor.booth_assignment,
+          application_status: vendor.application_status,
+          applied_at: vendor.applied_at,
+        }];
 
-    if (!result.success) {
-      return { success: false, message: `Failed to sync vendor "${v.business_name}" (${v.id}): ${result.error}` };
+    for (const application of rows) {
+      const result = await sendToGoogleSheet({
+        id: vendor.id,
+        application_id: application.event_id
+          ? `${vendor.id}:${application.event_id}`
+          : `${vendor.id}:general`,
+        business_name: vendor.business_name,
+        contact_name: vendor.contact_name,
+        email: vendor.email,
+        phone: vendor.phone || '',
+        location_state: vendor.location_state || '',
+        categories: vendor.categories || [],
+        event_id: application.event_id || '',
+        event_name: application.event_name || '',
+        tables_requested: application.tables_requested || '',
+        power_requirements: application.power_requirements || '',
+        social_links: vendor.social_links || '',
+        description: vendor.description || '',
+        logo_url: vendor.logo_url || '',
+        additional_notes: vendor.additional_notes || '',
+        booth_assignment: application.booth_assignment || '',
+        application_status: application.application_status,
+        applied_at: application.applied_at || vendor.applied_at || new Date().toISOString(),
+      });
+
+      if (!result.success) {
+        return { success: false, message: `Failed to sync "${vendor.business_name}" for "${application.event_name || 'general'}": ${result.error}` };
+      }
+      synced++;
     }
   }
 
-  return { success: true, message: `${vendors.length} applications synced to spreadsheet.` };
+  return { success: true, message: `${synced} vendor event applications synced to spreadsheet.` };
 }
 
 /** Submit a vendor application (publicly accessible) */
@@ -232,210 +315,138 @@ export async function submitVendorApplication(
 ): Promise<ActionState> {
   try {
   const supabase = await createSupabaseServerClient();
-
   const categories = formData.getAll('categories') as string[];
+  const eventIds = [...new Set(formData.getAll('event_ids').map(String))];
   const logo = formData.get('logo') as File | null;
-
-  const fields = {
-    business_name: formData.get('business_name') as string || '',
-    contact_name: formData.get('contact_name') as string || '',
-    email: formData.get('email') as string || '',
-    phone: formData.get('phone') as string || '',
-    location_state: formData.get('location_state') as string || '',
-    description: formData.get('description') as string || '',
-    social_links: formData.get('social_links') as string || '',
-    tables_requested: formData.get('tables_requested') as string || '',
-    power_requirements: formData.get('power_requirements') as string || '',
-    additional_notes: formData.get('additional_notes') as string || '',
-    event_id: formData.get('event_id') as string || '',
+  const fields: VendorApplicationFields = {
+    business_name: String(formData.get('business_name') || ''),
+    contact_name: String(formData.get('contact_name') || ''),
+    email: String(formData.get('email') || ''),
+    phone: String(formData.get('phone') || ''),
+    location_state: String(formData.get('location_state') || ''),
+    description: String(formData.get('description') || ''),
+    social_links: String(formData.get('social_links') || ''),
+    tables_requested: String(formData.get('tables_requested') || ''),
+    power_requirements: String(formData.get('power_requirements') || ''),
+    additional_notes: String(formData.get('additional_notes') || ''),
+    event_ids: eventIds,
     agreement: formData.get('agreement') === 'on',
   };
 
   const validatedFields = vendorApplicationSchema.safeParse({
-    business_name: fields.business_name,
-    contact_name: fields.contact_name,
-    email: fields.email,
+    ...fields,
     phone: fields.phone || undefined,
-    location_state: fields.location_state,
-    description: fields.description,
     categories,
-    social_links: fields.social_links || undefined,
-    tables_requested: fields.tables_requested,
     power_requirements: fields.power_requirements || undefined,
     additional_notes: fields.additional_notes || undefined,
-    event_id: fields.event_id || undefined,
-    agreement: fields.agreement,
   });
 
   if (!validatedFields.success) {
+    return { message: 'Please fix the errors below.', errors: validatedFields.error.flatten().fieldErrors, fields };
+  }
+  if (!logo || logo.size === 0) return { message: 'A business logo or profile avatar is required.', fields };
+  if (logo.size > MAX_LOGO_SIZE) return { message: 'Logo file size must be less than 5MB.', fields };
+  if (!ALLOWED_LOGO_TYPES.has(logo.type)) return { message: 'Logo must be a JPG, PNG, WebP, or GIF image.', fields };
+
+  const { data: selectedEvents, error: eventError } = await supabase
+    .from('events')
+    .select('id, title')
+    .in('id', validatedFields.data.event_ids)
+    .gte('event_date', new Date().toISOString().slice(0, 10))
+    .eq('status', 'upcoming');
+
+  if (eventError || selectedEvents?.length !== validatedFields.data.event_ids.length) {
+    return { message: 'One or more selected events are no longer available.', fields };
+  }
+
+  const [{ data: existingBusiness }, { data: existingEmail }] = await Promise.all([
+    supabase.from('vendors').select('id').eq('business_name', validatedFields.data.business_name).maybeSingle(),
+    supabase.from('vendors').select('id').eq('email', validatedFields.data.email).maybeSingle(),
+  ]);
+  if (existingBusiness) return { message: 'This Business Name is already registered.', fields };
+  if (existingEmail) return { message: 'An application with this email already exists.', fields };
+
+  const vendorId = crypto.randomUUID();
+  const filePath = `${vendorId}/logo-${Date.now()}.${LOGO_EXTENSION_BY_TYPE[logo.type]}`;
+  const { error: uploadError } = await supabase.storage.from('vendor_logos').upload(
+    filePath,
+    await logo.arrayBuffer(),
+    { contentType: logo.type, cacheControl: '3600', upsert: false },
+  );
+
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
     return {
-      message: 'Please fix the errors below.',
-      errors: validatedFields.error.flatten().fieldErrors,
+      message: isStorageSetupError(uploadError.message)
+        ? 'We could not upload your logo right now. Please contact support so we can finish your application.'
+        : 'Failed to upload the logo file. Please try submitting again or contact support.',
       fields,
     };
   }
 
-  // Check if logo is valid if provided
-  if (!logo || logo.size === 0) {
-    return { message: 'A business logo or profile avatar is required.', fields };
-  }
-  if (logo.size > MAX_LOGO_SIZE) {
-    return { message: 'Logo file size must be less than 5MB.', fields };
-  }
-  if (!ALLOWED_LOGO_TYPES.has(logo.type)) {
-    return { message: 'Logo must be a JPG, PNG, WebP, or GIF image.', fields };
-  }
-
-  let selectedEventId: string | null = null;
-  let selectedEventName = '';
-  if (validatedFields.data.event_id) {
-    const { data: selectedEvent, error: eventError } = await supabase
-      .from('events')
-      .select('id, title')
-      .eq('id', validatedFields.data.event_id)
-      .gte('event_date', new Date().toISOString().slice(0, 10))
-      .eq('status', 'upcoming')
-      .maybeSingle();
-
-    if (eventError || !selectedEvent) {
-      return { message: 'Please select an available upcoming event.', fields };
-    }
-    selectedEventId = selectedEvent.id;
-    selectedEventName = selectedEvent.title;
-  }
-
-  // 1. Check if business name is already taken (optimized: only select id)
-  const { data: existingBusiness } = await supabase
-    .from('vendors')
-    .select('id')
-    .eq('business_name', validatedFields.data.business_name)
-    .maybeSingle();
-
-  if (existingBusiness) {
-    return { message: 'This Business Name is already registered.', fields };
-  }
-
-  // 2. Check if email is already registered
-  const { data: existingEmail } = await supabase
-    .from('vendors')
-    .select('id')
-    .eq('email', validatedFields.data.email)
-    .maybeSingle();
-
-  if (existingEmail) {
-    return { message: 'An application with this email already exists.', fields };
-  }
-
-  // 3. Upload the logo
-  const vendorId = crypto.randomUUID();
-  const fileExt = LOGO_EXTENSION_BY_TYPE[logo.type];
-  const filePath = `${vendorId}/logo-${Date.now()}.${fileExt}`;
-
-  const arrayBuffer = await logo.arrayBuffer();
-
-  let logoUrl = '';
-  const { error: uploadError } = await supabase.storage
-    .from('vendor_logos')
-    .upload(filePath, arrayBuffer, {
-      contentType: logo.type,
-      cacheControl: '3600',
-      upsert: false,
-    });
-
-  if (uploadError) {
-    console.error('Upload error:', uploadError);
-    if (isStorageSetupError(uploadError.message)) {
-      return {
-        message: 'We could not upload your logo right now. Please contact support so we can finish your application.',
-        fields,
-      };
-    } else {
-      return { message: 'Failed to upload the logo file. Please try submitting again or contact support.', fields };
-    }
-  } else {
-    const { data } = supabase.storage.from('vendor_logos').getPublicUrl(filePath);
-    logoUrl = data.publicUrl;
-  }
-
-  // 5. Save Vendor Record
-  const { error: dbError } = await supabase.from('vendors').insert({
-    id: vendorId,
-    business_name: validatedFields.data.business_name,
-    contact_name: validatedFields.data.contact_name,
-    email: validatedFields.data.email,
-    phone: validatedFields.data.phone || null,
-    location_state: validatedFields.data.location_state,
-    description: validatedFields.data.description,
-    categories: validatedFields.data.categories,
-    logo_url: logoUrl,
-    social_links: validatedFields.data.social_links || null,
-    tables_requested: validatedFields.data.tables_requested,
-    power_requirements: validatedFields.data.power_requirements || null,
-    additional_notes: validatedFields.data.additional_notes || null,
-    application_status: 'pending',
-    event_id: selectedEventId,
+  const logoUrl = supabase.storage.from('vendor_logos').getPublicUrl(filePath).data.publicUrl;
+  const { error: dbError } = await supabase.rpc('submit_vendor_with_events', {
+    p_vendor_id: vendorId,
+    p_business_name: validatedFields.data.business_name,
+    p_contact_name: validatedFields.data.contact_name,
+    p_email: validatedFields.data.email,
+    p_phone: validatedFields.data.phone || '',
+    p_location_state: validatedFields.data.location_state,
+    p_description: validatedFields.data.description,
+    p_categories: validatedFields.data.categories,
+    p_logo_url: logoUrl,
+    p_social_links: validatedFields.data.social_links,
+    p_tables_requested: validatedFields.data.tables_requested,
+    p_power_requirements: validatedFields.data.power_requirements || '',
+    p_additional_notes: validatedFields.data.additional_notes || '',
+    p_event_ids: validatedFields.data.event_ids,
   });
 
   if (dbError) {
     console.error('Error submitting vendor application:', JSON.stringify(dbError, null, 2));
-
-    if (logoUrl && !logoUrl.startsWith('data:')) {
-      await supabase.storage.from('vendor_logos').remove([filePath]);
+    await supabase.storage.from('vendor_logos').remove([filePath]);
+    if (dbError.code === '42883' || dbError.code === '42P01') {
+      return { message: 'Database setup incomplete. Please contact support.', fields };
     }
-    
-    if (dbError.code === '42703') {
-      return { 
-        message: 'Database schema mismatch: One or more required columns are missing from the vendors table. Please run the provided SQL migration in lib/supabase/vendor_event_selection.sql in your Supabase SQL Editor.',
-        fields
-      };
-    }
-
-    if (dbError.code === '23505') {
-      return {
-        message: 'This business name is already registered.',
-        fields,
-      };
-    }
-    
+    if (dbError.code === '23505') return { message: 'This business name or event application already exists.', fields };
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }
 
-  // Send notification emails (non-blocking)
+  const eventNames = new Map((selectedEvents || []).map((event) => [event.id, event.title]));
   sendNewApplicationEmail(
     validatedFields.data.email,
     validatedFields.data.business_name,
-    validatedFields.data.contact_name
+    validatedFields.data.contact_name,
   ).catch((err) => console.error('Failed to send application emails:', err));
 
-  // Push to Google Sheet (best-effort await — won't fail the submission)
-  const sheetResult = await sendToGoogleSheet({
-    id: vendorId,
-    business_name: validatedFields.data.business_name,
-    contact_name: validatedFields.data.contact_name,
-    email: validatedFields.data.email,
-    phone: validatedFields.data.phone || '',
-    location_state: validatedFields.data.location_state,
-    categories: validatedFields.data.categories,
-    tables_requested: validatedFields.data.tables_requested,
-    power_requirements: validatedFields.data.power_requirements || '',
-    social_links: validatedFields.data.social_links || '',
-    description: validatedFields.data.description,
-    logo_url: logoUrl,
-    additional_notes: validatedFields.data.additional_notes || '',
-    event_id: selectedEventId || '',
-    event_name: selectedEventName,
-    booth_assignment: '',
-    application_status: 'pending',
-    applied_at: new Date().toISOString(),
-  });
-  if (!sheetResult.success) console.error('Failed to push to Google Sheet:', sheetResult.error);
-  revalidatePath('/admin');
-  return {
-    message: 'Application submitted securely! We\'ll review your application and get back to you soon.',
-    success: true,
-  };
-  } catch (err) {
-    console.error('Vendor application error:', err);
+  for (const eventId of validatedFields.data.event_ids) {
+    sendToGoogleSheet({
+      id: vendorId,
+      application_id: `${vendorId}:${eventId}`,
+      business_name: validatedFields.data.business_name,
+      contact_name: validatedFields.data.contact_name,
+      email: validatedFields.data.email,
+      phone: validatedFields.data.phone || '',
+      location_state: validatedFields.data.location_state,
+      categories: validatedFields.data.categories,
+      tables_requested: validatedFields.data.tables_requested,
+      power_requirements: validatedFields.data.power_requirements || '',
+      social_links: validatedFields.data.social_links,
+      description: validatedFields.data.description,
+      logo_url: logoUrl,
+      additional_notes: validatedFields.data.additional_notes || '',
+      event_id: eventId,
+      event_name: eventNames.get(eventId) || '',
+      booth_assignment: '',
+      application_status: 'pending',
+      applied_at: new Date().toISOString(),
+    }).catch((err) => console.error('Failed to push to Google Sheet:', err));
+  }
+
+  revalidatePath('/admin/vendors');
+  return { message: 'Application submitted securely. We will review each selected event and contact you by email.', success: true };
+  } catch (error) {
+    console.error('Vendor application error:', error);
     return {
       message: 'Something went wrong while submitting your application. Please try again or contact support.',
       success: false,
@@ -443,59 +454,94 @@ export async function submitVendorApplication(
   }
 }
 
-/** Get one page of approved vendors (publicly accessible for vendor list). */
+/** Get one public-safe page of unassigned vendors or event applicants. */
 export async function getApprovedVendors(
   page = 1,
   perPage = 6,
+  eventId?: string,
+  unassignedOnly = true,
 ): Promise<{ vendors: Partial<Vendor>[]; totalCount: number }> {
   const supabase = await createSupabaseServerClient();
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
-  const safePerPage = Number.isInteger(perPage) && perPage > 0 ? perPage : 6;
-  const from = (safePage - 1) * safePerPage;
-  const to = from + safePerPage - 1;
-  const columns = 'id, business_name, contact_name, description, categories, booth_assignment, logo_url, social_links';
+  const safePerPage = Number.isInteger(perPage) && perPage > 0 ? Math.min(perPage, 48) : 6;
+  const validatedEventId = eventId ? z.string().uuid().safeParse(eventId) : null;
+  if (eventId && !validatedEventId?.success) return { vendors: [], totalCount: 0 };
 
-  // Paginate in Supabase. Fetching every vendor on each numbered page caused statement timeouts.
-  const { data, count, error } = await supabase
-    .from('vendors')
-    .select(columns, { count: 'estimated' })
-    .eq('application_status', 'approved')
-    // Primary-key ordering avoids sorting the full vendors table on every page request.
-    .order('id', { ascending: true })
-    .range(from, to);
+  const { data, error } = await supabase.rpc('get_public_vendor_directory', {
+    p_event_id: eventId || null,
+    p_unassigned_only: eventId ? false : unassignedOnly,
+    p_offset: (safePage - 1) * safePerPage,
+    p_limit: safePerPage,
+  });
 
-  if (!error) {
-    return { vendors: data as Partial<Vendor>[], totalCount: count ?? 0 };
-  }
-
-  if (error.code === '42703') {
-    console.warn('DATABASE ALERT: logo_url is missing. Fetching vendors without logo_url.');
-    const { data: fallbackData, count: fallbackCount, error: fallbackError } = await supabase
-      .from('vendors')
-      .select('id, business_name, contact_name, description, categories, booth_assignment, social_links', { count: 'estimated' })
-      .eq('application_status', 'approved')
-      .order('id', { ascending: true })
-      .range(from, to);
-
-    if (!fallbackError) {
-      return { vendors: fallbackData as Partial<Vendor>[], totalCount: fallbackCount ?? 0 };
+  if (error) {
+    if (error.code !== 'PGRST202') {
+      console.error('Error fetching public vendor directory:', JSON.stringify(error, null, 2));
+      return { vendors: [], totalCount: 0 };
     }
+
+    // ponytail: compatibility path only returns legacy-approved profiles; remove
+    // after add_public_vendor_directory.sql is applied to every environment.
+    if (eventId) return { vendors: [], totalCount: 0 };
+    const from = (safePage - 1) * safePerPage;
+    const { data: fallbackData, count, error: fallbackError } = await supabase
+      .from('vendors')
+      .select('id, business_name, contact_name, description, categories, logo_url, social_links', { count: 'exact' })
+      .eq('application_status', 'approved')
+      .order('business_name', { ascending: true })
+      .range(from, from + safePerPage - 1);
+
+    if (fallbackError) {
+      console.error('Error fetching fallback vendor directory:', JSON.stringify(fallbackError, null, 2));
+      return { vendors: [], totalCount: 0 };
+    }
+
+    return {
+      vendors: (fallbackData || []).map((vendor) => ({
+        ...vendor,
+        event_applications: [],
+      })),
+      totalCount: count || 0,
+    };
   }
 
-  console.error('Error fetching vendors from Supabase:', JSON.stringify(error, null, 2));
-  return { vendors: [], totalCount: 0 };
+  const vendors = (data || []).map((row: Record<string, unknown>) => ({
+    id: String(row.id),
+    business_name: String(row.business_name),
+    contact_name: String(row.contact_name),
+    description: row.description ? String(row.description) : null,
+    categories: Array.isArray(row.categories) ? row.categories.map(String) : [],
+    logo_url: row.logo_url ? String(row.logo_url) : null,
+    social_links: row.social_links ? String(row.social_links) : null,
+    booth_assignment: row.booth_assignment ? String(row.booth_assignment) : null,
+    event_applications: (Array.isArray(row.event_applications) ? row.event_applications : []).map((application: Record<string, unknown>) => ({
+      id: String(application.id),
+      vendor_id: String(application.vendor_id),
+      event_id: String(application.event_id),
+      application_status: application.application_status as VendorApplicationStatus,
+      tables_requested: null,
+      power_requirements: null,
+      booth_assignment: application.booth_assignment ? String(application.booth_assignment) : null,
+      rejection_reason: null,
+      applied_at: '',
+      updated_at: '',
+      event_name: String(application.event_name || 'Event'),
+      event_date: String(application.event_date || ''),
+      event_venue: application.event_venue ? String(application.event_venue) : null,
+    })),
+  } satisfies Partial<Vendor>));
+
+  return { vendors, totalCount: Number(data?.[0]?.total_count || 0) };
 }
 
 // ============================================
-// Admin Actions (require admin auth via middleware)
+// Admin Actions
 // ============================================
 
-/** Get all vendors with full details (admin only) - OPTIMIZED: selects only needed columns */
 export async function getAllVendors(): Promise<Vendor[]> {
   const supabase = await createSupabaseServerClient();
   const adminError = await verifyAdmin();
   if (adminError) throw new Error(adminError);
-
 
   const { data, error } = await supabase
     .from('vendors')
@@ -506,157 +552,160 @@ export async function getAllVendors(): Promise<Vendor[]> {
     console.error('Error fetching all vendors:', JSON.stringify(error, null, 2));
     return [];
   }
-
-  return attachEventNames(supabase, data as Vendor[]);
+  return attachEventApplications(supabase, data as Omit<Vendor, 'event_applications'>[]);
 }
 
-/** Get pending vendor applications (admin only) - OPTIMIZED: selects only needed columns */
-export async function getPendingVendors(): Promise<Vendor[]> {
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin();
-  if (adminError) throw new Error(adminError);
+const eventApplicationUpdateSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected', 'waitlisted']),
+  booth_assignment: z.string().max(100).optional().default(''),
+  rejection_reason: z.string().max(1000).optional().default(''),
+});
 
+const assignVendorsSchema = z.object({
+  vendor_ids: z.array(z.string().uuid()).min(1).max(500),
+  event_ids: z.array(z.string().uuid()).min(1).max(20),
+  starting_status: z.enum(['pending', 'approved', 'rejected', 'waitlisted', 'preserve']),
+});
 
-  const { data, error } = await supabase
-    .from('vendors')
-    .select(ADMIN_VENDOR_COLUMNS)
-    .eq('application_status', 'pending')
-    .order('applied_at', { ascending: false });
-
-  if (error) {
-    console.error('Error fetching pending vendors:', JSON.stringify(error, null, 2));
-    return [];
-  }
-
-  return attachEventNames(supabase, data as Vendor[]);
-}
-
-/** Approve a vendor application */
-export async function approveVendor(vendorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+export async function assignVendorsToEvents(input: z.input<typeof assignVendorsSchema>): Promise<ActionState> {
   const adminError = await verifyAdmin();
   if (adminError) return { message: adminError };
+  const validated = assignVendorsSchema.safeParse(input);
+  if (!validated.success) return { message: 'Select at least one valid vendor and event.' };
 
+  const supabase = await createSupabaseServerClient();
+  const vendorIds = [...new Set(validated.data.vendor_ids)];
+  const eventIds = [...new Set(validated.data.event_ids)];
+  const [{ data: vendors, error: vendorError }, { data: events, error: eventError }] = await Promise.all([
+    supabase
+      .from('vendors')
+      .select('id, application_status, tables_requested, power_requirements, applied_at')
+      .in('id', vendorIds),
+    supabase.from('events').select('id').in('id', eventIds),
+  ]);
 
-  // Fetch vendor details first for email notification
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('email, business_name, contact_name')
-    .eq('id', vendorId)
-    .maybeSingle();
-
-  const { error } = await supabase
-    .from('vendors')
-    .update({ application_status: 'approved' })
-    .eq('id', vendorId);
-
-  if (error) {
-    console.error('Error approving vendor:', JSON.stringify(error, null, 2));
-    return { message: `Failed to approve vendor: ${error.message}` };
+  if (vendorError || !vendors || vendors.length !== vendorIds.length) {
+    return { message: 'One or more selected vendors no longer exist.' };
+  }
+  if (eventError || !events || events.length !== eventIds.length) {
+    return { message: 'One or more selected events no longer exist.' };
   }
 
-  // Send approval email (non-blocking)
-  if (vendor) {
-    sendApprovalEmail(vendor.email, vendor.business_name, vendor.contact_name)
-      .catch((err) => console.error('Failed to send approval email:', err));
+  const rows = vendors.flatMap((vendor) => eventIds.map((eventId) => ({
+    vendor_id: vendor.id,
+    event_id: eventId,
+    application_status: validated.data.starting_status === 'preserve'
+      ? vendor.application_status
+      : validated.data.starting_status,
+    tables_requested: vendor.tables_requested,
+    power_requirements: vendor.power_requirements,
+    applied_at: vendor.applied_at || new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  })));
+
+  const { data: inserted, error } = await supabase
+    .from('vendor_event_applications')
+    .upsert(rows, { onConflict: 'vendor_id,event_id', ignoreDuplicates: true })
+    .select('id');
+
+  if (error) {
+    console.error('Error assigning vendors to events:', JSON.stringify(error, null, 2));
+    return { message: `Failed to assign vendors: ${error.message}` };
+  }
+
+  const created = inserted?.length || 0;
+  const skipped = rows.length - created;
+  revalidatePath('/admin/vendors');
+  revalidatePath('/vendors');
+  return {
+    success: true,
+    message: `${created} event assignment${created === 1 ? '' : 's'} created${skipped ? `; ${skipped} existing assignment${skipped === 1 ? '' : 's'} unchanged` : ''}.`,
+  };
+}
+
+export async function updateVendorEventApplication(
+  applicationId: string,
+  input: z.input<typeof eventApplicationUpdateSchema>,
+): Promise<ActionState> {
+  const adminError = await verifyAdmin();
+  if (adminError) return { message: adminError };
+  const id = z.string().uuid().safeParse(applicationId);
+  const validated = eventApplicationUpdateSchema.safeParse(input);
+  if (!id.success || !validated.success) return { message: 'Invalid application update.' };
+
+  const supabase = await createSupabaseServerClient();
+  const { data: application, error: fetchError } = await supabase
+    .from('vendor_event_applications')
+    .select('id, vendors(email, business_name, contact_name), events(title)')
+    .eq('id', applicationId)
+    .maybeSingle();
+
+  if (fetchError || !application) return { message: 'Vendor event application not found.' };
+
+  const { error } = await supabase
+    .from('vendor_event_applications')
+    .update({
+      application_status: validated.data.status,
+      booth_assignment: validated.data.booth_assignment || null,
+      rejection_reason: validated.data.status === 'rejected'
+        ? validated.data.rejection_reason || null
+        : null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', applicationId);
+
+  if (error) {
+    console.error('Error updating vendor event application:', JSON.stringify(error, null, 2));
+    return { message: `Failed to update application: ${error.message}` };
+  }
+
+  const vendorValue = application.vendors as unknown as { email: string; business_name: string; contact_name: string } | { email: string; business_name: string; contact_name: string }[] | null;
+  const eventValue = application.events as unknown as { title: string } | { title: string }[] | null;
+  const vendor = Array.isArray(vendorValue) ? vendorValue[0] : vendorValue;
+  const event = Array.isArray(eventValue) ? eventValue[0] : eventValue;
+  if (vendor && validated.data.status === 'approved') {
+    sendApprovalEmail(vendor.email, vendor.business_name, vendor.contact_name, event?.title)
+      .catch((emailError) => console.error('Failed to send approval email:', emailError));
+  }
+  if (vendor && validated.data.status === 'rejected') {
+    sendRejectionEmail(vendor.email, vendor.business_name, vendor.contact_name, validated.data.rejection_reason || undefined, event?.title)
+      .catch((emailError) => console.error('Failed to send rejection email:', emailError));
   }
 
   revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
-  return { success: true, message: 'Vendor approved successfully!' };
+  return { success: true, message: `Application marked ${validated.data.status}.` };
 }
 
-/** Reject a vendor application */
-export async function rejectVendor(vendorId: string, reason?: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+export async function removeVendorEventApplication(applicationId: string): Promise<ActionState> {
   const adminError = await verifyAdmin();
   if (adminError) return { message: adminError };
+  if (!z.string().uuid().safeParse(applicationId).success) return { message: 'Invalid application.' };
 
-
-  // Fetch vendor details first for email notification
-  const { data: vendor } = await supabase
-    .from('vendors')
-    .select('email, business_name, contact_name')
-    .eq('id', vendorId)
-    .maybeSingle();
-
-  const updateData: Record<string, string> = { application_status: 'rejected' };
-  if (reason) {
-    updateData.rejection_reason = reason;
-  }
-
-  const { error } = await supabase
-    .from('vendors')
-    .update(updateData)
-    .eq('id', vendorId);
-
-  if (error) {
-    console.error('Error rejecting vendor:', JSON.stringify(error, null, 2));
-    return { message: `Failed to reject vendor: ${error.message}` };
-  }
-
-  // Send rejection email (non-blocking)
-  if (vendor) {
-    sendRejectionEmail(vendor.email, vendor.business_name, vendor.contact_name, reason || undefined)
-      .catch((err) => console.error('Failed to send rejection email:', err));
-  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from('vendor_event_applications').delete().eq('id', applicationId);
+  if (error) return { message: `Failed to remove application: ${error.message}` };
 
   revalidatePath('/admin/vendors');
-  return { success: true, message: 'Vendor application rejected.' };
+  revalidatePath('/vendors');
+  return { success: true, message: 'Event application removed.' };
 }
 
-/** Waitlist a vendor application */
-export async function waitlistVendor(vendorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+export async function updateVendor(vendorId: string, data: VendorUpdateData): Promise<ActionState> {
   const adminError = await verifyAdmin();
   if (adminError) return { message: adminError };
-
-
-  const { error } = await supabase
-    .from('vendors')
-    .update({ application_status: 'waitlisted' })
-    .eq('id', vendorId);
-
-  if (error) {
-    console.error('Error waitlisting vendor:', JSON.stringify(error, null, 2));
-    return { message: `Failed to waitlist vendor: ${error.message}` };
-  }
-
-  revalidatePath('/admin/vendors');
-  return { success: true, message: 'Vendor waitlisted successfully!' };
-}
-
-
-/** Update a vendor's submitted information (admin only) */
-export async function updateVendor(
-  vendorId: string,
-  data: VendorUpdateData
-): Promise<ActionState> {
-  const adminError = await verifyAdmin();
-  if (adminError) return { message: adminError };
-
-  const supabase = await createSupabaseServerClient();
-
+  const id = z.string().uuid().safeParse(vendorId);
   const validated = vendorUpdateSchema.safeParse(data);
-  if (!validated.success) {
+  if (!id.success || !validated.success) {
     return {
-      message: 'Please fix the errors below.',
-      errors: validated.error.flatten().fieldErrors,
+      message: 'Please fix the vendor profile fields.',
+      errors: validated.success ? undefined : validated.error.flatten().fieldErrors,
     };
   }
-  // Verify the vendor exists before attempting update
-  const { data: existing } = await supabase
-    .from('vendors')
-    .select('id, logo_url, application_status, applied_at')
-    .eq('id', vendorId)
-    .maybeSingle();
 
-  if (!existing) {
-    return { message: 'Vendor not found.' };
-  }
-
+  const supabase = await createSupabaseServerClient();
   const fields = validated.data;
-  const updateData: Record<string, string | string[] | null> = {
+  const { error } = await supabase.from('vendors').update({
     business_name: fields.business_name,
     contact_name: fields.contact_name,
     email: fields.email,
@@ -668,101 +717,29 @@ export async function updateVendor(
     tables_requested: fields.tables_requested || null,
     power_requirements: fields.power_requirements || null,
     additional_notes: fields.additional_notes || null,
-    event_id: fields.event_id || null,
     booth_assignment: fields.booth_assignment || null,
-  };
-
-  const { error } = await supabase
-    .from('vendors')
-    .update(updateData)
-    .eq('id', vendorId);
+  }).eq('id', vendorId);
 
   if (error) {
-    console.error('Error updating vendor:', JSON.stringify(error, null, 2));
-
-    if (error.code === '23505') {
-      return { message: 'This business name is already registered.' };
-    }
-
+    if (error.code === '23505') return { message: 'This business name or email is already registered.' };
     return { message: `Failed to update vendor: ${error.message}` };
   }
 
-  // Push updated data to Google Sheet (best-effort await)
-  const sheetResult = await sendToGoogleSheet({
-    id: vendorId,
-    business_name: fields.business_name,
-    contact_name: fields.contact_name,
-    email: fields.email,
-    phone: fields.phone || '',
-    location_state: fields.location_state,
-    categories: fields.categories,
-    tables_requested: fields.tables_requested || '',
-    power_requirements: fields.power_requirements || '',
-    social_links: fields.social_links || '',
-    description: fields.description || '',
-    logo_url: existing.logo_url || '',
-    additional_notes: fields.additional_notes || '',
-    event_id: fields.event_id || '',
-    event_name: fields.event_id
-      ? (await supabase.from('events').select('title').eq('id', fields.event_id).maybeSingle()).data?.title || ''
-      : '',
-    booth_assignment: fields.booth_assignment || '',
-    application_status: existing.application_status || 'pending',
-    applied_at: existing.applied_at || new Date().toISOString(),
-  }).catch((err) => ({ success: false, error: err instanceof Error ? err.message : 'Unknown error' }));
-
   revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
-
-  if (!sheetResult.success) {
-    return {
-      success: true,
-      message: `Vendor updated in database, but spreadsheet sync failed: ${sheetResult.error}. You can retry with "Sync to Sheet".`,
-    };
-  }
-
-  return { success: true, message: 'Vendor updated successfully!' };
+  return { success: true, message: 'Vendor profile updated.' };
 }
-/** Delete a vendor (admin only) — removes vendor from database */
+
 export async function deleteVendor(vendorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
   const adminError = await verifyAdmin();
   if (adminError) return { message: adminError };
+  if (!z.string().uuid().safeParse(vendorId).success) return { message: 'Invalid vendor.' };
 
-
-  const { error } = await supabase
-    .from('vendors')
-    .delete()
-    .eq('id', vendorId);
-
-  if (error) {
-    console.error('Error deleting vendor:', JSON.stringify(error, null, 2));
-    return { message: `Failed to delete vendor: ${error.message}` };
-  }
+  const supabase = await createSupabaseServerClient();
+  const { error } = await supabase.from('vendors').delete().eq('id', vendorId);
+  if (error) return { message: `Failed to delete vendor: ${error.message}` };
 
   revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
-  return { success: true, message: 'Vendor deleted successfully!' };
-}
-
-
-/** Get approved vendors list for admin view (with more fields than public) - OPTIMIZED */
-export async function getApprovedVendorsAdmin(): Promise<Vendor[]> {
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin();
-  if (adminError) throw new Error(adminError);
-
-
-  const { data, error } = await supabase
-    .from('vendors')
-    .select(ADMIN_VENDOR_COLUMNS)
-    .eq('application_status', 'approved')
-    .order('business_name', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching approved vendors:', JSON.stringify(error, null, 2));
-    return [];
-  }
-
-  return attachEventNames(supabase, data as Vendor[]);
+  return { success: true, message: 'Vendor and all event applications deleted.' };
 }

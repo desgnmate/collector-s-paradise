@@ -16,7 +16,6 @@ export default function EventsContent() {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   // Cover image state
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
-  const [selectedCoverImage, setSelectedCoverImage] = useState<File | null>(null);
   const coverImageRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -48,7 +47,6 @@ export default function EventsContent() {
       e.target.value = '';
       return;
     }
-    setSelectedCoverImage(file);
     const reader = new FileReader();
     reader.onload = () => setCoverImagePreview(reader.result as string);
     reader.readAsDataURL(file);
@@ -56,7 +54,6 @@ export default function EventsContent() {
 
   const clearCoverImage = () => {
     setCoverImagePreview(null);
-    setSelectedCoverImage(null);
     if (coverImageRef.current) coverImageRef.current.value = '';
   };
 
@@ -89,7 +86,7 @@ export default function EventsContent() {
       } else {
         setMessage({ text: result.message, type: 'error' });
       }
-    } catch (err) {
+    } catch {
       setMessage({ text: 'Something went wrong. Please try again.', type: 'error' });
     } finally {
       setSubmitting(false);
@@ -108,7 +105,7 @@ export default function EventsContent() {
       } else {
         setMessage({ text: result.message, type: 'error' });
       }
-    } catch (err) {
+    } catch {
       setMessage({ text: 'Failed to delete event.', type: 'error' });
     } finally {
       setSubmitting(false);
@@ -123,10 +120,8 @@ export default function EventsContent() {
     // Set existing cover image preview if available
     if (event.cover_image_url) {
       setCoverImagePreview(event.cover_image_url);
-      setSelectedCoverImage(null); // No new file selected, keeping existing URL
     } else {
       setCoverImagePreview(null);
-      setSelectedCoverImage(null);
     }
   };
 
@@ -135,7 +130,6 @@ export default function EventsContent() {
     setShowForm(true);
     setMessage(null);
     setCoverImagePreview(null);
-    setSelectedCoverImage(null);
     if (coverImageRef.current) coverImageRef.current.value = '';
   };
 
@@ -148,13 +142,6 @@ export default function EventsContent() {
     { key: 'completed', label: 'Completed', count: events.filter(e => e.status === 'completed').length },
     { key: 'cancelled', label: 'Cancelled', count: events.filter(e => e.status === 'cancelled').length },
   ];
-
-  const statusConfig: Record<string, { color: string; bg: string; border: string }> = {
-    upcoming: { color: '#60a5fa', bg: 'rgba(59, 130, 246, 0.12)', border: 'rgba(59, 130, 246, 0.25)' },
-    active: { color: '#4ade80', bg: 'rgba(34, 197, 94, 0.12)', border: 'rgba(34, 197, 94, 0.25)' },
-    completed: { color: 'rgba(255,255,255,0.5)', bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' },
-    cancelled: { color: '#f87171', bg: 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.25)' },
-  };
 
   if (loading) {
     return (
@@ -232,14 +219,7 @@ export default function EventsContent() {
                 </div>
               )}
               <div className="event-card-header">
-                <span
-                  className="status-badge"
-                  style={{
-                    background: statusConfig[event.status]?.bg,
-                    color: statusConfig[event.status]?.color,
-                    border: `1px solid ${statusConfig[event.status]?.border}`,
-                  }}
-                >
+                <span className={`status-badge status-badge-${event.status}`}>
                   {event.status}
                 </span>
                 <div className="event-card-actions">
@@ -511,7 +491,7 @@ export default function EventsContent() {
             </div>
             <div className="modal-body">
               <p className="modal-vendor-name" style={{ margin: 0 }}>
-                Are you sure you want to delete "{deletingEvent.title}"? This action cannot be undone.
+                Are you sure you want to delete &quot;{deletingEvent.title}&quot;? This action cannot be undone.
               </p>
             </div>
             <div className="modal-footer">

@@ -31,7 +31,6 @@ export default function VolunteerApplyPage() {
   });
 
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
 
   const handleRoleToggle = (roleId: string) => {
     setSelectedRoles(prev =>
@@ -39,28 +38,19 @@ export default function VolunteerApplyPage() {
     );
   };
 
-  const handleEventToggle = (eventName: string) => {
-    setSelectedEvents(prev =>
-      prev.includes(eventName) ? prev.filter(e => e !== eventName) : [...prev, eventName]
-    );
-  };
 
   if (state.success) {
     return (
       <main>
         <Navbar />
-        <div className="container" style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div className="modal-content modal-lg" style={{ maxWidth: '600px', margin: '2rem auto' }}>
-            <div className="modal-header" style={{ borderBottom: '2px solid var(--color-yellow)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
-              <h3 className="modal-title" style={{ margin: 0, color: 'var(--color-dark)' }}>Application Submitted!</h3>
-            </div>
-            <div className="modal-body" style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <div style={{ fontSize: '4rem', marginBottom: '1rem' }}>🎉</div>
-              <p style={{ fontSize: '1.1rem', color: '#666', marginBottom: '1.5rem' }}>{state.message}</p>
-              <p style={{ fontSize: '0.95rem', color: '#888' }}>We&apos;ll review your application and contact you via email with available shifts and next steps.</p>
-            </div>
-            <div className="modal-footer" style={{ borderTop: '1px solid rgba(0,0,0,0.1)', paddingTop: '1.5rem' }}>
-              <Link href="/" className="vendors-cta-btn-primary" style={{ display: 'inline-block', width: 'auto', padding: '0.75rem 2rem' }}>
+        <div className="container application-success-layout">
+          <div className="vendor-form-success">
+            <div className="vendor-success-icon" aria-hidden="true">✓</div>
+            <h2 className="vendor-success-title">Application submitted</h2>
+            <p className="vendor-success-text">{state.message}</p>
+            <p className="vendor-success-note">We&apos;ll review your application and contact you via email with available shifts and next steps.</p>
+            <div className="application-success-actions">
+              <Link href="/" className="btn btn-yellow vendor-submit-btn">
                 Back to Home
               </Link>
             </div>
@@ -76,9 +66,9 @@ export default function VolunteerApplyPage() {
       <Navbar />
 
       {/* Page Header */}
-      <section className="vendors-page-header-section">
+      <section className="vendor-apply-section">
         <div className="container">
-          <div className="vendors-page-header">
+          <div className="vendor-apply-header">
             <span className="eyebrow-badge">VOLUNTEER APPLICATION</span>
             <h1 className="section-title">
               JOIN OUR TEAM
@@ -87,32 +77,24 @@ export default function VolunteerApplyPage() {
               Fill out the form below to apply as a volunteer. We&apos;ll get back to you with available shifts and details.
             </p>
           </div>
-        </div>
-      </section>
 
-      {/* Application Form */}
-      <section className="section" style={{ padding: '4rem 0' }}>
-        <div className="container">
-          <form action={formAction} className="vendor-application-form" style={{ maxWidth: '800px', margin: '0 auto' }}>
-            
+          <div className="vendor-apply-layout">
+          <form action={formAction} className="vendor-apply-form application-form-consistent">
+            {state.message && !state.success && (
+              <div className="vendor-form-alert vendor-form-alert-error" role="alert">
+                {state.message}
+              </div>
+            )}
+
             {/* Personal Information */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Personal Information
               </h3>
-              
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="full_name" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="full_name" className="form-label">
                     Full Name *
                   </label>
                   <input
@@ -121,22 +103,15 @@ export default function VolunteerApplyPage() {
                     name="full_name"
                     required
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                   {state.errors?.full_name && (
-                    <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.25rem' }}>{state.errors.full_name[0]}</p>
+                    <p className="vendor-form-error">{state.errors.full_name[0]}</p>
                   )}
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="email" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="email" className="form-label">
                     Email Address *
                   </label>
                   <input
@@ -145,24 +120,17 @@ export default function VolunteerApplyPage() {
                     name="email"
                     required
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                   {state.errors?.email && (
-                    <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.25rem' }}>{state.errors.email[0]}</p>
+                    <p className="vendor-form-error">{state.errors.email[0]}</p>
                   )}
                 </div>
               </div>
 
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="phone" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="phone" className="form-label">
                     Phone Number
                   </label>
                   <input
@@ -170,33 +138,19 @@ export default function VolunteerApplyPage() {
                     id="phone"
                     name="phone"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="t_shirt_size" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="t_shirt_size" className="form-label">
                     T-Shirt Size (for volunteer shirts)
                   </label>
                   <select
                     id="t_shirt_size"
                     name="t_shirt_size"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   >
                     <option value="">Select size...</option>
                     {T_SHIRT_SIZES.map(size => (
@@ -208,62 +162,40 @@ export default function VolunteerApplyPage() {
             </div>
 
             {/* Volunteer Preferences */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Volunteer Preferences
               </h3>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label className="form-label" style={{ display: 'block', marginBottom: '0.75rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label className="form-label">
                   Preferred Roles * (Select all that apply)
                 </label>
-                <div className="checkbox-group" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                <div className="application-choice-grid">
                   {VOLUNTEER_ROLES.map(role => (
-                    <label key={role.id} className="checkbox-label" style={{
-                      display: 'flex',
-                      alignItems: 'flex-start',
-                      gap: '0.75rem',
-                      padding: '1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      ...(selectedRoles.includes(role.id) ? {
-                        borderColor: 'var(--color-yellow)',
-                        background: 'rgba(244, 197, 66, 0.05)'
-                      } : {})
-                    }}>
+                    <label key={role.id} className="application-choice">
                       <input
                         type="checkbox"
                         name="preferred_roles"
                         value={role.name}
                         checked={selectedRoles.includes(role.id)}
                         onChange={() => handleRoleToggle(role.id)}
-                        style={{ marginTop: '0.25rem', accentColor: 'var(--color-yellow)' }}
+
                       />
                       <div>
-                        <span style={{ fontWeight: 600, color: 'var(--color-dark)', display: 'block' }}>{role.name}</span>
-                        <span style={{ fontSize: '0.9rem', color: '#666' }}>{role.description}</span>
+                        <span>{role.name}</span>
+                        <span>{role.description}</span>
                       </div>
                     </label>
                   ))}
                 </div>
                 {state.errors?.preferred_roles && (
-                  <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.5rem' }}>{state.errors.preferred_roles[0]}</p>
+                  <p className="vendor-form-error">{state.errors.preferred_roles[0]}</p>
                 )}
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="availability" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="availability" className="form-label">
                   Availability * (Describe when you&apos;re available)
                 </label>
                 <textarea
@@ -273,23 +205,15 @@ export default function VolunteerApplyPage() {
                   rows={4}
                   placeholder="e.g., Available on weekends, weekday mornings, specific dates..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
                 {state.errors?.availability && (
-                  <p className="form-error" style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '0.25rem' }}>{state.errors.availability[0]}</p>
+                  <p className="vendor-form-error">{state.errors.availability[0]}</p>
                 )}
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="previous_experience" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="previous_experience" className="form-label">
                   Previous Volunteer Experience (Optional)
                 </label>
                 <textarea
@@ -298,37 +222,20 @@ export default function VolunteerApplyPage() {
                   rows={3}
                   placeholder="Tell us about any relevant volunteer experience..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
             </div>
 
             {/* Emergency Contact */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Emergency Contact
               </h3>
 
-              <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                <div className="form-group">
-                  <label htmlFor="emergency_contact_name" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-grid">
+                <div className="vendor-form-group">
+                  <label htmlFor="emergency_contact_name" className="form-label">
                     Emergency Contact Name
                   </label>
                   <input
@@ -336,19 +243,12 @@ export default function VolunteerApplyPage() {
                     id="emergency_contact_name"
                     name="emergency_contact_name"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="emergency_contact_phone" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+                <div className="vendor-form-group">
+                  <label htmlFor="emergency_contact_phone" className="form-label">
                     Emergency Contact Phone
                   </label>
                   <input
@@ -356,50 +256,27 @@ export default function VolunteerApplyPage() {
                     id="emergency_contact_phone"
                     name="emergency_contact_phone"
                     className="form-input"
-                    style={{
-                      width: '100%',
-                      padding: '0.75rem 1rem',
-                      border: '2px solid #e5e5e5',
-                      borderRadius: '6px',
-                      fontSize: '1rem',
-                      transition: 'border-color 0.2s'
-                    }}
+
                   />
                 </div>
               </div>
             </div>
 
             {/* Additional Information */}
-            <div className="form-section" style={{ marginBottom: '2.5rem' }}>
-              <h3 className="form-section-title" style={{ 
-                fontSize: '0.75rem', 
-                fontWeight: 800, 
-                textTransform: 'uppercase', 
-                letterSpacing: '1px',
-                color: '#666',
-                marginBottom: '1.5rem',
-                paddingBottom: '0.75rem',
-                borderBottom: '2px solid var(--color-yellow)'
-              }}>
+            <div className="vendor-form-section">
+              <h3 className="vendor-form-section-title">
                 Additional Information
               </h3>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="how_heard_about" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="how_heard_about" className="form-label">
                   How did you hear about volunteering?
                 </label>
                 <select
                   id="how_heard_about"
                   name="how_heard_about"
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 >
                   <option value="">Select an option...</option>
                   {HOW_HEARD_OPTIONS.map(option => (
@@ -408,8 +285,8 @@ export default function VolunteerApplyPage() {
                 </select>
               </div>
 
-              <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                <label htmlFor="additional_notes" className="form-label" style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600, color: 'var(--color-dark)' }}>
+              <div className="vendor-form-group">
+                <label htmlFor="additional_notes" className="form-label">
                   Additional Notes (Optional)
                 </label>
                 <textarea
@@ -418,58 +295,28 @@ export default function VolunteerApplyPage() {
                   rows={3}
                   placeholder="Any other information you&apos;d like to share..."
                   className="form-input"
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    border: '2px solid #e5e5e5',
-                    borderRadius: '6px',
-                    fontSize: '1rem',
-                    resize: 'vertical',
-                    transition: 'border-color 0.2s'
-                  }}
+
                 />
               </div>
             </div>
 
             {/* Submit Button */}
-            <div className="form-actions" style={{
-              display: 'flex',
-              gap: '1rem',
-              justifyContent: 'center',
-              paddingTop: '2rem',
-              borderTop: '1px solid rgba(0,0,0,0.1)'
-            }}>
+            <div className="application-form-actions">
               <button
                 type="submit"
                 disabled={isPending}
-                className="vendors-cta-btn-primary"
-                style={{
-                  minWidth: '200px',
-                  opacity: isPending ? 0.7 : 1,
-                  cursor: isPending ? 'not-allowed' : 'pointer'
-                }}
+                className="btn btn-yellow vendor-submit-btn"
+
               >
                 {isPending ? 'Submitting...' : 'Submit Application'}
               </button>
-              <Link href="/volunteers" className="vendors-cta-btn-secondary">
+              <Link href="/volunteers" className="application-form-cancel">
                 Cancel
               </Link>
             </div>
 
-            {state.message && !state.success && (
-              <div className="form-message" style={{
-                marginTop: '1.5rem',
-                padding: '1rem',
-                background: '#fef3c7',
-                border: '1px solid #f59e0b',
-                borderRadius: '6px',
-                color: '#92400e',
-                textAlign: 'center'
-              }}>
-                {state.message}
-              </div>
-            )}
           </form>
+          </div>
         </div>
       </section>
       <Footer />
