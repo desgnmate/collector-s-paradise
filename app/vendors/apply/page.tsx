@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
-import { getEvents } from '@/app/actions/events';
+import { getVendorApplicationEvents } from '@/app/actions/events';
 
-export const revalidate = 3600;
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Apply as Vendor | Sell at Australian TCG Events",
@@ -29,14 +29,7 @@ export const metadata: Metadata = {
 };
 
 export default async function VendorApplyPage() {
-  const today = new Date().toISOString().slice(0, 10);
-  const events = await getEvents();
-  const availableEvents = events
-    .filter((event) => (
-      event.event_date >= today &&
-      event.status === 'upcoming'
-    ))
-    .map(({ id, title, event_date, venue }) => ({ id, title, event_date, venue }));
+  const availableEvents = await getVendorApplicationEvents();
 
   return (
     <main>

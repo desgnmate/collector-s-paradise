@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { sendNewApplicationEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
+import { getEventMarketDate } from '@/lib/event-date';
 
 // ============================================
 // Types
@@ -210,6 +211,15 @@ function isStorageSetupError(message: string) {
   );
 }
 
+function isDatabaseSetupError(error: { code?: string; message?: string }) {
+  const code = error.code || '';
+  const message = error.message || '';
+  return (
+    ['42883', '42P01', '42703', 'PGRST202'].includes(code) ||
+    /function .* does not exist|relation .* does not exist|column .* does not exist|schema cache/i.test(message)
+  );
+}
+
 // ============================================
 // Public Actions
 // ============================================
@@ -352,19 +362,12 @@ export async function submitVendorApplication(
     .from('events')
     .select('id, title')
     .in('id', validatedFields.data.event_ids)
-    .gte('event_date', new Date().toISOString().slice(0, 10))
+    .gte('event_date', getEventMarketDate())
     .eq('status', 'upcoming');
 
   if (eventError || selectedEvents?.length !== validatedFields.data.event_ids.length) {
     return { message: 'One or more selected events are no longer available.', fields };
   }
-
-  const [{ data: existingBusiness }, { data: existingEmail }] = await Promise.all([
-    supabase.from('vendors').select('id').eq('business_name', validatedFields.data.business_name).maybeSingle(),
-    supabase.from('vendors').select('id').eq('email', validatedFields.data.email).maybeSingle(),
-  ]);
-  if (existingBusiness) return { message: 'This Business Name is already registered.', fields };
-  if (existingEmail) return { message: 'An application with this email already exists.', fields };
 
   const vendorId = crypto.randomUUID();
   const filePath = `${vendorId}/logo-${Date.now()}.${LOGO_EXTENSION_BY_TYPE[logo.type]}`;
@@ -385,7 +388,7 @@ export async function submitVendorApplication(
   }
 
   const logoUrl = supabase.storage.from('vendor_logos').getPublicUrl(filePath).data.publicUrl;
-  const { error: dbError } = await supabase.rpc('submit_vendor_with_events', {
+  const { data: submissionData, error: dbError } = await supabase.rpc('submit_vendor_with_events', {
     p_vendor_id: vendorId,
     p_business_name: validatedFields.data.business_name,
     p_contact_name: validatedFields.data.contact_name,
@@ -405,24 +408,53 @@ export async function submitVendorApplication(
   if (dbError) {
     console.error('Error submitting vendor application:', JSON.stringify(dbError, null, 2));
     await supabase.storage.from('vendor_logos').remove([filePath]);
-    if (dbError.code === '42883' || dbError.code === '42P01') {
+    if (isDatabaseSetupError(dbError)) {
       return { message: 'Database setup incomplete. Please contact support.', fields };
     }
-    if (dbError.code === '23505') return { message: 'This business name or event application already exists.', fields };
+    const normalizedMessage = dbError.message.toLowerCase();
+    if (dbError.code === '22023' && normalizedMessage.includes('unavailable')) {
+      return { message: 'One or more selected events are no longer accepting vendor applications. Refresh the page and choose an available event.', fields };
+    }
+    if (dbError.code === '23505' && normalizedMessage.includes('already applied')) {
+      return { message: 'You have already applied to one or more selected events. Choose a different event or contact support.', fields };
+    }
+    if (dbError.code === '23505') {
+      return { message: 'These business details conflict with an existing vendor profile. Use the same business name and email, or contact support.', fields };
+    }
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }
 
-  const eventNames = new Map((selectedEvents || []).map((event) => [event.id, event.title]));
-  sendNewApplicationEmail(
-    validatedFields.data.email,
-    validatedFields.data.business_name,
-    validatedFields.data.contact_name,
-  ).catch((err) => console.error('Failed to send application emails:', err));
+  const savedApplication = submissionData && typeof submissionData === 'object'
+    ? submissionData as {
+        vendor_id?: string;
+        logo_url?: string;
+        uploaded_logo_used?: boolean;
+        inserted_event_ids?: string[];
+        already_applied?: boolean;
+      }
+    : null;
+  const savedVendorId = savedApplication?.vendor_id || vendorId;
+  const savedLogoUrl = savedApplication?.logo_url || logoUrl;
+  const insertedEventIds = savedApplication?.inserted_event_ids || validatedFields.data.event_ids;
 
-  for (const eventId of validatedFields.data.event_ids) {
+  if (savedApplication?.uploaded_logo_used === false) {
+    const { error: cleanupError } = await supabase.storage.from('vendor_logos').remove([filePath]);
+    if (cleanupError) console.error('Failed to remove unused repeat-application logo:', cleanupError);
+  }
+
+  const eventNames = new Map((selectedEvents || []).map((event) => [event.id, event.title]));
+  if (insertedEventIds.length > 0) {
+    sendNewApplicationEmail(
+      validatedFields.data.email,
+      validatedFields.data.business_name,
+      validatedFields.data.contact_name,
+    ).catch((err) => console.error('Failed to send application emails:', err));
+  }
+
+  for (const eventId of insertedEventIds) {
     sendToGoogleSheet({
-      id: vendorId,
-      application_id: `${vendorId}:${eventId}`,
+      id: savedVendorId,
+      application_id: `${savedVendorId}:${eventId}`,
       business_name: validatedFields.data.business_name,
       contact_name: validatedFields.data.contact_name,
       email: validatedFields.data.email,
@@ -433,7 +465,7 @@ export async function submitVendorApplication(
       power_requirements: validatedFields.data.power_requirements || '',
       social_links: validatedFields.data.social_links,
       description: validatedFields.data.description,
-      logo_url: logoUrl,
+      logo_url: savedLogoUrl,
       additional_notes: validatedFields.data.additional_notes || '',
       event_id: eventId,
       event_name: eventNames.get(eventId) || '',
@@ -444,6 +476,9 @@ export async function submitVendorApplication(
   }
 
   revalidatePath('/admin/vendors');
+  if (savedApplication?.already_applied) {
+    return { message: 'Your application for the selected event is already on file.', success: true };
+  }
   return { message: 'Application submitted securely. We will review each selected event and contact you by email.', success: true };
   } catch (error) {
     console.error('Vendor application error:', error);

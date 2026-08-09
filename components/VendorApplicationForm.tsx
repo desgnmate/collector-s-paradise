@@ -113,7 +113,7 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
         <div className="vendor-success-icon">✓</div>
         <h2 className="vendor-success-title">Application submitted</h2>
         <p className="vendor-success-text">
-          We received your application for every selected event. Each event will be reviewed separately, and we&apos;ll contact you by email with each decision.
+          {state.message || 'We received your application for every selected event. Each event will be reviewed separately, and we\'ll contact you by email with each decision.'}
         </p>
       </div>
     );

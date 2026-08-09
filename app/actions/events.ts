@@ -5,6 +5,7 @@ import { createClient } from '@supabase/supabase-js';
 import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
 import { z } from 'zod';
 import { getEffectiveEventStatus } from '@/lib/events/status';
+import { getEventMarketDate } from '@/lib/event-date';
 
 // ============================================
 // Types
@@ -139,6 +140,24 @@ const getCachedEventsByMonth = unstable_cache(
 /** Fetch all upcoming/active events (publicly accessible) */
 export async function getEvents(): Promise<Event[]> {
   return getCachedEvents();
+}
+
+/** Fetch the live event checklist used by the vendor application form. */
+export async function getVendorApplicationEvents(): Promise<Array<Pick<Event, 'id' | 'title' | 'event_date' | 'venue'>>> {
+  const supabase = createPublicEventsClient();
+  const { data, error } = await supabase
+    .from('events')
+    .select('id, title, event_date, venue')
+    .eq('status', 'upcoming')
+    .gte('event_date', getEventMarketDate())
+    .order('event_date', { ascending: true });
+
+  if (error) {
+    console.error('Error fetching vendor application events:', error);
+    return [];
+  }
+
+  return data || [];
 }
 
 /** Fetch a single event by ID */

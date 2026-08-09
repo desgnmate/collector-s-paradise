@@ -17915,6 +17915,32 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
 }
 #vendor-directory { scroll-margin-top: 96px; }
 
+/* Give large desktop layouts a little more editorial scale. */
+@media (min-width: 1440px) {
+  .homepage .section-title,
+  .homepage .highlights-calendar-shell .highlights-header .section-title,
+  .about-page-wrapper .section-title,
+  .vendors-page-header .section-title,
+  .events-page-header .section-title,
+  .vendor-apply-header .section-title,
+  .legal-page-header .section-title,
+  .badges-header .section-title {
+    font-size: clamp(3.5rem, 5vw, 5rem);
+    line-height: 0.95;
+  }
+
+  .homepage .section-subtitle,
+  .homepage .highlights-calendar-shell .highlights-header-copy .section-subtitle,
+  .about-page-wrapper .section-subtitle,
+  .vendors-page-header .section-subtitle,
+  .events-page-header .section-subtitle,
+  .vendor-apply-header .section-subtitle,
+  .badges-header .section-subtitle {
+    font-size: clamp(1.15rem, 1.5vw, 1.35rem);
+    line-height: 1.55;
+  }
+}
+
 /* Match homepage section heading scale to the calendar on laptop screens. */
 @media (min-width: 1024px) and (max-width: 1439px) {
   .homepage .section-title,
