@@ -38,6 +38,7 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
   // If the card is rendered in the "upcoming" group but the date has
   // actually passed, switch the variant so the CTA says "VIEW GALLERY".
   const effectiveVariant = isPast ? 'past' : variant;
+  const showStatusBadge = effectiveVariant !== 'upcoming';
 
   return (
     <Link
@@ -65,16 +66,18 @@ export default function EventCard({ event, variant = 'upcoming' }: EventCardProp
       {/* Card Content */}
       <div className="ec-content">
         {/* Status badge */}
-        <div className="ec-card-kicker">
-          <span
-            className="ec-status-badge"
-            style={{
-              color: status.color,
-              background: status.bg,
-            }}
-          >
-            {status.label}
-          </span>
+        <div className={`ec-card-kicker ${showStatusBadge ? '' : 'ec-card-kicker--date-only'}`}>
+          {showStatusBadge && (
+            <span
+              className="ec-status-badge"
+              style={{
+                color: status.color,
+                background: status.bg,
+              }}
+            >
+              {status.label}
+            </span>
+          )}
           <span className="ec-full-date">{fullDate}</span>
         </div>
 

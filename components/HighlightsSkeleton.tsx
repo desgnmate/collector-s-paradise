@@ -16,11 +16,6 @@ export default function HighlightsSkeleton() {
                 Find your next collector meet-up, plan the day and secure your place before the tables fill up.
               </p>
             </div>
-            <div className="highlights-header-stamp">
-              <span>NEXT UP</span>
-              <strong className="skeleton-count" />
-              <small>EVENTS</small>
-            </div>
           </div>
 
           <div className="highlights-controls-wrapper highlights-skeleton-controls">
@@ -42,7 +37,6 @@ export default function HighlightsSkeleton() {
                 </div>
                 <div className="highlights-skeleton-content">
                   <div className="highlights-skeleton-kicker">
-                    <span className="skeleton-line skeleton-line--badge" />
                     <span className="skeleton-line skeleton-line--date" />
                   </div>
                   <span className="skeleton-line skeleton-line--title" />

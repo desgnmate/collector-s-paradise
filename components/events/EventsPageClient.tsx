@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { CalendarDays, Grid2X2 } from 'lucide-react';
 import EventCard from './EventCard';
 import type { Event } from '@/app/actions/events';
 
@@ -46,16 +47,18 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
           }}
         >
           {viewMode === 'card' && (
-            <div className="highlights-toggle-container" aria-label="Event timeframe">
+            <div className="highlights-toggle-container" aria-label="Event timeframe" role="group">
               <button 
                 className={`toggle-btn ${eventType === 'upcoming' ? 'active' : ''}`}
                 onClick={() => setEventType('upcoming')}
+                aria-pressed={eventType === 'upcoming'}
               >
                 Upcoming <span className="toggle-count">{upcomingEvents.length}</span>
               </button>
               <button 
                 className={`toggle-btn ${eventType === 'past' ? 'active' : ''}`}
                 onClick={() => setEventType('past')}
+                aria-pressed={eventType === 'past'}
               >
                 Past <span className="toggle-count">{pastEvents.length}</span>
               </button>
@@ -67,15 +70,19 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
               className={`view-btn view-icon-only ${viewMode === 'card' ? 'active' : ''}`}
               onClick={() => setViewMode('card')}
               aria-label="Card View"
+              aria-pressed={viewMode === 'card'}
+              title="Card view"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <Grid2X2 aria-hidden="true" strokeWidth={2.2} />
             </button>
             <button 
               className={`view-btn view-icon-only ${viewMode === 'calendar' ? 'active' : ''}`}
               onClick={() => setViewMode('calendar')}
               aria-label="Calendar View"
+              aria-pressed={viewMode === 'calendar'}
+              title="Calendar view"
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <CalendarDays aria-hidden="true" strokeWidth={2.2} />
             </button>
           </div>
         </div>

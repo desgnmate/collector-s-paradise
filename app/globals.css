@@ -2628,7 +2628,7 @@ button.login-dropdown-item:hover .login-item-desc {
 .experience-section {
   min-height: 80vh;
   padding: clamp(4rem, 8vw, 7rem) 0;
-  background: #a8ddf0 url('/images/3rd-section-new.jpg') center / cover no-repeat;
+  background: #a8ddf0 url('/images/experience-background.jpg') center / cover no-repeat;
 }
 
 
@@ -2808,7 +2808,7 @@ button.login-dropdown-item:hover .login-item-desc {
   min-height: 80vh;
   height: auto;
   padding: clamp(4rem, 8vw, 7rem) 0;
-  background: #a8ddf0 url('/images/3rd-section-new.jpg') center / cover no-repeat;
+  background: #a8ddf0 url('/images/experience-background.jpg') center / cover no-repeat;
 }
 
 .experience-card-container {
@@ -15702,6 +15702,209 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
   .events-calendar-shell .events-page-card-grid .ec-card { max-width: 420px; min-height: 0; justify-self: center; }
 }
 
+/* Calendar controls — compact segmented actions with a clear active state. */
+.highlights-calendar-shell .highlights-toggle-container,
+.events-calendar-shell .highlights-toggle-container {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0.2rem;
+  border: 2px solid var(--color-dark);
+  border-radius: 14px;
+  background: var(--color-white);
+  box-shadow: 3px 3px 0 rgba(46, 46, 46, 0.16);
+}
+
+.highlights-calendar-shell .toggle-btn,
+.events-calendar-shell .toggle-btn {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-dark);
+  font-family: var(--font-poppins), var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.highlights-calendar-shell .toggle-btn:hover,
+.highlights-calendar-shell .toggle-btn:focus-visible,
+.events-calendar-shell .toggle-btn:hover,
+.events-calendar-shell .toggle-btn:focus-visible {
+  border-color: rgba(46, 46, 46, 0.45);
+  background: var(--color-cream);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.highlights-calendar-shell .toggle-btn.active,
+.events-calendar-shell .toggle-btn.active {
+  border-color: var(--color-dark);
+  background: var(--color-yellow);
+  box-shadow: 2px 2px 0 var(--color-dark);
+}
+
+.highlights-calendar-shell .toggle-count,
+.events-calendar-shell .toggle-count {
+  min-width: 21px;
+  height: 21px;
+  margin-left: 0.45rem;
+  border-radius: 50%;
+  background: var(--color-dark);
+  color: var(--color-white);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.highlights-calendar-shell .view-toggle-container,
+.events-calendar-shell .view-toggle-container {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  padding: 0.2rem;
+  border: 2px solid var(--color-dark);
+  border-radius: 14px;
+  background: var(--color-white);
+  box-shadow: 3px 3px 0 rgba(46, 46, 46, 0.16);
+}
+
+.highlights-calendar-shell .view-btn,
+.events-calendar-shell .view-btn {
+  width: 44px;
+  height: 44px;
+  border: 2px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-dark);
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.highlights-calendar-shell .view-btn + .view-btn,
+.events-calendar-shell .view-btn + .view-btn {
+  border-left: 1px solid rgba(46, 46, 46, 0.3);
+  border-radius: 10px;
+}
+
+.highlights-calendar-shell .view-btn:hover,
+.highlights-calendar-shell .view-btn:focus-visible,
+.events-calendar-shell .view-btn:hover,
+.events-calendar-shell .view-btn:focus-visible {
+  border-color: rgba(46, 46, 46, 0.45);
+  background: var(--color-cream);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.highlights-calendar-shell .view-btn.active,
+.events-calendar-shell .view-btn.active {
+  border-color: var(--color-dark);
+  background: var(--color-yellow);
+  box-shadow: 2px 2px 0 var(--color-dark);
+}
+
+.highlights-calendar-shell .view-btn svg,
+.events-calendar-shell .view-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.highlights-calendar-shell .ec-card-kicker--date-only,
+.events-calendar-shell .ec-card-kicker--date-only {
+  justify-content: flex-start;
+}
+
+.highlights-calendar-shell .ec-card-kicker--date-only .ec-full-date,
+.events-calendar-shell .ec-card-kicker--date-only .ec-full-date {
+  text-align: left;
+}
+
+.highlights-calendar-shell .ec-cta,
+.events-calendar-shell .events-page-card-grid .ec-cta {
+  min-width: 0;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.highlights-calendar-shell .ec-cta:hover,
+.events-calendar-shell .events-page-card-grid .ec-cta:hover {
+  background: var(--color-yellow);
+  color: var(--color-dark);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 520px) {
+  .highlights-calendar-shell .highlights-toggle-container,
+  .events-calendar-shell .highlights-toggle-container {
+    width: 100%;
+  }
+
+  .highlights-calendar-shell .toggle-btn,
+  .events-calendar-shell .toggle-btn {
+    flex: 1;
+    padding-inline: 0.65rem;
+  }
+
+  .highlights-calendar-shell .view-toggle-container,
+  .events-calendar-shell .view-toggle-container {
+    flex-shrink: 0;
+  }
+}
+
+/* Keep the calendar header open and the controls visually flat. */
+.highlights-calendar-shell .highlights-header {
+  grid-template-columns: minmax(0, 1fr);
+  min-height: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.highlights-calendar-shell .highlights-header-copy {
+  width: 100%;
+  align-items: center;
+  text-align: center;
+}
+
+.highlights-calendar-shell .highlights-header-copy .section-subtitle {
+  display: block;
+  max-width: 650px;
+  margin: 1rem auto 0;
+  color: var(--color-text-secondary);
+  font-size: clamp(0.95rem, 1.4vw, 1.08rem);
+  line-height: 1.55;
+  text-align: center;
+}
+
+.highlights-calendar-shell .highlights-header .section-title {
+  max-width: 100%;
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-align: center;
+  text-wrap: balance;
+}
+
+.highlights-calendar-shell .highlights-toggle-container,
+.highlights-calendar-shell .view-toggle-container,
+.events-calendar-shell .highlights-toggle-container,
+.events-calendar-shell .view-toggle-container,
+.highlights-calendar-shell .toggle-btn,
+.highlights-calendar-shell .view-btn,
+.events-calendar-shell .toggle-btn,
+.events-calendar-shell .view-btn {
+  box-shadow: none;
+}
+
+.highlights-calendar-shell .toggle-btn.active,
+.highlights-calendar-shell .view-btn.active,
+.events-calendar-shell .toggle-btn.active,
+.events-calendar-shell .view-btn.active {
+  box-shadow: none;
+}
+
 /* Vendor management: event decisions and reusable vendor profiles. */
 .vendor-management-loading {
   min-height: 320px;
@@ -17711,3 +17914,27 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
   .vendors-cards-grid .vendor-card { animation: none; }
 }
 #vendor-directory { scroll-margin-top: 96px; }
+
+/* Match homepage section heading scale to the calendar on laptop screens. */
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .homepage .section-title,
+  .about-page-wrapper .section-title,
+  .vendors-page-header .section-title,
+  .events-page-header .section-title,
+  .vendor-apply-header .section-title,
+  .legal-page-header .section-title,
+  .badges-header .section-title {
+    font-size: clamp(2.25rem, 4vw, 3.5rem);
+    line-height: 0.98;
+  }
+
+  .homepage .section-subtitle,
+  .about-page-wrapper .section-subtitle,
+  .vendors-page-header .section-subtitle,
+  .events-page-header .section-subtitle,
+  .vendor-apply-header .section-subtitle,
+  .badges-header .section-subtitle {
+    font-size: clamp(0.95rem, 1.4vw, 1.08rem);
+    line-height: 1.55;
+  }
+}
