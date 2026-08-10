@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     title: "FAQ | Collector's Paradise",
     description:
       "Everything you need to know about Collector's Paradise trading card events — tickets, vendors, venues, and community.",
-    url: 'https://collectorsparadise.au/faq',
+    url: 'https://www.collectorsparadise.au/faq',
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/faq',
+    canonical: 'https://www.collectorsparadise.au/faq',
   },
 };
 

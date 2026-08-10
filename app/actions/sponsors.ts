@@ -1,7 +1,6 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
@@ -78,7 +77,7 @@ type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
-  fields?: Record<string, any>;
+  fields?: Record<string, unknown>;
 };
 
 // ============================================
@@ -203,7 +202,6 @@ export async function submitSponsorApplication(
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }
 
-  revalidatePath('/admin/sponsors');
   return {
     message: 'Sponsorship application submitted successfully! We\'ll review your application and get back to you within 2-3 business days.',
     success: true,
@@ -253,17 +251,12 @@ export async function getPendingSponsors(): Promise<Sponsor[]> {
 export async function approveSponsor(sponsorId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
-  // Fetch sponsor details first for email notification
-  const { data: sponsor } = await supabase
+  const { data: sponsor, error } = await supabase
     .from('sponsors')
+    .update({ application_status: 'approved' })
     .select('contact_email, company_name, contact_name')
     .eq('id', sponsorId)
     .maybeSingle();
-
-  const { error } = await supabase
-    .from('sponsors')
-    .update({ application_status: 'approved' })
-    .eq('id', sponsorId);
 
   if (error) {
     console.error('Error approving sponsor:', JSON.stringify(error, null, 2));
@@ -276,7 +269,6 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
       .catch((err) => console.error('Failed to send approval email:', err));
   }
 
-  revalidatePath('/admin/sponsors');
   return { success: true, message: 'Sponsor approved successfully!' };
 }
 
@@ -284,22 +276,17 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
 export async function rejectSponsor(sponsorId: string, reason?: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
-  // Fetch sponsor details first for email notification
-  const { data: sponsor } = await supabase
-    .from('sponsors')
-    .select('contact_email, company_name, contact_name')
-    .eq('id', sponsorId)
-    .maybeSingle();
-
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
     updateData.rejection_reason = reason;
   }
 
-  const { error } = await supabase
+  const { data: sponsor, error } = await supabase
     .from('sponsors')
     .update(updateData)
-    .eq('id', sponsorId);
+    .eq('id', sponsorId)
+    .select('contact_email, company_name, contact_name')
+    .maybeSingle();
 
   if (error) {
     console.error('Error rejecting sponsor:', JSON.stringify(error, null, 2));
@@ -312,7 +299,6 @@ export async function rejectSponsor(sponsorId: string, reason?: string): Promise
       .catch((err) => console.error('Failed to send rejection email:', err));
   }
 
-  revalidatePath('/admin/sponsors');
   return { success: true, message: 'Sponsor application rejected.' };
 }
 
@@ -330,7 +316,6 @@ export async function waitlistSponsor(sponsorId: string): Promise<ActionState> {
     return { message: `Failed to waitlist sponsor: ${error.message}` };
   }
 
-  revalidatePath('/admin/sponsors');
   return { success: true, message: 'Sponsor waitlisted successfully!' };
 }
 
@@ -348,7 +333,6 @@ export async function negotiateSponsor(sponsorId: string): Promise<ActionState> 
     return { message: `Failed to update sponsor status: ${error.message}` };
   }
 
-  revalidatePath('/admin/sponsors');
   return { success: true, message: 'Sponsor status set to negotiating.' };
 }
 
@@ -366,7 +350,6 @@ export async function deleteSponsor(sponsorId: string): Promise<ActionState> {
     return { message: `Failed to delete sponsor: ${error.message}` };
   }
 
-  revalidatePath('/admin/sponsors');
   return { success: true, message: 'Sponsor deleted successfully!' };
 }
 

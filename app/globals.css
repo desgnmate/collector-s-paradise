@@ -48,6 +48,9 @@ main, .homepage {
   --font-body: var(--font-inter), sans-serif;
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-size-section-title: clamp(2.25rem, 2.5vw, 3rem);
+  --line-height-section-title: 1;
+  --letter-spacing-section-title: -0.035em;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -2748,6 +2751,9 @@ button.login-dropdown-item:hover .login-item-desc {
   border: 3px solid var(--color-dark);
   border-radius: 24px;
   box-shadow: 7px 7px 0 var(--color-dark);
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
   display: flex;
   flex-direction: column;
   transition: transform 220ms ease, box-shadow 220ms ease, background 220ms ease;
@@ -2763,6 +2769,14 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .about-feature-card:nth-child(2):hover { transform: translateY(-7px) rotate(0.4deg); }
+
+.about-feature-card:focus-visible {
+  outline: 4px solid var(--color-blue-primary);
+  outline-offset: 5px;
+  background: color-mix(in srgb, var(--card-accent) 18%, white);
+}
+
+.about-feature-card:active { transform: translateY(2px); }
 
 .about-feature-topline {
   display: flex;
@@ -2802,6 +2816,34 @@ button.login-dropdown-item:hover .login-item-desc {
   color: var(--color-text-secondary);
   font-size: 0.96rem;
   line-height: 1.65;
+}
+
+.about-feature-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 44px;
+  margin-top: 1.1rem;
+  padding-top: 0.85rem;
+  border-top: 2px solid color-mix(in srgb, var(--color-dark) 18%, transparent);
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.about-feature-link span {
+  font-size: 1.2rem;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.about-feature-card:hover .about-feature-link span,
+.about-feature-card:focus-visible .about-feature-link span {
+  transform: translateX(4px);
 }
 
 .experience-section {
@@ -3081,6 +3123,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 @media (prefers-reduced-motion: reduce) {
   .about-feature-card,
+  .about-feature-link span,
   .navbar-menu-icon,
   .navbar-dropdown,
   .menu-item-arrow,
@@ -3737,18 +3780,21 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .experiences-header {
   text-align: center;
-  max-width: min(100%, 56rem);
+  max-width: min(100%, 94rem);
   margin: 0 auto 2.5rem;
 }
 
 .experiences-header .section-title {
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
+  width: 100%;
+  margin: 0 auto 0.25rem;
+  text-align: center;
+  text-wrap: balance;
   font-size: clamp(1.25rem, 4.2vw, 3.5rem);
 }
 
 .experiences-header .section-subtitle {
-  margin-top: var(--space-md);
+  max-width: 42rem;
+  margin: var(--space-md) auto 0;
 }
 
 .experiences-grid {
@@ -4596,6 +4642,30 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .footer-nav a:hover {
   color: var(--color-yellow);
+}
+
+.footer-resource-nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.7rem 1.2rem;
+  max-width: 980px;
+  margin: 1.7rem auto 0;
+}
+
+.footer-resource-nav a {
+  color: var(--color-dark);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.footer-resource-nav a:hover,
+.footer-resource-nav a:focus-visible {
+  color: var(--color-red);
 }
 
 /* Bottom Contact / Legal Bar */
@@ -14596,10 +14666,21 @@ html[data-admin-theme="dark"] .admin-stat-card--blue { background: var(--admin-s
   white-space: nowrap;
 }
 
+button.admin-section-link {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
 .admin-quick-actions { flex-direction: column; margin-top: 18px; }
 
 .admin-action-card {
   justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
   min-height: 62px;
   padding: 14px 16px;
   background: var(--admin-surface);
@@ -17550,6 +17631,10 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
   width: min(420px, calc(100vw - 2rem));
   max-height: 280px;
   overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
   padding: 5px;
   border: 1.5px solid var(--color-dark);
   border-radius: 8px 0 8px 8px;
@@ -17962,5 +18047,31 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
   .badges-header .section-subtitle {
     font-size: clamp(0.95rem, 1.4vw, 1.08rem);
     line-height: 1.55;
+  }
+}
+
+/* Public section headings share one restrained desktop scale.
+   Hero h1 and footer display copy intentionally remain separate. */
+@media (min-width: 1024px) {
+  .homepage .section-title,
+  .about-page-wrapper .section-title,
+  .highlights-header .section-title,
+  .homepage .highlights-calendar-shell .highlights-header .section-title,
+  .highlights-calendar-shell .highlights-header .section-title,
+  .brands-header .section-title,
+  .vendor-showcase-header .section-title,
+  .vendors-page-header .section-title,
+  .events-page-header .section-title,
+  .vendor-apply-header .section-title,
+  .legal-page-header .section-title,
+  .badges-header .section-title,
+  .section-heading-dark,
+  .featured-sponsor-title,
+  .browse-other-events-title,
+  .vendors-cta-title {
+    font-size: var(--font-size-section-title);
+    line-height: var(--line-height-section-title);
+    letter-spacing: var(--letter-spacing-section-title);
+    text-wrap: balance;
   }
 }

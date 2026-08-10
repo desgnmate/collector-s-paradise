@@ -7,6 +7,7 @@ import polaroid2 from '@/public/images/footer-card-2.jpg';
 import polaroid3 from '@/public/images/footer-card-3.jpg';
 import polaroid4 from '@/public/images/footer-card-4.jpg';
 import footerLogo from '@/public/images/footer-logo.png';
+import { CONTACT_EMAIL, SOCIAL_LINKS } from '@/lib/site';
 
 export default function Footer() {
   return (
@@ -14,10 +15,10 @@ export default function Footer() {
       <div className="new-footer-container">
         {/* CTA Top Half */}
         <div className="footer-cta-part">
-          <p className="footer-eyebrow">Join Collector&apos;s Club</p>
+          <p className="footer-eyebrow">Plan your next collector day</p>
           <h2 className="footer-cta-title">BE PART OF THE<br />EXPERIENCE</h2>
           <p className="footer-cta-subtitle">Connect with collectors, share the passion,<br />and be part of something bigger.</p>
-          <Link href="/volunteers" className="btn btn-yellow footer-cta-btn">Subscribe</Link>
+          <Link href="/events" className="btn btn-yellow footer-cta-btn">Explore upcoming events</Link>
 
           {/* Floating Polaroids */}
           <div className="polaroid-cards-wrapper">
@@ -48,15 +49,24 @@ export default function Footer() {
             <Link href="/sponsorship" prefetch>SPONSORSHIP</Link>
             <Link href="/volunteers" prefetch>VOLUNTEER</Link>
             <Link href="/about" prefetch>ABOUT</Link>
-            <Link href="mailto:Collectorsinparadise@gmail.com" prefetch>CONTACT</Link>
+            <a href={`mailto:${CONTACT_EMAIL}`}>CONTACT</a>
+          </nav>
+
+          <nav className="footer-resource-nav" aria-label="Visitor resources">
+            <Link href="/locations/melbourne">MELBOURNE</Link>
+            <Link href="/locations/gold-coast">GOLD COAST</Link>
+            <Link href="/locations/canberra">CANBERRA</Link>
+            <Link href="/guides/first-trading-card-show">FIRST-SHOW GUIDE</Link>
+            <Link href="/vendors/booth-information">BOOTH INFORMATION</Link>
+            <Link href="/accessibility">ACCESSIBILITY</Link>
           </nav>
 
           {/* Address block — supports Local SEO NAP consistency */}
           <address className="footer-address" style={{ fontStyle: 'normal', textAlign: 'center', marginTop: '1rem', color: 'var(--color-dark)', fontSize: '0.85rem', lineHeight: 1.6 }}>
-            Collector's Paradise<br />
-            Melbourne, Victoria 3000<br />
-            Australia<br />
-            <a href="mailto:Collectorsinparadise@gmail.com" style={{ color: 'inherit' }}>Collectorsinparadise@gmail.com</a>
+            Collector&apos;s Paradise<br />
+            Based in Melbourne, Victoria<br />
+            Events across Australia<br />
+            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: 'inherit' }}>{CONTACT_EMAIL}</a>
           </address>
         </div>
 
@@ -68,19 +78,19 @@ export default function Footer() {
           </div>
 
           <div className="footer-social-icons">
-            <a href="https://youtube.com/@collectorsparadise25?si=Hs5xbkpJPQTeI237" target="_blank" rel="noopener noreferrer" aria-label="YouTube">
+            <a href={SOCIAL_LINKS.youtube} target="_blank" rel="noopener noreferrer" aria-label="YouTube">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19.13C5.12 19.56 12 19.56 12 19.56s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.43z" /><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02" />
               </svg>
             </a>
-            <a href="https://www.instagram.com/collectorsparadise25?igsh=OXk0c2Z1N2FrdTB0&utm_source=qr" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+            <a href={SOCIAL_LINKS.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                 <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
               </svg>
             </a>
-            <a href="https://www.tiktok.com/@collectorsparadi?_r=1&_t=ZS-97DUinKw2Vu" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+            <a href={SOCIAL_LINKS.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
               </svg>

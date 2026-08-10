@@ -1,0 +1,108 @@
+.page {
+  --ink: var(--color-dark);
+  --blue: var(--color-blue-light);
+  --blue-deep: var(--color-blue-primary);
+  --paper: var(--color-cream);
+  min-height: 100vh;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.shell { width: min(1120px, calc(100% - 48px)); margin-inline: auto; }
+.label { font: 800 0.7rem/1.2 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue-deep); }
+
+.primaryButton,
+.emailButton { min-height: 50px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid var(--ink); border-radius: var(--radius-pill); padding: 0.8rem 1.25rem; font: 800 0.73rem/1.15 var(--font-heading); text-transform: uppercase; text-decoration: none; }
+.primaryButton { background: var(--ink); color: #fff; }
+
+.principles { padding: 88px 0; }
+.sectionHeader { max-width: 760px; }
+.sectionHeader h2 { margin-top: 0.65rem; font: 800 clamp(2.4rem, 4vw, 4.5rem)/0.95 var(--font-heading); letter-spacing: -0.045em; }
+.sectionHeader > p { margin-top: 1rem; line-height: 1.75; }
+.principleGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2.5rem; }
+.principle { min-height: 250px; padding: 1.4rem; border: 1px solid #95a3aa; border-radius: var(--radius-lg); background: #fff; }
+.principle span { display: inline-grid; place-content: center; width: 42px; height: 42px; border-radius: 50%; background: var(--blue); font: 800 0.75rem/1 var(--font-mono); }
+.principle h3 { margin: 2.4rem 0 0.6rem; font: 800 1.08rem/1.3 var(--font-heading); }
+.principle p { color: #566371; line-height: 1.7; }
+
+.plannerSection { padding: 88px 0; background: #2b485d; color: #fff; }
+.planner { display: grid; grid-template-columns: 0.7fr 1.3fr; overflow: hidden; border: 1px solid #8da9b8; border-radius: var(--radius-xl); background: #20394b; }
+.plannerIntro { padding: 2rem; border-right: 1px solid #8da9b8; }
+.plannerIntro > p { color: #c8e8f4; font: 800 0.68rem/1.2 var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+.plannerIntro h2 { margin: 0.6rem 0 1rem; font: 800 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); }
+.plannerIntro span { display: block; color: #d1dce2; line-height: 1.75; }
+.plannerForm { padding: 2rem; }
+.textField { display: grid; gap: 0.5rem; }
+.textField + .textField { margin-top: 1.5rem; }
+.textField > span,
+.topicFieldset legend { font: 800 0.72rem/1.4 var(--font-heading); letter-spacing: 0.04em; text-transform: uppercase; }
+.textField input,
+.textField textarea { width: 100%; border: 1px solid #a8beca; border-radius: var(--radius-md); padding: 0.85rem 0.9rem; background: #fff; color: var(--ink); font: 0.95rem/1.5 var(--font-body); }
+.textField textarea { resize: vertical; }
+.textField input:focus,
+.textField textarea:focus { outline: 3px solid #f4c542; outline-offset: 2px; }
+.topicFieldset { margin: 1.5rem 0 0; border: 0; }
+.topicFieldset legend { margin-bottom: 0.75rem; }
+.topicGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.topic { display: grid; grid-template-columns: 28px 1fr; gap: 0.7rem; align-items: center; min-height: 66px; padding: 0.7rem; border: 1px solid #8da9b8; border-radius: var(--radius-md); cursor: pointer; }
+.topic input { position: absolute; opacity: 0; pointer-events: none; }
+.topic:focus-within { outline: 3px solid #f4c542; outline-offset: 2px; }
+.topic > span { width: 26px; height: 26px; display: grid; place-content: center; border: 1px solid #fff; border-radius: var(--radius-sm); }
+.topic strong { font-size: 0.82rem; line-height: 1.35; }
+.topicSelected { background: #416b82; }
+.topicSelected > span { background: #f4c542; border-color: #f4c542; color: var(--ink); font-weight: 900; }
+.plannerFooter { display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; margin-top: 1.5rem; }
+.plannerFooter p { max-width: 40ch; color: #cbd7dd; font-size: 0.8rem; line-height: 1.55; }
+.emailButton { border-color: #f4c542; background: #f4c542; color: var(--ink); text-align: center; }
+
+.visitGuide { padding: 94px 0; }
+.visitGrid { display: grid; grid-template-columns: 0.65fr 1.35fr; gap: 5rem; }
+.visitGuide h2 { margin-top: 0.65rem; font: 800 clamp(2.4rem, 4vw, 4.5rem)/0.95 var(--font-heading); letter-spacing: -0.045em; }
+.visitSteps { border-top: 1px solid #8e9aa2; }
+.visitStep { display: grid; grid-template-columns: 150px 1fr; gap: 2rem; padding: 1.4rem 0; border-bottom: 1px solid #8e9aa2; }
+.visitStep h3 { font: 800 0.8rem/1.4 var(--font-mono); color: var(--blue-deep); text-transform: uppercase; }
+.visitStep p { color: #556271; line-height: 1.75; }
+
+.statement { padding: 90px 0; background: #dbe9ee; }
+.statementGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; }
+.statement h2 { margin-top: 0.65rem; font: 800 clamp(2.3rem, 4vw, 4.2rem)/0.95 var(--font-heading); }
+.statementCopy { font-size: 1rem; line-height: 1.8; }
+.statementCopy p + p { margin-top: 1rem; }
+.statementCopy a { color: inherit; font-weight: 800; }
+
+.contact { padding: 74px 0; background: #f4c542; }
+.contactInner { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
+.contact h2 { max-width: 760px; font: 800 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); }
+.contact .primaryButton { flex: 0 0 auto; }
+
+@media (max-width: 900px) {
+  .planner,
+  .visitGrid,
+  .statementGrid { grid-template-columns: 1fr; gap: 3rem; }
+  .plannerIntro { border-right: 0; border-bottom: 1px solid #8da9b8; }
+}
+
+@media (max-width: 680px) {
+  .shell { width: min(100% - 28px, 1120px); }
+  .principleGrid,
+  .topicGrid { grid-template-columns: 1fr; }
+  .plannerIntro,
+  .plannerForm { padding: 1.3rem; }
+  .plannerFooter,
+  .contactInner { align-items: flex-start; flex-direction: column; }
+  .visitStep { grid-template-columns: 1fr; gap: 0.5rem; }
+  .emailButton { width: 100%; }
+}
+
+@media (min-width: 1024px) {
+  .sectionHeader h2,
+  .plannerIntro h2,
+  .visitGuide h2,
+  .statement h2,
+  .contact h2 {
+    font-size: var(--font-size-section-title);
+    line-height: var(--line-height-section-title);
+    letter-spacing: var(--letter-spacing-section-title);
+    text-wrap: balance;
+  }
+}

@@ -4,6 +4,9 @@ import EventsPageClient from '@/components/events/EventsPageClient';
 import { getEvents } from '@/app/actions/events';
 import { EventSchema } from '@/components/StructuredData';
 import type { Metadata } from 'next';
+import { getEventMarketDate } from '@/lib/event-date';
+import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
+import { absoluteUrl } from '@/lib/site';
 export const revalidate = 3600; // Cache for 1 hour to improve navigation speed
 
 export const metadata: Metadata = {
@@ -22,10 +25,10 @@ export const metadata: Metadata = {
     title: "Australian Trading Card Events | Collector's Paradise",
     description:
       "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events across Australia. Buy tickets and meet vendors.",
-    url: "https://collectorsparadise.au/events",
+    url: absoluteUrl('/events'),
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/events',
+    canonical: absoluteUrl('/events'),
   },
 };
 
@@ -33,8 +36,7 @@ export default async function EventsPage() {
   const events = await getEvents();
   // Local AU date for "today" so a 7 June event in Melbourne doesn't
   // get classified as past because UTC has already rolled forward.
-  const today = new Date();
-  const now = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  const now = getEventMarketDate();
   // Upcoming = event is today/future AND not cancelled. Past date wins
   // over the DB status — same logic used in EventCard.
   const upcomingEvents = events.filter(
@@ -49,26 +51,28 @@ export default async function EventsPage() {
       <Navbar />
       {/* Structured data for each event — invisible to users, consumed by search engines */}
       {/* Structured data for each upcoming event — consumed by search engines */}
-      {events
-        .filter((e) => e.event_date >= now && e.status !== 'cancelled' && e.status !== 'completed')
-        .map(event => {
-          // Parse venue_address into optional structured fields
-          const m = event.venue_address?.match(/,\s*([^,]+?)\s+(ACT|NSW|NT|QLD|SA|TAS|VIC|WA)\s+(\d{4})\s*$/i);
+      {upcomingEvents.map(event => {
+          const address = parseAustralianEventAddress(event.venue_address);
+          const eventUrl = absoluteUrl(`/events/${event.id}`);
+          const schemaDates = getEventSchemaDates(event.event_date, event.start_time, event.end_time);
           return (
             <EventSchema
               key={event.id}
               name={event.title}
               description={event.description || ''}
-              startDate={`${event.event_date}T${event.start_time || '09:00'}:00`}
-              endDate={`${event.event_date}T${event.end_time || '17:00'}:00`}
+              startDate={schemaDates.startDate}
+              endDate={schemaDates.endDate}
               venue={event.venue || 'Event Venue'}
-              venueAddress={event.venue_address || undefined}
-              addressLocality={m?.[1]}
-              addressRegion={m?.[2]?.toUpperCase()}
-              postalCode={m?.[3]}
+              venueAddress={address.streetAddress}
+              addressLocality={address.locality}
+              addressRegion={address.region}
+              postalCode={address.postcode}
               ticketPrice={event.ticket_price ?? undefined}
+              ticketUrl={event.booking_link || undefined}
+              eventUrl={eventUrl}
               imageUrl={event.cover_image_url || undefined}
-              status={event.status as 'upcoming' | 'completed'}
+              status={event.status}
+              isSoldOut={event.capacity > 0 && event.tickets_sold >= event.capacity}
             />
           );
         })}

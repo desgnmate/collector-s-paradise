@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import { getAdminEvents, type Event } from '@/app/actions/events';
 import {
   assignVendorsToEvents,
   deleteVendor,
@@ -120,9 +119,7 @@ function Pagination({
 }
 
 export default function AdminVendorsClient() {
-  const { vendors, loading, error, refreshData } = useAdminData();
-  const [events, setEvents] = useState<Event[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
+  const { vendors, events, loading, errors, setVendors, refreshData } = useAdminData();
   const [view, setView] = useState<View>('unassigned');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -140,16 +137,6 @@ export default function AdminVendorsClient() {
   const [assignmentStatus, setAssignmentStatus] = useState<VendorApplicationStatus | 'preserve'>('pending');
   const [currentPage, setCurrentPage] = useState(1);
   const [processing, setProcessing] = useState(false);
-
-  useEffect(() => {
-    getAdminEvents()
-      .then(setEvents)
-      .catch((fetchError) => {
-        console.error('Failed to fetch events for vendor management:', fetchError);
-        setNotice({ type: 'error', message: 'Events could not be loaded.' });
-      })
-      .finally(() => setEventsLoading(false));
-  }, []);
 
   const applications = useMemo<ApplicationRow[]>(
     () => vendors.flatMap((vendor) =>
@@ -245,7 +232,7 @@ export default function AdminVendorsClient() {
     setShowAssignment(false);
     setSelectedVendorIds([]);
     setNotice({ type: 'success', message: result.message });
-    await refreshData();
+    void refreshData(['vendors']);
   };
 
   const openApplication = (application: ApplicationRow) => {
@@ -293,9 +280,24 @@ export default function AdminVendorsClient() {
       setNotice({ type: 'error', message: result.message });
       return;
     }
+    const applicationId = activeApplication.id;
+    const updatedAt = new Date().toISOString();
     setActiveApplication(null);
     setNotice({ type: 'success', message: result.message });
-    await refreshData();
+    setVendors((current) => current.map((vendor) => ({
+      ...vendor,
+      event_applications: vendor.event_applications.map((application) => (
+        application.id === applicationId
+          ? {
+              ...application,
+              application_status: nextStatus,
+              booth_assignment: boothAssignment || null,
+              rejection_reason: nextStatus === 'rejected' ? rejectionReason || null : null,
+              updated_at: updatedAt,
+            }
+          : application
+      )),
+    })));
   };
 
   const removeApplication = async () => {
@@ -308,9 +310,17 @@ export default function AdminVendorsClient() {
       setNotice({ type: 'error', message: result.message });
       return;
     }
+    const applicationId = activeApplication.id;
     setActiveApplication(null);
     setNotice({ type: 'success', message: result.message });
-    await refreshData();
+    setVendors((current) => current.map((vendor) => ({
+      ...vendor,
+      event_name: vendor.event_applications
+        .filter((application) => application.id !== applicationId)
+        .map((application) => application.event_name)
+        .join(', ') || null,
+      event_applications: vendor.event_applications.filter((application) => application.id !== applicationId),
+    })));
   };
 
   const saveVendor = async () => {
@@ -329,7 +339,21 @@ export default function AdminVendorsClient() {
     setSelectedVendor(null);
     setEditData(null);
     setNotice({ type: 'success', message: result.message });
-    await refreshData();
+    setVendors((current) => current.map((vendor) => (
+      vendor.id === selectedVendor.id
+        ? {
+            ...vendor,
+            ...cleanData,
+            phone: cleanData.phone || null,
+            description: cleanData.description || null,
+            social_links: cleanData.social_links || null,
+            tables_requested: cleanData.tables_requested || null,
+            power_requirements: cleanData.power_requirements || null,
+            additional_notes: cleanData.additional_notes || null,
+            booth_assignment: cleanData.booth_assignment || null,
+          }
+        : vendor
+    )));
   };
 
   const permanentlyDeleteVendor = async () => {
@@ -345,9 +369,10 @@ export default function AdminVendorsClient() {
       setNotice({ type: 'error', message: result.message });
       return;
     }
+    const deletedVendorId = selectedVendor.id;
     setSelectedVendor(null);
     setNotice({ type: 'success', message: result.message });
-    await refreshData();
+    setVendors((current) => current.filter((vendor) => vendor.id !== deletedVendorId));
   };
 
   const exportEventCsv = () => {
@@ -377,12 +402,12 @@ export default function AdminVendorsClient() {
     URL.revokeObjectURL(url);
   };
 
-  if (loading || eventsLoading) {
+  if (loading) {
     return <div className="admin-content-panel vendor-management-loading"><div className="admin-spinner" /><span>Loading vendor management...</span></div>;
   }
 
-  if (error) {
-    return <div className="admin-content-panel"><div className="admin-alert admin-alert-error">{error}</div></div>;
+  if (errors.vendors || errors.events) {
+    return <div className="admin-content-panel"><div className="admin-alert admin-alert-error">{errors.vendors || errors.events}</div></div>;
   }
 
   return (

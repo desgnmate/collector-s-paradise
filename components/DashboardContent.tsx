@@ -1,37 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import { getAdminEvents, type Event } from '@/app/actions/events';
+import { useAdminRouter } from '@/contexts/AdminRouterContext';
 
 export default function DashboardContent() {
-  const { stats, loading, error, refreshData } = useAdminData();
-
-  // Fallback stats while loading or if stats is null
-  const displayStats = stats || {
-    totalVendors: 0,
-    pendingVendors: 0,
-    approvedVendors: 0,
-    totalEvents: 0,
-  };
-
-  const [events, setEvents] = useState<Event[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const data = await getAdminEvents();
-        setEvents(data);
-      } catch (err) {
-        console.error('Failed to fetch events for dashboard:', err);
-      } finally {
-        setEventsLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []);
+  const { stats: displayStats, events, loading } = useAdminData();
+  const { navigate } = useAdminRouter();
 
   const upcomingEvents = events
     .filter(e => e.status === 'upcoming')
@@ -89,7 +64,7 @@ export default function DashboardContent() {
     },
   ];
 
-  if (loading && !stats) {
+  if (loading) {
     return (
       <div className="admin-page">
         <div className="admin-dashboard-loading">
@@ -128,14 +103,11 @@ export default function DashboardContent() {
               <span className="admin-section-kicker">Schedule</span>
               <h2 className="admin-section-title">Upcoming Events</h2>
             </div>
-            <a href="/admin/events" className="admin-section-link">View all events</a>
+            <button type="button" className="admin-section-link" onClick={() => navigate('/admin/events')}>
+              View all events
+            </button>
           </div>
-          {eventsLoading ? (
-            <div className="admin-dashboard-message">
-              <div className="admin-spinner"></div>
-              <span>Loading upcoming events...</span>
-            </div>
-          ) : upcomingEvents.length > 0 ? (
+          {upcomingEvents.length > 0 ? (
             <div className="events-grid">
               {upcomingEvents.map(event => (
                 <div key={event.id} className="event-card">
@@ -198,7 +170,7 @@ export default function DashboardContent() {
           <span className="admin-section-kicker">Shortcuts</span>
           <h2 className="admin-section-title">Quick Actions</h2>
           <div className="admin-quick-actions">
-            <a href="/admin/vendors" className="admin-action-card">
+            <button type="button" className="admin-action-card" onClick={() => navigate('/admin/vendors')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
@@ -206,8 +178,8 @@ export default function DashboardContent() {
               <path d="M16 3.13a4 4 0 0 1 0 7.75" />
             </svg>
             <span>Vendor Management</span>
-            </a>
-            <a href="/admin/events" className="admin-action-card">
+            </button>
+            <button type="button" className="admin-action-card" onClick={() => navigate('/admin/events')}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
               <line x1="16" y1="2" x2="16" y2="6" />
@@ -215,7 +187,7 @@ export default function DashboardContent() {
               <line x1="3" y1="10" x2="21" y2="10" />
             </svg>
             <span>View Events</span>
-            </a>
+            </button>
           </div>
         </section>
       </div>

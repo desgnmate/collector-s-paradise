@@ -1,11 +1,10 @@
 import type { MetadataRoute } from 'next';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getEvents } from '@/app/actions/events';
+import { SITE_URL } from '@/lib/site';
 
-// Sitemap must be dynamic because the Supabase server client reads
-// cookies. Cache the rendered output for 1 hour to avoid hitting
-// Supabase on every crawler request.
+// Event data uses the same tagged one-hour cache as the public event pages,
+// avoiding a separate database read for every crawler request.
 export const revalidate = 3600;
-export const dynamic = 'force-dynamic';
 
 /**
  * Resolve a usable absolute image URL for a sitemap entry.
@@ -27,16 +26,18 @@ function resolveSitemapImage(url: string | null | undefined): string | null {
   if (trimmed.startsWith('data:')) return null;
   // Only absolute http(s) URLs are valid in a sitemap image entry.
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  if (trimmed.startsWith('/')) return new URL(trimmed, SITE_URL).toString();
   return null;
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://collectorsparadise.au';
+  const baseUrl = SITE_URL;
   const ogImage = `${baseUrl}/og-image.jpg`;
   const logoImage = `${baseUrl}/images/logo.png`;
 
   // Static pages — use a fixed date to avoid false freshness signals.
   const staticLastMod = new Date('2025-06-14');
+  const newContentLastMod = new Date('2026-08-10');
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
@@ -113,23 +114,61 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'yearly',
       priority: 0.3,
     },
+    {
+      url: `${baseUrl}/locations/melbourne`,
+      lastModified: newContentLastMod,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      images: [`${baseUrl}/images/buy-sell-trade.jpeg`],
+    },
+    {
+      url: `${baseUrl}/locations/gold-coast`,
+      lastModified: newContentLastMod,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      images: [`${baseUrl}/images/event-experience.png`],
+    },
+    {
+      url: `${baseUrl}/locations/canberra`,
+      lastModified: newContentLastMod,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      images: [`${baseUrl}/images/3rd-section-new.jpg`],
+    },
+    {
+      url: `${baseUrl}/guides/first-trading-card-show`,
+      lastModified: newContentLastMod,
+      changeFrequency: 'monthly',
+      priority: 0.75,
+      images: [`${baseUrl}/images/meet-fans.png`],
+    },
+    {
+      url: `${baseUrl}/vendors/booth-information`,
+      lastModified: newContentLastMod,
+      changeFrequency: 'weekly',
+      priority: 0.7,
+      images: [`${baseUrl}/images/team-vendors-1.png`],
+    },
+    {
+      url: `${baseUrl}/accessibility`,
+      lastModified: newContentLastMod,
+      changeFrequency: 'yearly',
+      priority: 0.5,
+    },
   ];
 
   // Dynamic event pages — skip any event whose cover image is invalid
   // (e.g. stored as a data URI) so we never publish a malformed entry.
   let eventPages: MetadataRoute.Sitemap = [];
   try {
-    const supabase = await createSupabaseServerClient();
-    const { data: events } = await supabase
-      .from('events')
-      .select('id, title, updated_at, cover_image_url')
-      .in('status', ['upcoming', 'active', 'completed'])
-      .order('event_date', { ascending: false });
+    const events = await getEvents();
 
-    if (events) {
+    if (events.length > 0) {
       eventPages = events
         .map((event) => {
-          const imageUrl = resolveSitemapImage(event.cover_image_url) ?? ogImage;
+          const imageUrl = event.cover_image_url?.startsWith('data:')
+            ? `${baseUrl}/api/events/${event.id}/cover`
+            : resolveSitemapImage(event.cover_image_url) ?? ogImage;
           return {
             url: `${baseUrl}/events/${event.id}`,
             lastModified: new Date(event.updated_at),

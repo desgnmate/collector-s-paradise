@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     title: "Approved Trading Card Vendors | Collector's Paradise",
     description:
       "Discover approved Australian trading card vendors — rare Pokémon, Yu-Gi-Oh!, One Piece, sports cards, and graded cards.",
-    url: "https://collectorsparadise.au/vendors",
+    url: "https://www.collectorsparadise.au/vendors",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/vendors',
+    canonical: 'https://www.collectorsparadise.au/vendors',
   },
 };
 
@@ -108,7 +108,11 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
                     </span>
                     <span aria-hidden="true">⌄</span>
                   </summary>
-                  <nav aria-label="Choose vendor directory">
+                  <nav
+                    aria-label="Choose vendor directory"
+                    data-lenis-prevent="true"
+                    data-lenis-prevent-touch="true"
+                  >
                     <VendorNavigationLink href="/vendors" closeMenu className={unassignedOnly ? 'is-active' : ''} aria-current={unassignedOnly ? 'page' : undefined}>
                       <span><strong>Approved vendors</strong><small>Current directory</small></span>
                       {unassignedOnly && <span aria-hidden="true">✓</span>}

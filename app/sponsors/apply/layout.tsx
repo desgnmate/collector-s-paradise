@@ -14,10 +14,10 @@ export const metadata: Metadata = {
     title: "Apply for Sponsorship | Collector's Paradise",
     description:
       'Partner with Collector\'s Paradise trading card events. Platinum, Gold, Silver, and custom packages available.',
-    url: 'https://collectorsparadise.au/sponsors/apply',
+    url: 'https://www.collectorsparadise.au/sponsors/apply',
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/sponsors/apply',
+    canonical: 'https://www.collectorsparadise.au/sponsors/apply',
   },
   robots: {
     index: true,

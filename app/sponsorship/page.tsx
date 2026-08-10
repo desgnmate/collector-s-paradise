@@ -19,10 +19,10 @@ export const metadata: Metadata = {
     title: "Event Sponsorship | Collector's Paradise",
     description:
       "Reach Australian collectors at Collector's Paradise trading card events with tailored sponsorship packages.",
-    url: 'https://collectorsparadise.au/sponsorship',
+    url: 'https://www.collectorsparadise.au/sponsorship',
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/sponsorship',
+    canonical: 'https://www.collectorsparadise.au/sponsorship',
   },
 };
 
