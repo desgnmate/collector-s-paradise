@@ -70,10 +70,13 @@
 .statementCopy p + p { margin-top: 1rem; }
 .statementCopy a { color: inherit; font-weight: 800; }
 
-.contact { padding: 74px 0; background: #f4c542; }
+.contact { padding: 74px 0; background: var(--color-dark); color: #fff; }
 .contactInner { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
-.contact h2 { max-width: 760px; font: 800 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); }
+.contactCopy { max-width: 760px; }
+.contact h2 { font: 800 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); }
+.contactCopy p { margin-top: 0.8rem; color: #c8c9cc; font-size: clamp(0.95rem, 1.3vw, 1.08rem); line-height: 1.55; }
 .contact .primaryButton { flex: 0 0 auto; }
+.contact .primaryButton { border-color: var(--color-yellow); background: var(--color-yellow); color: var(--ink); }
 
 @media (max-width: 900px) {
   .planner,

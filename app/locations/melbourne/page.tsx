@@ -96,7 +96,10 @@ export default async function MelbourneLocationPage() {
 
       <section className={styles.locationFooterCta}>
         <div className={`${styles.shell} ${styles.locationFooterCtaInner}`}>
-          <h2>Looking beyond Victoria? Explore the Gold Coast and Canberra show guides.</h2>
+          <div className={styles.locationFooterCtaCopy}>
+            <h2>Looking beyond Victoria?</h2>
+            <p>Explore the Gold Coast and Canberra show guides.</p>
+          </div>
           <div className={styles.heroActions}>
             <Link href="/locations/gold-coast" className={styles.darkButton}>Gold Coast</Link>
             <Link href="/locations/canberra" className={styles.outlineButton}>Canberra</Link>

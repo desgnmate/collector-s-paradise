@@ -96,7 +96,15 @@ export default async function VendorBoothInformationPage() {
         <div className={styles.shell}><p className={styles.label}>Vendor FAQ</p><h2 id="booth-faq-title">Before you apply</h2><div className={styles.faqList}>{faqItems.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}</div></div>
       </section>
 
-      <section className={styles.finalCta}><div className={`${styles.shell} ${styles.finalCtaInner}`}><h2>Prepared your range and selected your dates?</h2><Link href="/vendors/apply" className={styles.yellowButton}>Start the application</Link></div></section>
+      <section className={styles.finalCta}>
+        <div className={`${styles.shell} ${styles.finalCtaInner}`}>
+          <div className={styles.finalCtaCopy}>
+            <h2>Prepared your range and selected your dates?</h2>
+            <p>Start when your booth information and event choices are ready.</p>
+          </div>
+          <Link href="/vendors/apply" className={styles.yellowButton}>Start the application</Link>
+        </div>
+      </section>
       <Footer />
     </main>
   );

@@ -8,18 +8,15 @@
 
 .shell { width: min(1160px, calc(100% - 48px)); margin-inline: auto; }
 
-.chapterNav { padding: 1.15rem 0; border-bottom: 2px solid var(--ink); background: var(--color-yellow); }
-.chapterNavInner { display: flex; justify-content: space-between; gap: 1.5rem; overflow-x: auto; }
-.chapterNav a { flex: 0 0 auto; color: inherit; font: 800 0.7rem/1.2 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; }
-
-.intro { padding: 84px 0; }
-.introGrid { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 5rem; }
+.intro { padding: clamp(9rem, 12vw, 10.5rem) 0 clamp(4.5rem, 7vw, 6rem); }
+.introGrid { display: grid; grid-template-columns: 1fr; gap: 2.25rem; justify-items: center; }
+.introHeader { max-width: 760px; text-align: center; }
 .label { color: var(--color-blue-primary); font: 800 0.72rem/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
 .intro h2,
 .etiquette h2,
 .timeline h2 { margin-top: 0.65rem; font: 900 clamp(2.4rem, 4.5vw, 4.8rem)/0.94 var(--font-heading); letter-spacing: -0.05em; text-transform: uppercase; }
-.introCopy { column-count: 2; column-gap: 2.5rem; font-size: 1rem; line-height: 1.8; }
-.introCopy p + p { margin-top: 1rem; }
+.introCopy { width: min(760px, 100%); font-size: 1rem; line-height: 1.8; }
+.introCopy p + p { margin-top: 1.25rem; }
 .introCopy strong { color: var(--color-blue-primary); }
 
 .checklistSection { padding: 82px 0; background: var(--color-dark); color: #fff; }
@@ -66,19 +63,19 @@
 .etiquetteCard h3 { margin: 2.8rem 0 0.65rem; font: 850 1.1rem/1.2 var(--font-heading); text-transform: uppercase; }
 .etiquetteCard p { line-height: 1.65; }
 
-.nextStep { padding: 75px 0; background: var(--color-blue-light); border-top: 2px solid var(--ink); }
+.nextStep { padding: 75px 0; background: var(--color-dark); color: #fff; border-top: 2px solid var(--ink); }
 .nextStepInner { display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
-.nextStep h2 { max-width: 760px; font: 900 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); text-transform: uppercase; }
-.button { min-height: 50px; flex: 0 0 auto; display: inline-flex; align-items: center; border: 2px solid var(--ink); border-radius: var(--radius-pill); padding: 0.8rem 1.35rem; background: var(--ink); color: #fff; font: 800 0.75rem/1 var(--font-heading); text-transform: uppercase; text-decoration: none; }
+.nextStepCopy { max-width: 760px; }
+.nextStep h2 { font: 900 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); text-transform: uppercase; }
+.nextStepCopy p { margin-top: 0.8rem; color: #c8c9cc; font-size: clamp(0.95rem, 1.3vw, 1.08rem); line-height: 1.55; }
+.button { min-height: 50px; flex: 0 0 auto; display: inline-flex; align-items: center; border: 2px solid var(--color-yellow); border-radius: var(--radius-pill); padding: 0.8rem 1.35rem; background: var(--color-yellow); color: var(--ink); font: 800 0.75rem/1 var(--font-heading); text-transform: uppercase; text-decoration: none; }
 
 @media (max-width: 900px) {
-  .introGrid { grid-template-columns: 1fr; gap: 3rem; }
   .timelineItem { grid-template-columns: 100px 0.65fr 1fr; }
 }
 
 @media (max-width: 680px) {
   .shell { width: min(100% - 28px, 1160px); }
-  .introCopy { column-count: 1; }
   .checklistTopline,
   .etiquetteHeader,
   .nextStepInner { align-items: flex-start; flex-direction: column; }
@@ -87,7 +84,6 @@
   .checkItem,
   .checkItem:nth-child(even) { border-right: 0; }
   .timelineItem { grid-template-columns: 1fr; gap: 0.5rem; }
-  .chapterNavInner { justify-content: flex-start; }
 }
 
 @media (min-width: 1024px) {

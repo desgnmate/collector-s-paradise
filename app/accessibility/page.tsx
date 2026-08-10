@@ -75,7 +75,15 @@ export default function AccessibilityPage() {
         </div>
       </section>
 
-      <section className={styles.contact}><div className={`${styles.shell} ${styles.contactInner}`}><h2>Have an event access question or found an online barrier?</h2><a href={`mailto:${CONTACT_EMAIL}`} className={styles.primaryButton}>Email {CONTACT_EMAIL}</a></div></section>
+      <section className={styles.contact}>
+        <div className={`${styles.shell} ${styles.contactInner}`}>
+          <div className={styles.contactCopy}>
+            <h2>Have an event access question?</h2>
+            <p>Tell us about a venue requirement or an online barrier.</p>
+          </div>
+          <a href={`mailto:${CONTACT_EMAIL}`} className={styles.primaryButton}>Email {CONTACT_EMAIL}</a>
+        </div>
+      </section>
       <Footer />
     </main>
   );

@@ -81,7 +81,10 @@ export default async function CanberraLocationPage() {
 
       <section className={styles.locationFooterCta}>
         <div className={`${styles.shell} ${styles.locationFooterCtaInner}`}>
-          <h2>Need venue-specific accessibility information before you commit?</h2>
+          <div className={styles.locationFooterCtaCopy}>
+            <h2>Need venue-specific accessibility information?</h2>
+            <p>Check the access-planning guidance before you commit.</p>
+          </div>
           <Link href="/accessibility" className={styles.darkButton}>Accessibility planning</Link>
         </div>
       </section>

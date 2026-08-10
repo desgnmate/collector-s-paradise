@@ -83,7 +83,10 @@ export default async function GoldCoastLocationPage() {
 
       <section className={styles.locationFooterCta}>
         <div className={`${styles.shell} ${styles.locationFooterCtaInner}`}>
-          <h2>Make the first lap easier with the practical first trading card show guide.</h2>
+          <div className={styles.locationFooterCtaCopy}>
+            <h2>Make the first lap easier.</h2>
+            <p>Use the practical first trading card show guide before event day.</p>
+          </div>
           <Link href="/guides/first-trading-card-show" className={styles.darkButton}>Open the guide</Link>
         </div>
       </section>

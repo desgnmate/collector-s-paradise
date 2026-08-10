@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
-import EditorialPageHero from '@/components/EditorialPageHero';
 import { absoluteUrl } from '@/lib/site';
 import FirstShowChecklist from './FirstShowChecklist';
 import styles from './guide.module.css';
@@ -43,25 +42,12 @@ export default function FirstTradingCardShowGuidePage() {
       <Navbar />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
 
-      <EditorialPageHero
-        title="Your first card show"
-        description="A practical guide to walking in prepared, talking to vendors, trading with confidence, and enjoying the room without trying to learn everything at once."
-      />
-
-      <nav className={styles.chapterNav} aria-label="Guide chapters">
-        <div className={`${styles.shell} ${styles.chapterNavInner}`}>
-          <a href="#before">01 / Before</a><a href="#checklist">02 / Checklist</a><a href="#day-of">03 / Day of</a><a href="#etiquette">04 / Etiquette</a>
-        </div>
-      </nav>
-
       <section id="before" className={styles.intro} aria-labelledby="before-title">
         <div className={`${styles.shell} ${styles.introGrid}`}>
-          <div><p className={styles.label}>Before you go</p><h2 id="before-title">Give yourself a simple mission</h2></div>
+          <div className={styles.introHeader}><p className={styles.label}>Before you go</p><h2 id="before-title">Give yourself a simple mission</h2></div>
           <div className={styles.introCopy}>
-            <p>Your first show is easier when you choose one or two priorities: find a specific card, learn what a set is worth, meet local sellers, or simply see what the hobby looks like in person.</p>
-            <p><strong>Start with the live event page.</strong> That is where confirmed venue, time, entry, and ticket details belong. Re-check it before travelling.</p>
-            <p>Bring a short want list and note any condition, edition, language, grading, or budget requirements. This makes conversations quicker and helps you compare like with like.</p>
-            <p>If you plan to trade, organise your cards so another collector can inspect them without handling your whole collection.</p>
+            <p>Your first show is easier when you choose one or two priorities: find a specific card, learn what a set is worth, meet local sellers, or simply see what the hobby looks like in person. <strong>Start with the live event page.</strong> That is where confirmed venue, time, entry, and ticket details belong. Re-check it before travelling.</p>
+            <p>Bring a short want list and note any condition, edition, language, grading, or budget requirements. This makes conversations quicker and helps you compare like with like. If you plan to trade, organise your cards so another collector can inspect them without handling your whole collection.</p>
           </div>
         </div>
       </section>
@@ -96,7 +82,10 @@ export default function FirstTradingCardShowGuidePage() {
 
       <section className={styles.nextStep}>
         <div className={`${styles.shell} ${styles.nextStepInner}`}>
-          <h2>Ready to choose a date? Start with the live event calendar.</h2>
+          <div className={styles.nextStepCopy}>
+            <h2>Ready to choose a date?</h2>
+            <p>Start with the live event calendar.</p>
+          </div>
           <Link href="/events" className={styles.button}>Find an event</Link>
         </div>
       </section>
