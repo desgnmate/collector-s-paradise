@@ -15521,13 +15521,16 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
   border-radius: 12px;
   background: var(--color-white);
   box-shadow: none;
+  text-align: center;
 }
 
 .edp-date-month,
 .edp-date-weekday {
+  width: 100%;
   font-family: var(--font-poppins), var(--font-heading);
   font-weight: 800;
   line-height: 1;
+  text-align: center;
 }
 
 .edp-date-day {
@@ -15538,6 +15541,7 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
   font-family: var(--font-poppins), var(--font-heading);
   font-weight: 800;
   line-height: 1;
+  text-align: center;
 }
 
 .edp-plan-panel,
