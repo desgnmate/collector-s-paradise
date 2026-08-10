@@ -8,7 +8,7 @@ import type { Volunteer } from '@/app/actions/volunteers';
 type TabType = 'all' | 'pending' | 'approved' | 'rejected' | 'waitlisted';
 
 export default function AdminVolunteersClient() {
-  const { volunteers, loading, error, invalidateCache, refreshData } = useAdminData();
+  const { volunteers, loading, errors, setVolunteers, refreshData } = useAdminData();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [selectedVolunteer, setSelectedVolunteer] = useState<Volunteer | null>(null);
@@ -64,8 +64,26 @@ export default function AdminVolunteersClient() {
       }
       
       if (result?.success) {
-        invalidateCache('volunteers');
-        invalidateCache('stats');
+        const volunteerId = selectedVolunteer.id;
+        if (modalAction === 'delete') {
+          setVolunteers((current) => current.filter((volunteer) => volunteer.id !== volunteerId));
+        } else {
+          const nextStatus: Volunteer['application_status'] = modalAction === 'approve'
+            ? 'approved'
+            : modalAction === 'reject'
+              ? 'rejected'
+              : 'waitlisted';
+          setVolunteers((current) => current.map((volunteer) => volunteer.id === volunteerId
+            ? {
+                ...volunteer,
+                application_status: nextStatus,
+                rejection_reason: modalAction === 'reject' && rejectionReason
+                  ? rejectionReason
+                  : volunteer.rejection_reason,
+                updated_at: new Date().toISOString(),
+              }
+            : volunteer));
+        }
       } else {
         alert(result?.message || 'Action failed');
       }
@@ -107,14 +125,14 @@ export default function AdminVolunteersClient() {
     );
   }
 
-  if (error) {
+  if (errors.volunteers) {
     return (
       <div className="admin-content-panel">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800 font-medium">Error loading volunteers</p>
-          <p className="text-red-600 text-sm mt-1">{error}</p>
+          <p className="text-red-600 text-sm mt-1">{errors.volunteers}</p>
           <button 
-            onClick={() => refreshData()} 
+            onClick={() => refreshData(['volunteers'])}
             className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
           >
             Retry

@@ -17,10 +17,10 @@ export const metadata: Metadata = {
     title: "Volunteer With Us | Collector's Paradise",
     description:
       "Help run Collector's Paradise trading card events. Roles include setup, registration, floor guiding, and breakdown.",
-    url: 'https://collectorsparadise.au/volunteers',
+    url: 'https://www.collectorsparadise.au/volunteers',
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/volunteers',
+    canonical: 'https://www.collectorsparadise.au/volunteers',
   },
 };
 

@@ -4,9 +4,9 @@ import "./globals.css";
 import ClientRuntime from "@/components/ClientRuntime";
 import {
   OrganizationSchema,
-  LocalBusinessSchema,
   EventSeriesSchema,
 } from "@/components/StructuredData";
+import { SITE_URL } from "@/lib/site";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -41,7 +41,7 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://collectorsparadise.au"),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Australia's TCG & Trading Card Events | Collector's Paradise",
     template: "%s",
@@ -83,7 +83,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "Collector's Paradise",
     locale: "en_AU",
-    url: "https://collectorsparadise.au",
+    url: SITE_URL,
     countryName: "Australia",
     description: siteDescription,
     images: [
@@ -113,7 +113,7 @@ export const metadata: Metadata = {
     },
   },
   alternates: {
-    canonical: "https://collectorsparadise.au",
+    canonical: SITE_URL,
   },
   verification: {
     google: "googleee7ef25e2b145100",
@@ -133,7 +133,6 @@ export default function RootLayout({
       </head>
       <body>
         <OrganizationSchema />
-        <LocalBusinessSchema />
         <EventSeriesSchema />
         <ClientRuntime>
           {children}

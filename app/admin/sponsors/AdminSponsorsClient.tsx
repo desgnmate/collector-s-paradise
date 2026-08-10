@@ -8,7 +8,7 @@ import type { Sponsor } from '@/app/actions/sponsors';
 type TabType = 'all' | 'pending' | 'approved' | 'rejected' | 'waitlisted' | 'negotiating';
 
 export default function AdminSponsorsClient() {
-  const { sponsors, loading, error, invalidateCache, refreshData } = useAdminData();
+  const { sponsors, loading, errors, setSponsors, refreshData } = useAdminData();
   const [activeTab, setActiveTab] = useState<TabType>('all');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [selectedSponsor, setSelectedSponsor] = useState<Sponsor | null>(null);
@@ -68,8 +68,28 @@ export default function AdminSponsorsClient() {
       }
       
       if (result?.success) {
-        invalidateCache('sponsors');
-        invalidateCache('stats');
+        const sponsorId = selectedSponsor.id;
+        if (modalAction === 'delete') {
+          setSponsors((current) => current.filter((sponsor) => sponsor.id !== sponsorId));
+        } else {
+          const nextStatus: Sponsor['application_status'] = modalAction === 'approve'
+            ? 'approved'
+            : modalAction === 'reject'
+              ? 'rejected'
+              : modalAction === 'waitlist'
+                ? 'waitlisted'
+                : 'negotiating';
+          setSponsors((current) => current.map((sponsor) => sponsor.id === sponsorId
+            ? {
+                ...sponsor,
+                application_status: nextStatus,
+                rejection_reason: modalAction === 'reject' && rejectionReason
+                  ? rejectionReason
+                  : sponsor.rejection_reason,
+                updated_at: new Date().toISOString(),
+              }
+            : sponsor));
+        }
       } else {
         alert(result?.message || 'Action failed');
       }
@@ -112,14 +132,14 @@ export default function AdminSponsorsClient() {
     );
   }
 
-  if (error) {
+  if (errors.sponsors) {
     return (
       <div className="admin-content-panel">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
           <p className="text-red-800 font-medium">Error loading sponsors</p>
-          <p className="text-red-600 text-sm mt-1">{error}</p>
+          <p className="text-red-600 text-sm mt-1">{errors.sponsors}</p>
           <button 
-            onClick={() => refreshData()} 
+            onClick={() => refreshData(['sponsors'])}
             className="mt-3 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
           >
             Retry

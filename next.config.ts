@@ -22,6 +22,16 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   compress: true,
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'collectorsparadise.au' }],
+        destination: 'https://www.collectorsparadise.au/:path*',
+        permanent: true,
+      },
+    ];
+  },
   // Don't ship source maps to clients in production (smaller bundles
   // = faster navigation transitions)
   productionBrowserSourceMaps: false,

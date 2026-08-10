@@ -2,7 +2,7 @@
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createClient } from '@supabase/supabase-js';
-import { revalidatePath, revalidateTag, unstable_cache } from 'next/cache';
+import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
 import { getEffectiveEventStatus } from '@/lib/events/status';
 import { getEventMarketDate } from '@/lib/event-date';
@@ -28,6 +28,8 @@ export type Event = {
   created_at: string;
   updated_at: string;
 };
+
+const EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, created_at, updated_at';
 
 // ============================================
 // Validation Schemas
@@ -78,7 +80,7 @@ const getCachedEvents = unstable_cache(
 
     const { data, error } = await supabase
       .from('events')
-      .select('id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, created_at, updated_at')
+      .select(EVENT_COLUMNS)
       .in('status', ['upcoming', 'active', 'completed'])
       .order('event_date', { ascending: true });
 
@@ -98,7 +100,7 @@ const getCachedEventById = unstable_cache(
     const supabase = createPublicEventsClient();
     const { data, error } = await supabase
       .from('events')
-      .select('*')
+      .select(EVENT_COLUMNS)
       .eq('id', id)
       .single();
 
@@ -142,22 +144,30 @@ export async function getEvents(): Promise<Event[]> {
   return getCachedEvents();
 }
 
+const getCachedVendorApplicationEvents = unstable_cache(
+  async (): Promise<Array<Pick<Event, 'id' | 'title' | 'event_date' | 'venue'>>> => {
+    const supabase = createPublicEventsClient();
+    const { data, error } = await supabase
+      .from('events')
+      .select('id, title, event_date, venue')
+      .eq('status', 'upcoming')
+      .gte('event_date', getEventMarketDate())
+      .order('event_date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching vendor application events:', error);
+      return [];
+    }
+
+    return data || [];
+  },
+  ['vendor-application-events'],
+  { revalidate: 600, tags: ['events'] },
+);
+
 /** Fetch the live event checklist used by the vendor application form. */
 export async function getVendorApplicationEvents(): Promise<Array<Pick<Event, 'id' | 'title' | 'event_date' | 'venue'>>> {
-  const supabase = createPublicEventsClient();
-  const { data, error } = await supabase
-    .from('events')
-    .select('id, title, event_date, venue')
-    .eq('status', 'upcoming')
-    .gte('event_date', getEventMarketDate())
-    .order('event_date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching vendor application events:', error);
-    return [];
-  }
-
-  return data || [];
+  return getCachedVendorApplicationEvents();
 }
 
 /** Fetch a single event by ID */
@@ -178,6 +188,8 @@ type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
+  event?: Event;
+  deletedEventId?: string;
 };
 
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>) {
@@ -194,10 +206,7 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSe
   return { user, adminRecord };
 }
 
-/** Upload cover image to Supabase Storage and return the public URL.
- * Falls back to base64 data URI if the storage bucket isn't configured.
- * NOTE: Requires an 'event_covers' bucket in Supabase Storage (public).
- */
+/** Upload cover images to public Storage so they remain crawlable and cacheable. */
 async function uploadCoverImage(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
   file: File,
@@ -217,18 +226,9 @@ async function uploadCoverImage(
 
   if (uploadError) {
     console.error('Event cover upload error:', uploadError);
-    // Fallback: If storage bucket isn't configured or has RLS issues,
-    // save the image as a base64 string to prevent blocking event creation.
-    if (
-      uploadError.message.includes('security policy') ||
-      uploadError.message.includes('not found') ||
-      uploadError.message.includes('bucket')
-    ) {
-      console.warn('Storage upload failed for event cover, falling back to Base64 encoding.');
-      const base64String = Buffer.from(arrayBuffer).toString('base64');
-      return `data:${file.type};base64,${base64String}`;
-    }
-    return null; // Non-recoverable upload error
+    // Do not persist data: URLs. They create multi-megabyte page payloads
+    // and cannot be indexed as standalone event images.
+    return null;
   }
 
   return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event_covers/${filePath}`;
@@ -287,10 +287,14 @@ export async function createEvent(
     }
   }
 
-  const { error } = await supabase.from('events').insert({
-    ...validatedFields.data,
-    cover_image_url: coverImageUrl,
-  });
+  const { data: createdEvent, error } = await supabase
+    .from('events')
+    .insert({
+      ...validatedFields.data,
+      cover_image_url: coverImageUrl,
+    })
+    .select(EVENT_COLUMNS)
+    .single();
 
   if (error) {
     console.error('Error creating event:', error);
@@ -299,9 +303,12 @@ export async function createEvent(
 
   revalidatePath('/events');
   revalidatePath('/vendors/apply');
-  revalidateTag('events', 'max');
-  revalidatePath('/admin/events');
-  return { message: 'Event created successfully!', success: true };
+  updateTag('events');
+  return {
+    message: 'Event created successfully!',
+    success: true,
+    event: normalizeEvent(createdEvent as Event),
+  };
 }
 
 /** Update an existing event (admin only) */
@@ -383,10 +390,12 @@ export async function updateEvent(
     updateData.cover_image_url = coverImageUrl;
   }
 
-  const { error } = await supabase
+  const { data: updatedEvent, error } = await supabase
     .from('events')
     .update(updateData)
-    .eq('id', eventId);
+    .eq('id', eventId)
+    .select(EVENT_COLUMNS)
+    .single();
 
   if (error) {
     console.error('Error updating event:', error);
@@ -395,9 +404,12 @@ export async function updateEvent(
 
   revalidatePath('/events');
   revalidatePath('/vendors/apply');
-  revalidateTag('events', 'max');
-  revalidatePath('/admin/events');
-  return { message: 'Event updated successfully!', success: true };
+  updateTag('events');
+  return {
+    message: 'Event updated successfully!',
+    success: true,
+    event: normalizeEvent(updatedEvent as Event),
+  };
 }
 
 /** Delete an event (admin only) */
@@ -418,9 +430,8 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
 
   revalidatePath('/events');
   revalidatePath('/vendors/apply');
-  revalidateTag('events', 'max');
-  revalidatePath('/admin/events');
-  return { message: 'Event deleted successfully!', success: true };
+  updateTag('events');
+  return { message: 'Event deleted successfully!', success: true, deletedEventId: eventId };
 }
 
 /** Fetch all events for admin (including past/cancelled) */
@@ -432,7 +443,7 @@ export async function getAdminEvents(): Promise<Event[]> {
 
   const { data, error } = await supabase
     .from('events')
-    .select('*')
+    .select(EVENT_COLUMNS)
     .order('event_date', { ascending: false });
 
   if (error) {

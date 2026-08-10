@@ -3,7 +3,7 @@
 import { useAdminData } from '@/contexts/AdminDataContext';
 
 export default function AdminHeader() {
-  const { refreshData, loading, lastFetchedAt } = useAdminData();
+  const { refreshData, refreshing, error, lastFetchedAt } = useAdminData();
   
   const handleRefresh = async () => {
     await refreshData();
@@ -27,15 +27,18 @@ export default function AdminHeader() {
         <h1 className="admin-header-title">Admin Panel</h1>
         {lastUpdated > 0 && (
           <span className="admin-header-cache-info">
-            Last synced: {formatTime(lastUpdated)}
+            {refreshing ? 'Syncing in the background…' : `Last synced: ${formatTime(lastUpdated)}`}
           </span>
+        )}
+        {error && !refreshing && (
+          <span className="admin-header-cache-info" role="status">Some data could not sync</span>
         )}
       </div>
       
       <button 
-        className={`admin-refresh-btn ${loading ? 'loading' : ''}`}
+        className={`admin-refresh-btn ${refreshing ? 'loading' : ''}`}
         onClick={handleRefresh}
-        disabled={loading}
+        disabled={refreshing}
         title="Refresh all data"
       >
         <svg 
@@ -47,13 +50,13 @@ export default function AdminHeader() {
           strokeWidth="2" 
           strokeLinecap="round" 
           strokeLinejoin="round"
-          className={loading ? 'spinning' : ''}
+          className={refreshing ? 'spinning' : ''}
         >
           <polyline points="23 4 23 10 17 10" />
           <polyline points="1 20 1 14 7 14" />
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
         </svg>
-        {loading ? 'Refreshing...' : 'Refresh'}
+        {refreshing ? 'Syncing…' : 'Refresh'}
       </button>
     </div>
   );

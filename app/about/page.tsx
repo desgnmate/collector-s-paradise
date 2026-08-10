@@ -19,10 +19,10 @@ export const metadata: Metadata = {
     title: "About Collector's Paradise | Australian Trading Card Events",
     description:
       "Meet the team behind Collector's Paradise trading card events and the collector community we are building across Australia.",
-    url: "https://collectorsparadise.au/about",
+    url: "https://www.collectorsparadise.au/about",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/about',
+    canonical: 'https://www.collectorsparadise.au/about',
   },
 };
 

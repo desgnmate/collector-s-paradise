@@ -54,7 +54,10 @@ export async function GET(
   return new Response(image.bytes, {
     headers: {
       'Content-Type': image.contentType,
-      'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+      'Content-Disposition': 'inline',
+      'Cache-Control': 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=604800',
+      'X-Content-Type-Options': 'nosniff',
+      'X-Robots-Tag': 'index, follow',
     },
   });
 }

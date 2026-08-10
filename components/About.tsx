@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 const aboutFeatures = [
   {
@@ -6,18 +7,24 @@ const aboutFeatures = [
     title: 'Buy, sell & trade',
     description: 'Discover grails, complete your sets and make fair deals face-to-face with collectors and trusted vendors.',
     accent: 'yellow',
+    href: '/guides/first-trading-card-show',
+    cta: 'Read the first-show guide',
   },
   {
     number: '02',
     title: 'Win collector prizes',
     description: 'Join live giveaways and walk away with sealed products, special releases and surprise collector rewards.',
     accent: 'blue',
+    href: '/events',
+    cta: 'Explore live events',
   },
   {
     number: '03',
     title: 'Connect & collaborate',
     description: 'Meet the people behind Melbourne’s collecting community and turn shared interests into lasting connections.',
     accent: 'red',
+    href: '/about',
+    cta: 'Meet the community',
   },
 ];
 
@@ -36,7 +43,8 @@ const About = () => {
 
         <div className="about-feature-grid">
           {aboutFeatures.map((feature, index) => (
-            <article
+            <Link
+              href={feature.href}
               className={`about-feature-card about-feature-card--${feature.accent}`}
               data-aos="fade-up"
               data-aos-delay={(index + 1) * 100}
@@ -48,7 +56,11 @@ const About = () => {
               </div>
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
-            </article>
+              <span className="about-feature-link">
+                {feature.cta}
+                <span aria-hidden="true">→</span>
+              </span>
+            </Link>
           ))}
         </div>
 

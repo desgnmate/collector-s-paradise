@@ -1,4 +1,5 @@
 import React from 'react';
+import { absoluteUrl, CONTACT_EMAIL, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@/lib/site';
 
 const siteDescription =
   "Australia’s Collectibles Market. Buy, sell and trade your favourite TCGs, discover rare finds, and connect with collectors";
@@ -8,49 +9,6 @@ interface OrganizationSchemaProps {
   url?: string;
   logo?: string;
   description?: string;
-}
-
-/**
- * Renders LocalBusiness JSON-LD for the event organiser and its Australian
- * service area. Event pages carry exact venue details.
- */
-export function LocalBusinessSchema() {
-  const schema = {
-    '@context': 'https://schema.org',
-    '@type': ['LocalBusiness', 'EventVenue'],
-    '@id': 'https://collectorsparadise.au/#localbusiness',
-    name: "Collector's Paradise",
-    alternateName: "Collector's Paradise Australia",
-    description: siteDescription,
-    url: 'https://collectorsparadise.au',
-    logo: 'https://collectorsparadise.au/images/logo.png',
-    image: 'https://collectorsparadise.au/og-image.jpg',
-    priceRange: '$$',
-    address: {
-      '@type': 'PostalAddress',
-      addressLocality: 'Melbourne',
-      addressRegion: 'VIC',
-      postalCode: '3000',
-      addressCountry: 'AU',
-    },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: -37.8136,
-      longitude: 144.9631,
-    },
-    areaServed: { '@type': 'Country', name: 'Australia' },
-    sameAs: [
-      'https://www.instagram.com/collectorsparadisemelbourne',
-      'https://www.facebook.com/collectorsparadisemelbourne',
-      'https://twitter.com/collectorsparadise',
-    ],
-  };
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
-    />
-  );
 }
 
 /**
@@ -75,7 +33,7 @@ export const FAQ_DATA = [
   },
   {
     q: 'How do I buy tickets to a Collector\'s Paradise event?',
-    a: 'Tickets are available on our Events page. Select an upcoming event, choose your pass type, and complete secure checkout. Tickets are delivered to your email instantly.',
+    a: 'Open an upcoming event from the Events page and follow its published booking link. Checkout, confirmation, and ticket delivery are handled by the ticketing provider shown for that event.',
   },
   {
     q: 'How do I become a vendor at Collector\'s Paradise?',
@@ -120,17 +78,19 @@ export function EventSeriesSchema() {
   const schema = {
     '@context': 'https://schema.org',
     '@type': 'EventSeries',
+    '@id': `${SITE_URL}/events#series`,
     name: "Collector's Paradise Australian Trading Card Events",
     description: siteDescription,
-    url: 'https://collectorsparadise.au/events',
+    url: absoluteUrl('/events'),
     organizer: {
       '@type': 'Organization',
-      name: "Collector's Paradise",
-      url: 'https://collectorsparadise.au',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
     },
     areaServed: { '@type': 'Country', name: 'Australia' },
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-    eventStatus: 'https://schema.org/EventScheduled',
+    inLanguage: 'en-AU',
   };
   return (
     <script
@@ -145,32 +105,44 @@ export function EventSeriesSchema() {
  * Place in the root layout for site-wide presence.
  */
 export function OrganizationSchema({
-  name = "Collector's Paradise",
-  url = 'https://collectorsparadise.au',
-  logo = 'https://collectorsparadise.au/images/logo.png',
+  name = SITE_NAME,
+  url = SITE_URL,
+  logo = absoluteUrl('/images/logo.png'),
   description = siteDescription,
 }: OrganizationSchemaProps) {
   const orgSchema = {
     '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': `${SITE_URL}/#organization`,
     name,
+    alternateName: "Collector's Paradise Australia",
     url,
-    logo,
+    logo: {
+      '@type': 'ImageObject',
+      url: logo,
+    },
+    image: absoluteUrl('/og-image.jpg'),
     description,
     areaServed: { '@type': 'Country', name: 'Australia' },
+    sameAs: Object.values(SOCIAL_LINKS),
     contactPoint: {
       '@type': 'ContactPoint',
-      email: 'hello@collectorsparadise.au',
+      email: CONTACT_EMAIL,
       contactType: 'customer service',
+      availableLanguage: 'English',
+      areaServed: 'AU',
     },
   };
 
   const websiteSchema = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
     name,
     url,
     description,
+    inLanguage: 'en-AU',
+    publisher: { '@id': `${SITE_URL}/#organization` },
   };
 
   return (
@@ -191,7 +163,7 @@ interface EventSchemaProps {
   name: string;
   description: string;
   startDate: string; // ISO format e.g. "2026-05-12T09:00:00"
-  endDate: string;
+  endDate?: string;
   venue: string;
   venueAddress?: string;
   addressLocality?: string;    // e.g. "Melbourne", "Nerang"
@@ -199,8 +171,10 @@ interface EventSchemaProps {
   postalCode?: string;         // e.g. "3000", "4211"
   ticketPrice?: number;
   ticketUrl?: string;
+  eventUrl?: string;
   imageUrl?: string;
-  status?: 'upcoming' | 'completed' | 'cancelled';
+  status?: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  isSoldOut?: boolean;
 }
 
 /**
@@ -218,14 +192,15 @@ export function EventSchema({
   addressRegion,
   postalCode,
   ticketPrice,
-  ticketUrl = 'https://collectorsparadise.au/events',
+  ticketUrl,
+  eventUrl,
   imageUrl,
   status = 'upcoming',
+  isSoldOut = false,
 }: EventSchemaProps) {
-  const eventStatusMap: Record<string, string> = {
+  const eventStatusMap: Partial<Record<NonNullable<EventSchemaProps['status']>, string>> = {
     upcoming: 'https://schema.org/EventScheduled',
     active: 'https://schema.org/EventScheduled',
-    completed: 'https://schema.org/EventPassed',
     cancelled: 'https://schema.org/EventCancelled',
   };
   // Build location: Place name always, address only when we have a real
@@ -235,11 +210,12 @@ export function EventSchema({
     '@type': 'Place',
     name: venue,
   };
-  if (venueAddress) {
+  if (venueAddress || addressLocality || addressRegion || postalCode) {
     const address: Record<string, string> = {
       '@type': 'PostalAddress',
-      streetAddress: venueAddress,
+      addressCountry: 'AU',
     };
+    if (venueAddress) address.streetAddress = venueAddress;
     if (addressLocality) address.addressLocality = addressLocality;
     if (addressRegion) address.addressRegion = addressRegion;
     if (postalCode) address.postalCode = postalCode;
@@ -252,30 +228,36 @@ export function EventSchema({
     name,
     description,
     startDate,
-    endDate,
-    eventStatus: eventStatusMap[status] || 'https://schema.org/EventScheduled',
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+    inLanguage: 'en-AU',
     location,
     organizer: {
       '@type': 'Organization',
-      name: "Collector's Paradise",
-      url: 'https://collectorsparadise.au',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
     },
   };
 
+  // An invalid same-day end time is worse than omitting this optional field.
+  // Keep the source data visible on the event page, but do not publish a
+  // chronologically impossible interval to search engines.
+  if (endDate && endDate > startDate) schema.endDate = endDate;
+
+  if (eventUrl) schema.url = eventUrl;
+  if (eventStatusMap[status]) schema.eventStatus = eventStatusMap[status];
+
   if (imageUrl) {
-    schema.image = imageUrl.startsWith('/')
-      ? `https://collectorsparadise.au${imageUrl}`
-      : imageUrl;
+    schema.image = imageUrl.startsWith('/') ? absoluteUrl(imageUrl) : imageUrl;
   }
 
-  if (ticketPrice !== undefined) {
+  if (ticketPrice !== undefined && ticketUrl && status !== 'completed' && status !== 'cancelled') {
     schema.offers = {
       '@type': 'Offer',
       url: ticketUrl,
       price: ticketPrice,
       priceCurrency: 'AUD',
-      availability: 'https://schema.org/InStock',
+      availability: isSoldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
     };
   }
 

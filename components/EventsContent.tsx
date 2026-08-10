@@ -2,12 +2,12 @@
 
 import Image from 'next/image';
 
-import { useState, useEffect, useRef } from 'react';
-import { createEvent, updateEvent, deleteEvent, getAdminEvents, type Event } from '@/app/actions/events';
+import { useState, useRef } from 'react';
+import { createEvent, updateEvent, deleteEvent, type Event } from '@/app/actions/events';
+import { useAdminData } from '@/contexts/AdminDataContext';
 
 export default function EventsContent() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { events, setEvents, loading, errors, refreshData } = useAdminData();
   const [showForm, setShowForm] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [deletingEvent, setDeletingEvent] = useState<Event | null>(null);
@@ -18,20 +18,9 @@ export default function EventsContent() {
   const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
   const coverImageRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
-
-  const fetchEvents = async () => {
-    setLoading(true);
-    try {
-      const data = await getAdminEvents();
-      setEvents(data);
-    } catch (err) {
-      console.error('Failed to fetch events:', err);
-    } finally {
-      setLoading(false);
-    }
+  const upsertEvent = (event: Event) => {
+    setEvents((current) => [event, ...current.filter((item) => item.id !== event.id)]
+      .sort((a, b) => b.event_date.localeCompare(a.event_date)));
   };
 
   const handleCoverImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -82,7 +71,8 @@ export default function EventsContent() {
         setEditingEvent(null);
         form.reset();
         clearCoverImage();
-        fetchEvents();
+        if (result.event) upsertEvent(result.event);
+        else void refreshData(['events']);
       } else {
         setMessage({ text: result.message, type: 'error' });
       }
@@ -101,7 +91,7 @@ export default function EventsContent() {
       const result = await deleteEvent(deletingEvent.id);
       if (result.success) {
         setMessage({ text: result.message, type: 'success' });
-        fetchEvents();
+        setEvents((current) => current.filter((event) => event.id !== deletingEvent.id));
       } else {
         setMessage({ text: result.message, type: 'error' });
       }
@@ -150,6 +140,14 @@ export default function EventsContent() {
           <div className="admin-spinner"></div>
           <span className="ml-3 text-gray-600">Loading events...</span>
         </div>
+      </div>
+    );
+  }
+
+  if (errors.events) {
+    return (
+      <div className="admin-content-panel">
+        <div className="admin-alert admin-alert-error">{errors.events}</div>
       </div>
     );
   }
@@ -442,7 +440,14 @@ export default function EventsContent() {
                     <div className="admin-cover-upload">
                       {coverImagePreview ? (
                         <div className="admin-cover-preview">
-                          <img src={coverImagePreview} alt="Cover preview" className="admin-cover-preview-img" />
+                          <Image
+                            src={coverImagePreview}
+                            alt="Cover preview"
+                            className="admin-cover-preview-img"
+                            width={800}
+                            height={450}
+                            unoptimized={coverImagePreview.startsWith('data:') || coverImagePreview.startsWith('blob:')}
+                          />
                           <button type="button" onClick={clearCoverImage} className="admin-cover-remove" title="Remove image">
                             ✕
                           </button>

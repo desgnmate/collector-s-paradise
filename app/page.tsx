@@ -17,12 +17,12 @@ export const metadata: Metadata = {
   title: "Australia's TCG & Trading Card Events | Collector's Paradise",
   description: homepageDescription,
   alternates: {
-    canonical: "https://collectorsparadise.au",
+    canonical: "https://www.collectorsparadise.au",
   },
   openGraph: {
     title: "Australia's TCG & Trading Card Events | Collector's Paradise",
     description: homepageDescription,
-    url: "https://collectorsparadise.au",
+    url: "https://www.collectorsparadise.au",
   },
 };
 

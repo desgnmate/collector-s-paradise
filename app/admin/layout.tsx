@@ -8,6 +8,7 @@ import { AdminDataProvider } from '@/contexts/AdminDataContext';
 import AdminContentRouter from '@/components/AdminContentRouter';
 import AdminHeader from '@/components/AdminHeader';
 import AdminThemeToggle from '@/components/AdminThemeToggle';
+import { loadAdminDataSnapshot } from '@/lib/admin/data';
 import logo from '@/public/images/logo.png';
 
 export const metadata: Metadata = {
@@ -15,14 +16,17 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function AdminLayout({
-  children,
+export default async function AdminLayout({
+  children: _children,
 }: {
   children: React.ReactNode;
 }) {
+  void _children;
+  const initialData = await loadAdminDataSnapshot();
+
   return (
     <AdminRouterProvider>
-      <AdminDataProvider>
+      <AdminDataProvider initialData={initialData}>
         <div className="admin-layout">
           <aside className="admin-sidebar">
             <div className="admin-sidebar-header">

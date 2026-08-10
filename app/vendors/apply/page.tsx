@@ -21,10 +21,10 @@ export const metadata: Metadata = {
     title: "Apply as Vendor | Collector's Paradise",
     description:
       "Sell your trading cards and collectibles at Collector's Paradise events across Australia.",
-    url: "https://collectorsparadise.au/vendors/apply",
+    url: "https://www.collectorsparadise.au/vendors/apply",
   },
   alternates: {
-    canonical: 'https://collectorsparadise.au/vendors/apply',
+    canonical: 'https://www.collectorsparadise.au/vendors/apply',
   },
 };
 

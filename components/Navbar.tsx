@@ -1,15 +1,20 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { signOut } from '@/app/actions/auth';
 import logo from '@/public/images/logo.png';
+import { CONTACT_EMAIL } from '@/lib/site';
+import overlayStyles from './NavbarOverlay.module.css';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -23,6 +28,7 @@ export default function Navbar() {
     { href: '/', label: 'Home' },
     { href: '/about', label: 'About' },
     { href: '/events', label: 'Events' },
+    { href: '/guides/first-trading-card-show', label: 'Visit Guide' },
     { href: '/faq', label: 'FAQ' },
     { href: '/vendors', label: 'Vendors' },
     { href: '/sponsorship', label: 'Sponsorship' },
@@ -79,7 +85,7 @@ export default function Navbar() {
       const target = e.target as Element;
       if (
         !target.closest('.navbar-menu-icon') && 
-        !target.closest('.navbar-dropdown') &&
+        !target.closest('[data-nav-overlay]') &&
         !target.closest('.navbar-profile-wrapper')
       ) {
         
@@ -101,13 +107,6 @@ export default function Navbar() {
     document.addEventListener('click', handleClickOutside);
     handleScroll(); // Initialize on mount
 
-    // Close the fullscreen mobile menu on ESC and lock body scroll
-    // while it's open so the page underneath doesn't scroll.
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setMenuOpen(false);
-    };
-    window.addEventListener('keydown', handleKey);
-
     return () => {
       cancelled = true;
       if (authIdleHandle !== null) {
@@ -119,22 +118,60 @@ export default function Navbar() {
       }
       window.removeEventListener('scroll', throttledScroll);
       document.removeEventListener('click', handleClickOutside);
-      window.removeEventListener('keydown', handleKey);
       if (rafId !== null) cancelAnimationFrame(rafId);
       authSubscription?.unsubscribe();
     };
   }, [pathname]);
 
-  // Lock body scroll while the fullscreen mobile menu is open.
+  // Lock the page, move focus into the overlay, and keep keyboard focus
+  // inside it until the navigation is closed.
   useEffect(() => {
-    if (typeof document === 'undefined') return;
-    if (menuOpen) {
-      const prev = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = prev;
-      };
-    }
+    if (!menuOpen || typeof document === 'undefined') return;
+
+    const previousOverflow = document.body.style.overflow;
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    const menuButton = menuButtonRef.current;
+    const focusFrame = window.requestAnimationFrame(() => closeButtonRef.current?.focus());
+    document.body.style.overflow = 'hidden';
+
+    const handleOverlayKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuOpen(false);
+        return;
+      }
+
+      if (event.key !== 'Tab' || !overlayRef.current) return;
+
+      const focusable = Array.from(
+        overlayRef.current.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleOverlayKey);
+
+    return () => {
+      window.cancelAnimationFrame(focusFrame);
+      window.removeEventListener('keydown', handleOverlayKey);
+      document.body.style.overflow = previousOverflow;
+      if (menuButton?.isConnected) {
+        menuButton.focus();
+      } else if (previouslyFocused?.isConnected) {
+        previouslyFocused.focus();
+      }
+    };
   }, [menuOpen]);
 
   const getInitials = (name: string) => {
@@ -147,25 +184,10 @@ export default function Navbar() {
   };
 
   const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
+    setMenuOpen(current => !current);
     if (!menuOpen) {
       
       setProfileDropdownOpen(false);
-    }
-  };
-
-  /**
-   * Handles navigation to homepage sections.
-   */
-  const handleSectionLink = (e: React.MouseEvent, sectionId: string) => {
-    setMenuOpen(false);
-
-    if (isHomePage) {
-      e.preventDefault();
-      const el = document.getElementById(sectionId);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-      }
     }
   };
 
@@ -189,7 +211,7 @@ export default function Navbar() {
       <div className="navbar-inner">
         {/* Left: Logo (acts as Home button — scrolls to top when on home) */}
         <Link href="/" className="navbar-logo-link" onClick={handleLogoClick} prefetch>
-          <Image src={logo} alt="Collector's Paradise — Melbourne Pokémon TCG & Trading Card Events" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
+          <Image src={logo} alt="Collector's Paradise — Australian trading card and collectibles events" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
         </Link>
 
         {/* Right: Actions Group */}
@@ -244,13 +266,15 @@ export default function Navbar() {
             </Link>
           )}
 
-          {/* Hamburger Menu (Icon only) */}
-          <div className="navbar-menu-wrapper" style={{ position: 'relative' }}>
+          {/* The menu icon opens the same navigation overlay at every breakpoint. */}
+          <div className="navbar-menu-wrapper">
             <button
+              ref={menuButtonRef}
               className={`navbar-menu-icon ${menuOpen ? 'active' : ''}`}
               onClick={toggleMenu}
-              aria-label="Toggle menu"
+              aria-label="Open navigation menu"
               aria-expanded={menuOpen}
+              aria-controls="site-navigation-overlay"
             >
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="3" y1="6" x2="21" y2="6" />
@@ -258,87 +282,85 @@ export default function Navbar() {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
-
-            {/* Desktop dropdown — hidden on mobile (≤900px) via CSS */}
-            <div className={`navbar-dropdown ${menuOpen ? 'open' : ''}`}>
-              <div className="navbar-dropdown-inner">
-                <div className="navbar-dropdown-heading"><span>Explore</span><small>Collector&apos;s Paradise</small></div>
-                {navItems.map((item, index) => (
-                  <Link
-                    href={item.href}
-                    className={`dropdown-item ${isActiveRoute(item.href) ? 'is-active' : ''}`}
-                    aria-current={isActiveRoute(item.href) ? 'page' : undefined}
-                    onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
-                    prefetch
-                    key={item.href}
-                  >
-                    <span className="menu-item-number">0{index + 1}</span>
-                    <span className="menu-item-text">{item.label}</span>
-                    <span className="menu-item-arrow" aria-hidden="true">→</span>
-                  </Link>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
       </div>
 
-      {/* Fullscreen mobile menu — large stacked links, easy to tap.
-          On desktop this is hidden and the small dropdown above is used. */}
-      <div
-        className={`mobile-menu-overlay ${menuOpen ? 'open' : ''}`}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Site navigation"
-      >
-        <button
-          className="mobile-menu-close"
-          onClick={() => setMenuOpen(false)}
-          aria-label="Close menu"
+      {menuOpen && (
+        <div
+          ref={overlayRef}
+          id="site-navigation-overlay"
+          className={overlayStyles.overlay}
+          data-nav-overlay
+          role="dialog"
+          aria-modal="true"
+          aria-label="Site navigation"
         >
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="6" y1="6" x2="18" y2="18" />
-            <line x1="18" y1="6" x2="6" y2="18" />
-          </svg>
-        </button>
+          <div className={overlayStyles.shell}>
+            <div className={overlayStyles.header}>
+              <Link href="/" className={overlayStyles.logoLink} onClick={handleLogoClick} prefetch>
+                <Image
+                  src={logo}
+                  alt="Collector's Paradise"
+                  height={55}
+                  className={overlayStyles.logo}
+                  style={{ width: 'auto' }}
+                />
+              </Link>
 
-        <nav className="mobile-menu-nav">
-          {navItems.map((item, index) => (
-            <Link
-              href={item.href}
-              className={`mobile-menu-link ${isActiveRoute(item.href) ? 'is-active' : ''}`}
-              aria-current={isActiveRoute(item.href) ? 'page' : undefined}
-              onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
-              prefetch
-              key={item.href}
-            >
-              <span className="mobile-menu-index">0{index + 1}</span>
-              <span className="mobile-menu-link-text">{item.label}</span>
-              <span className="mobile-menu-arrow" aria-hidden="true">→</span>
-            </Link>
-          ))}
-        </nav>
+              <button
+                ref={closeButtonRef}
+                className={overlayStyles.close}
+                onClick={() => setMenuOpen(false)}
+                aria-label="Close navigation menu"
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round">
+                  <line x1="5" y1="5" x2="19" y2="19" />
+                  <line x1="19" y1="5" x2="5" y2="19" />
+                </svg>
+              </button>
+            </div>
 
-        {/* Apply as vendor CTA — mirrors the desktop navbar pill */}
-        <Link
-          href="/vendors/apply"
-          className="mobile-menu-cta"
-          onClick={() => setMenuOpen(false)}
-          prefetch
-        >
-          APPLY AS VENDOR
-        </Link>
+            <div className={overlayStyles.content}>
+              <div className={overlayStyles.links} aria-label="Primary navigation">
+                {navItems.map((item, index) => {
+                  const active = isActiveRoute(item.href);
+                  return (
+                    <Link
+                      href={item.href}
+                      className={`${overlayStyles.link} ${active ? overlayStyles.active : ''}`}
+                      aria-current={active ? 'page' : undefined}
+                      onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
+                      prefetch
+                      key={item.href}
+                    >
+                      <span className={overlayStyles.index}>0{index + 1}</span>
+                      <span>{item.label}</span>
+                      <span className={overlayStyles.arrow} aria-hidden="true">→</span>
+                    </Link>
+                  );
+                })}
+              </div>
 
-        {/* Contact / address block — supports local SEO NAP */}
-        <div className="mobile-menu-footer">
-          <a href="mailto:Collectorsinparadise@gmail.com" className="mobile-menu-email">
-            Collectorsinparadise@gmail.com
-          </a>
-          <p className="mobile-menu-address">
-            Melbourne, Victoria, Australia
-          </p>
+              <div className={overlayStyles.footer}>
+                <Link
+                  href="/vendors/apply"
+                  className={overlayStyles.cta}
+                  onClick={() => setMenuOpen(false)}
+                  prefetch
+                >
+                  Apply as vendor
+                </Link>
+
+                <div className={overlayStyles.contact}>
+                  <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                  <p>Based in Melbourne, serving event communities across Australia</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   );
 }

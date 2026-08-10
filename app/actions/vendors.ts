@@ -1,7 +1,8 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
+import { createClient } from '@supabase/supabase-js';
+import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
 import { sendNewApplicationEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 import { getEventMarketDate } from '@/lib/event-date';
@@ -61,6 +62,18 @@ export type VendorManagementEvent = {
 
 // Column selection for admin queries - only fetch what's needed
 const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
+
+const createPublicVendorsClient = () => createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+  {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  },
+);
 
 async function attachEventApplications(
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
@@ -166,9 +179,9 @@ type ActionState = {
 };
 
 /** Verify the current user is an admin — returns error message or null if OK */
-async function verifyAdmin(): Promise<string | null> {
-  const supabase = await createSupabaseServerClient();
-
+async function verifyAdmin(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+): Promise<string | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return 'Authentication required.';
 
@@ -252,10 +265,9 @@ async function sendToGoogleSheet(data: Record<string, unknown>): Promise<{ succe
 
 export async function syncAllVendorsToSheet() {
   'use server';
-  const adminError = await verifyAdmin();
-  if (adminError) return { success: false, message: adminError };
-
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin(supabase);
+  if (adminError) return { success: false, message: adminError };
   const { data: vendors, error } = await supabase
     .from('vendors')
     .select(ADMIN_VENDOR_COLUMNS)
@@ -475,7 +487,6 @@ export async function submitVendorApplication(
     }).catch((err) => console.error('Failed to push to Google Sheet:', err));
   }
 
-  revalidatePath('/admin/vendors');
   if (savedApplication?.already_applied) {
     return { message: 'Your application for the selected event is already on file.', success: true };
   }
@@ -490,13 +501,13 @@ export async function submitVendorApplication(
 }
 
 /** Get one public-safe page of unassigned vendors or event applicants. */
-export async function getApprovedVendors(
+async function fetchApprovedVendors(
   page = 1,
   perPage = 6,
   eventId?: string,
   unassignedOnly = true,
 ): Promise<{ vendors: Partial<Vendor>[]; totalCount: number }> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = createPublicVendorsClient();
   const safePage = Number.isInteger(page) && page > 0 ? page : 1;
   const safePerPage = Number.isInteger(perPage) && perPage > 0 ? Math.min(perPage, 48) : 6;
   const validatedEventId = eventId ? z.string().uuid().safeParse(eventId) : null;
@@ -569,13 +580,33 @@ export async function getApprovedVendors(
   return { vendors, totalCount: Number(data?.[0]?.total_count || 0) };
 }
 
+const getCachedApprovedVendors = unstable_cache(
+  fetchApprovedVendors,
+  ['public-vendor-directory-v2'],
+  { revalidate: 900, tags: ['vendors'] },
+);
+
+export async function getApprovedVendors(
+  page = 1,
+  perPage = 6,
+  eventId?: string,
+  unassignedOnly = true,
+): Promise<{ vendors: Partial<Vendor>[]; totalCount: number }> {
+  const safePage = Number.isInteger(page) && page > 0 ? page : 1;
+  const safePerPage = Number.isInteger(perPage) && perPage > 0 ? Math.min(perPage, 48) : 6;
+  const validatedEventId = eventId ? z.string().uuid().safeParse(eventId) : null;
+  if (eventId && !validatedEventId?.success) return { vendors: [], totalCount: 0 };
+
+  return getCachedApprovedVendors(safePage, safePerPage, eventId, unassignedOnly);
+}
+
 // ============================================
 // Admin Actions
 // ============================================
 
 export async function getAllVendors(): Promise<Vendor[]> {
   const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin();
+  const adminError = await verifyAdmin(supabase);
   if (adminError) throw new Error(adminError);
 
   const { data, error } = await supabase
@@ -603,12 +634,12 @@ const assignVendorsSchema = z.object({
 });
 
 export async function assignVendorsToEvents(input: z.input<typeof assignVendorsSchema>): Promise<ActionState> {
-  const adminError = await verifyAdmin();
-  if (adminError) return { message: adminError };
   const validated = assignVendorsSchema.safeParse(input);
   if (!validated.success) return { message: 'Select at least one valid vendor and event.' };
 
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin(supabase);
+  if (adminError) return { message: adminError };
   const vendorIds = [...new Set(validated.data.vendor_ids)];
   const eventIds = [...new Set(validated.data.event_ids)];
   const [{ data: vendors, error: vendorError }, { data: events, error: eventError }] = await Promise.all([
@@ -650,8 +681,8 @@ export async function assignVendorsToEvents(input: z.input<typeof assignVendorsS
 
   const created = inserted?.length || 0;
   const skipped = rows.length - created;
-  revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
+  updateTag('vendors');
   return {
     success: true,
     message: `${created} event assignment${created === 1 ? '' : 's'} created${skipped ? `; ${skipped} existing assignment${skipped === 1 ? '' : 's'} unchanged` : ''}.`,
@@ -662,22 +693,14 @@ export async function updateVendorEventApplication(
   applicationId: string,
   input: z.input<typeof eventApplicationUpdateSchema>,
 ): Promise<ActionState> {
-  const adminError = await verifyAdmin();
-  if (adminError) return { message: adminError };
   const id = z.string().uuid().safeParse(applicationId);
   const validated = eventApplicationUpdateSchema.safeParse(input);
   if (!id.success || !validated.success) return { message: 'Invalid application update.' };
 
   const supabase = await createSupabaseServerClient();
-  const { data: application, error: fetchError } = await supabase
-    .from('vendor_event_applications')
-    .select('id, vendors(email, business_name, contact_name), events(title)')
-    .eq('id', applicationId)
-    .maybeSingle();
-
-  if (fetchError || !application) return { message: 'Vendor event application not found.' };
-
-  const { error } = await supabase
+  const adminError = await verifyAdmin(supabase);
+  if (adminError) return { message: adminError };
+  const { data: application, error } = await supabase
     .from('vendor_event_applications')
     .update({
       application_status: validated.data.status,
@@ -687,12 +710,15 @@ export async function updateVendorEventApplication(
         : null,
       updated_at: new Date().toISOString(),
     })
-    .eq('id', applicationId);
+    .eq('id', applicationId)
+    .select('id, vendors(email, business_name, contact_name), events(title)')
+    .maybeSingle();
 
   if (error) {
     console.error('Error updating vendor event application:', JSON.stringify(error, null, 2));
     return { message: `Failed to update application: ${error.message}` };
   }
+  if (!application) return { message: 'Vendor event application not found.' };
 
   const vendorValue = application.vendors as unknown as { email: string; business_name: string; contact_name: string } | { email: string; business_name: string; contact_name: string }[] | null;
   const eventValue = application.events as unknown as { title: string } | { title: string }[] | null;
@@ -707,28 +733,26 @@ export async function updateVendorEventApplication(
       .catch((emailError) => console.error('Failed to send rejection email:', emailError));
   }
 
-  revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
+  updateTag('vendors');
   return { success: true, message: `Application marked ${validated.data.status}.` };
 }
 
 export async function removeVendorEventApplication(applicationId: string): Promise<ActionState> {
-  const adminError = await verifyAdmin();
-  if (adminError) return { message: adminError };
   if (!z.string().uuid().safeParse(applicationId).success) return { message: 'Invalid application.' };
 
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin(supabase);
+  if (adminError) return { message: adminError };
   const { error } = await supabase.from('vendor_event_applications').delete().eq('id', applicationId);
   if (error) return { message: `Failed to remove application: ${error.message}` };
 
-  revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
+  updateTag('vendors');
   return { success: true, message: 'Event application removed.' };
 }
 
 export async function updateVendor(vendorId: string, data: VendorUpdateData): Promise<ActionState> {
-  const adminError = await verifyAdmin();
-  if (adminError) return { message: adminError };
   const id = z.string().uuid().safeParse(vendorId);
   const validated = vendorUpdateSchema.safeParse(data);
   if (!id.success || !validated.success) {
@@ -739,6 +763,8 @@ export async function updateVendor(vendorId: string, data: VendorUpdateData): Pr
   }
 
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin(supabase);
+  if (adminError) return { message: adminError };
   const fields = validated.data;
   const { error } = await supabase.from('vendors').update({
     business_name: fields.business_name,
@@ -760,21 +786,21 @@ export async function updateVendor(vendorId: string, data: VendorUpdateData): Pr
     return { message: `Failed to update vendor: ${error.message}` };
   }
 
-  revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
+  updateTag('vendors');
   return { success: true, message: 'Vendor profile updated.' };
 }
 
 export async function deleteVendor(vendorId: string): Promise<ActionState> {
-  const adminError = await verifyAdmin();
-  if (adminError) return { message: adminError };
   if (!z.string().uuid().safeParse(vendorId).success) return { message: 'Invalid vendor.' };
 
   const supabase = await createSupabaseServerClient();
+  const adminError = await verifyAdmin(supabase);
+  if (adminError) return { message: adminError };
   const { error } = await supabase.from('vendors').delete().eq('id', vendorId);
   if (error) return { message: `Failed to delete vendor: ${error.message}` };
 
-  revalidatePath('/admin/vendors');
   revalidatePath('/vendors');
+  updateTag('vendors');
   return { success: true, message: 'Vendor and all event applications deleted.' };
 }

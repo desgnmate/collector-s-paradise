@@ -1,7 +1,6 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
@@ -54,7 +53,7 @@ type ActionState = {
   message: string;
   errors?: Record<string, string[]>;
   success?: boolean;
-  fields?: Record<string, any>;
+  fields?: Record<string, unknown>;
 };
 
 // ============================================
@@ -149,7 +148,6 @@ export async function submitVolunteerApplication(
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }
 
-  revalidatePath('/admin/volunteers');
   return {
     message: 'Application submitted successfully! We\'ll review your application and get back to you soon.',
     success: true,
@@ -199,17 +197,12 @@ export async function getPendingVolunteers(): Promise<Volunteer[]> {
 export async function approveVolunteer(volunteerId: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
-  // Fetch volunteer details first for email notification
-  const { data: volunteer } = await supabase
+  const { data: volunteer, error } = await supabase
     .from('volunteers')
+    .update({ application_status: 'approved' })
     .select('email, full_name')
     .eq('id', volunteerId)
     .maybeSingle();
-
-  const { error } = await supabase
-    .from('volunteers')
-    .update({ application_status: 'approved' })
-    .eq('id', volunteerId);
 
   if (error) {
     console.error('Error approving volunteer:', JSON.stringify(error, null, 2));
@@ -222,7 +215,6 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
       .catch((err) => console.error('Failed to send approval email:', err));
   }
 
-  revalidatePath('/admin/volunteers');
   return { success: true, message: 'Volunteer approved successfully!' };
 }
 
@@ -230,22 +222,17 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
 export async function rejectVolunteer(volunteerId: string, reason?: string): Promise<ActionState> {
   const supabase = await createSupabaseServerClient();
 
-  // Fetch volunteer details first for email notification
-  const { data: volunteer } = await supabase
-    .from('volunteers')
-    .select('email, full_name')
-    .eq('id', volunteerId)
-    .maybeSingle();
-
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
     updateData.rejection_reason = reason;
   }
 
-  const { error } = await supabase
+  const { data: volunteer, error } = await supabase
     .from('volunteers')
     .update(updateData)
-    .eq('id', volunteerId);
+    .eq('id', volunteerId)
+    .select('email, full_name')
+    .maybeSingle();
 
   if (error) {
     console.error('Error rejecting volunteer:', JSON.stringify(error, null, 2));
@@ -258,7 +245,6 @@ export async function rejectVolunteer(volunteerId: string, reason?: string): Pro
       .catch((err) => console.error('Failed to send rejection email:', err));
   }
 
-  revalidatePath('/admin/volunteers');
   return { success: true, message: 'Volunteer application rejected.' };
 }
 
@@ -276,7 +262,6 @@ export async function waitlistVolunteer(volunteerId: string): Promise<ActionStat
     return { message: `Failed to waitlist volunteer: ${error.message}` };
   }
 
-  revalidatePath('/admin/volunteers');
   return { success: true, message: 'Volunteer waitlisted successfully!' };
 }
 
@@ -294,7 +279,6 @@ export async function deleteVolunteer(volunteerId: string): Promise<ActionState>
     return { message: `Failed to delete volunteer: ${error.message}` };
   }
 
-  revalidatePath('/admin/volunteers');
   return { success: true, message: 'Volunteer deleted successfully!' };
 }
 

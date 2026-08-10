@@ -1,0 +1,222 @@
+.page {
+  --ink: var(--color-dark);
+  --paper: var(--color-cream);
+  min-height: 100vh;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+.shell {
+  width: min(1180px, calc(100% - 48px));
+  margin-inline: auto;
+}
+
+.kicker {
+  color: var(--color-blue-primary);
+  font: 800 0.72rem/1.2 var(--font-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.primaryButton,
+.darkButton,
+.outlineButton {
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-pill);
+  padding: 0.75rem 1.25rem;
+  font: 800 0.78rem/1 var(--font-heading);
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.primaryButton { background: var(--color-yellow); color: var(--ink); }
+.darkButton { background: var(--ink); color: #fff; }
+.outlineButton { background: transparent; color: inherit; }
+
+.primaryButton:hover,
+.darkButton:hover,
+.outlineButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0 currentColor;
+}
+
+.eventGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.eventCard {
+  overflow: hidden;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-lg);
+  background: #fff;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.eventCard:hover { transform: translateY(-5px); box-shadow: 7px 7px 0 var(--color-yellow); }
+
+.eventImageLink {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-bottom: 2px solid var(--ink);
+}
+
+.eventImage { object-fit: cover; transition: transform 300ms ease; }
+.eventCard:hover .eventImage { transform: scale(1.035); }
+
+.eventDateBadge {
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+  width: 56px;
+  height: 64px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  border: 2px solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--color-yellow);
+  color: var(--ink);
+  text-transform: uppercase;
+}
+
+.eventDateBadge strong { font: 900 1.45rem/1 var(--font-heading); }
+.eventDateBadge span { font: 800 0.62rem/1.2 var(--font-mono); }
+
+.eventCardBody { padding: 1.2rem; }
+.eventCardBody > p { font: 800 0.68rem/1.4 var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.eventCardBody h3 { margin: 0.55rem 0; font: 800 1.18rem/1.2 var(--font-heading); }
+.eventCardBody h3 a { color: inherit; text-decoration: none; }
+.eventCardBody > span { display: block; min-height: 2.5em; color: #62646a; font-size: 0.88rem; line-height: 1.5; }
+
+.textLink {
+  display: inline-flex;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  color: inherit;
+  font: 800 0.72rem/1 var(--font-heading);
+  text-transform: uppercase;
+}
+
+.noEvents {
+  grid-column: 1 / -1;
+  max-width: 680px;
+  padding: 2rem;
+  border: 2px dashed currentColor;
+  border-radius: var(--radius-lg);
+}
+
+.noEvents h3 { margin: 0.45rem 0; font: 800 1.8rem/1.1 var(--font-heading); }
+.noEvents > p:not(.kicker) { max-width: 55ch; margin-bottom: 1.25rem; line-height: 1.7; }
+
+/* Melbourne */
+.melbourne { --paper: var(--color-cream); }
+
+.melEvents {
+  padding: 78px 0;
+  border-bottom: 2px solid var(--ink);
+  background: color-mix(in srgb, var(--color-yellow) 14%, var(--color-cream));
+  color: #18191b;
+}
+.sectionHeader { display: flex; align-items: end; justify-content: space-between; gap: 2rem; margin-bottom: 2rem; }
+.sectionHeader h2 { margin-top: 0.4rem; font: 900 clamp(2.2rem, 4vw, 4rem)/0.95 var(--font-heading); text-transform: uppercase; letter-spacing: -0.04em; }
+.sectionHeader > p { max-width: 42ch; line-height: 1.65; }
+
+.melRoute { padding: 90px 0; }
+.routeGrid { display: grid; grid-template-columns: 0.8fr 1.4fr; gap: 5rem; }
+.routeIntro h2 { margin-top: 0.6rem; font: 900 clamp(2.4rem, 4vw, 4.6rem)/0.95 var(--font-heading); letter-spacing: -0.045em; }
+.routeIntro p { margin-top: 1rem; line-height: 1.7; }
+.routeSteps { border-top: 2px solid var(--ink); }
+.routeStep { display: grid; grid-template-columns: 64px 1fr; gap: 1rem; padding: 1.55rem 0; border-bottom: 2px solid var(--ink); }
+.routeStep > span { font: 900 1.4rem/1 var(--font-mono); color: var(--color-blue-primary); }
+.routeStep h3 { font: 800 1.2rem/1.2 var(--font-heading); text-transform: uppercase; }
+.routeStep p { margin-top: 0.4rem; color: #57585c; line-height: 1.65; }
+
+/* Gold Coast */
+.gold { --ink: var(--color-dark); --paper: var(--color-blue-light); background: var(--paper); }
+.gold .kicker { color: var(--color-dark); }
+.goldEvents { padding: 82px 0; border-bottom: 2px solid var(--ink); }
+.goldEvents .eventGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.goldEvents .eventCard { border-radius: var(--radius-lg); }
+.goldPlan { padding: 90px 0; background: var(--color-cream); }
+.goldPlanHeader { display: grid; grid-template-columns: 0.9fr 1.1fr; gap: 4rem; align-items: end; }
+.goldPlanHeader h2 { font: 900 clamp(2.5rem, 5vw, 5.2rem)/0.9 var(--font-heading); letter-spacing: -0.05em; text-transform: uppercase; }
+.goldPlanHeader p { max-width: 58ch; line-height: 1.75; }
+.goldChecklist { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 2.5rem; }
+.goldCheck { min-height: 220px; padding: 1.5rem; border: 2px solid var(--ink); border-radius: var(--radius-lg); background: #fff; }
+.goldCheck:nth-child(2) { background: var(--color-yellow); transform: translateY(18px); }
+.goldCheck span { display: block; margin-bottom: 2.4rem; font: 900 2rem/1 var(--font-mono); }
+.goldCheck h3 { font: 800 1.15rem/1.2 var(--font-heading); text-transform: uppercase; }
+.goldCheck p { margin-top: 0.65rem; line-height: 1.65; }
+
+/* Canberra */
+.canberra { --ink: var(--color-dark); --paper: var(--color-cream); }
+.canEvents { padding: 74px 0; background: #fff; }
+.canEvents .eventGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.canEvents .eventCard { border-radius: var(--radius-lg); border-width: 2px; }
+.canEvents .eventCard:hover { box-shadow: 8px 8px 0 var(--color-yellow); }
+.canGuide { padding: 90px 0; }
+.canGuideGrid { display: grid; grid-template-columns: 0.7fr 1.3fr; gap: 5rem; }
+.canGuideIntro h2 { margin-top: 0.65rem; font: 800 clamp(2.3rem, 4vw, 4.4rem)/0.96 var(--font-heading); letter-spacing: -0.05em; }
+.briefCards { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border: 2px solid var(--ink); border-radius: var(--radius-lg); background: #fff; }
+.briefCard { min-height: 210px; padding: 1.4rem; border-right: 1px solid #9197a1; border-bottom: 1px solid #9197a1; }
+.briefCard span { font: 800 0.7rem/1 var(--font-mono); color: var(--color-blue-primary); }
+.briefCard h3 { margin: 1.8rem 0 0.6rem; font: 800 1.05rem/1.2 var(--font-heading); text-transform: uppercase; }
+.briefCard p { color: #555e6d; line-height: 1.65; }
+
+.locationFooterCta { padding: 72px 0; border-top: 2px solid var(--ink); background: var(--color-yellow); }
+.locationFooterCtaInner { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+.locationFooterCta h2 { max-width: 760px; font: 900 clamp(2rem, 4vw, 4rem)/0.95 var(--font-heading); text-transform: uppercase; letter-spacing: -0.035em; }
+
+@media (max-width: 900px) {
+  .routeGrid,
+  .goldPlanHeader,
+  .canGuideGrid { grid-template-columns: 1fr; gap: 2.5rem; }
+
+  .eventGrid,
+  .goldEvents .eventGrid,
+  .canEvents .eventGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .goldChecklist { grid-template-columns: 1fr; }
+  .goldCheck:nth-child(2) { transform: none; }
+  .locationFooterCtaInner { align-items: flex-start; flex-direction: column; }
+}
+
+@media (max-width: 620px) {
+  .shell { width: min(100% - 28px, 1180px); }
+  .sectionHeader { align-items: flex-start; flex-direction: column; }
+  .eventGrid,
+  .goldEvents .eventGrid,
+  .canEvents .eventGrid,
+  .briefCards { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 1024px) {
+  .sectionHeader h2,
+  .routeIntro h2,
+  .goldPlanHeader h2,
+  .canGuideIntro h2,
+  .locationFooterCta h2 {
+    font-size: var(--font-size-section-title);
+    line-height: var(--line-height-section-title);
+    letter-spacing: var(--letter-spacing-section-title);
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .eventCard,
+  .eventImage,
+  .primaryButton,
+  .darkButton,
+  .outlineButton { transition: none; }
+}

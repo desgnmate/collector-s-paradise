@@ -8,26 +8,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { getEventMarketDate } from '@/lib/event-date';
+import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
+import { absoluteUrl } from '@/lib/site';
 export const revalidate = 3600;
 
 const EVENT_COVER_FALLBACK = '/images/event-experience.png';
-
-/**
- * Parse a venue address like "61 Cayuga St, Nerang QLD 4211" into
- * structured locality/region/postcode. Returns partial fields or undefined.
- */
-function parseAddress(addr: string | null | undefined): {
-  locality?: string;
-  region?: string;
-  postcode?: string;
-} {
-  if (!addr) return {};
-  // Match only the final comma segment: ", Suburb STATE POSTCODE"
-  // Case-insensitive for state abbreviations.
-  const m = addr.match(/,\s*([^,]+?)\s+(ACT|NSW|NT|QLD|SA|TAS|VIC|WA)\s+(\d{4})\s*$/i);
-  if (!m) return {};
-  return { locality: m[1], region: m[2].toUpperCase(), postcode: m[3] };
-}
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -47,8 +33,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     year: 'numeric',
   });
 
-  const { locality, region } = parseAddress(event.venue_address);
+  const { locality, region } = parseAustralianEventAddress(event.venue_address);
   const locationLabel = locality || 'Australia';
+  const eventImage = event.cover_image_url?.startsWith('/')
+    ? absoluteUrl(event.cover_image_url)
+    : event.cover_image_url;
 
   return {
     title: `${event.title} — ${dateStr} | ${locationLabel} Trading Card Event`,
@@ -67,23 +56,23 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description:
         event.description ||
         `${event.title} — ${dateStr} at ${event.venue || 'our venue'}. Buy tickets now.`,
-      url: `https://collectorsparadise.au/events/${id}`,
+      url: absoluteUrl(`/events/${id}`),
       type: 'website',
       locale: 'en_AU',
-      ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
-        images: [{ url: event.cover_image_url, width: 1200, height: 630, alt: event.title }],
+      ...(eventImage ? {
+        images: [{ url: eventImage, width: 1200, height: 630, alt: event.title }],
       } : {}),
     },
     twitter: {
       card: 'summary_large_image',
       title: `${event.title} — ${dateStr}`,
       description: event.description || `Trading card event in ${locationLabel} on ${dateStr}.`,
-      ...(event.cover_image_url && !event.cover_image_url.startsWith('data:') ? {
-        images: [event.cover_image_url],
+      ...(eventImage ? {
+        images: [eventImage],
       } : {}),
     },
     alternates: {
-      canonical: `https://collectorsparadise.au/events/${id}`,
+      canonical: absoluteUrl(`/events/${id}`),
     },
     other: {
       ...(region ? { 'geo.region': `AU-${region}` } : {}),
@@ -102,7 +91,7 @@ export default async function EventDetailPage({ params }: Props) {
     notFound();
   }
 
-  const { locality, region, postcode } = parseAddress(event.venue_address);
+  const { streetAddress, locality, region, postcode } = parseAustralianEventAddress(event.venue_address);
   const locationLabel = locality || 'Australia';
 
   const formatTime = (time: string) => {
@@ -127,8 +116,9 @@ export default async function EventDetailPage({ params }: Props) {
 
   const isSoldOut = (event.capacity - event.tickets_sold) <= 0;
   const ticketsRemaining = event.capacity - event.tickets_sold;
-  const today = new Date().toISOString().split('T')[0];
+  const today = getEventMarketDate();
   const effectiveStatus = event.event_date < today && event.status !== 'cancelled' ? 'completed' : event.status;
+  const schemaDates = getEventSchemaDates(event.event_date, event.start_time, event.end_time);
   const statusLabels = {
     upcoming: 'Upcoming event',
     active: 'Happening now',
@@ -143,17 +133,19 @@ export default async function EventDetailPage({ params }: Props) {
       <EventSchema
         name={event.title}
         description={event.description || `${event.title} — trading card event in ${locationLabel}.`}
-        startDate={`${event.event_date}T${event.start_time || '09:00'}:00`}
-        endDate={`${event.event_date}T${event.end_time || '17:00'}:00`}
+        startDate={schemaDates.startDate}
+        endDate={schemaDates.endDate}
         venue={event.venue || 'Event Venue'}
-        venueAddress={event.venue_address || undefined}
+        venueAddress={streetAddress}
         addressLocality={locality}
         addressRegion={region}
         postalCode={postcode}
         ticketPrice={event.ticket_price ?? undefined}
-        ticketUrl={`https://collectorsparadise.au/events/${event.id}`}
+        ticketUrl={event.booking_link || undefined}
+        eventUrl={absoluteUrl(`/events/${event.id}`)}
         imageUrl={event.cover_image_url || undefined}
-        status={(event.status as 'upcoming' | 'completed' | 'cancelled') || 'upcoming'}
+        status={effectiveStatus}
+        isSoldOut={isSoldOut}
       />
 
       <section className="edp-main">
@@ -178,7 +170,7 @@ export default async function EventDetailPage({ params }: Props) {
                 <div className="edp-decision-item">
                   <span className="edp-decision-label">When</span>
                   <strong>{formattedDate}</strong>
-                  <small>{formatTime(event.start_time)} — {formatTime(event.end_time)}</small>
+                  <small>{schemaDates.hasValidTimeRange ? `${formatTime(event.start_time)} — ${formatTime(event.end_time)}` : 'Timing confirmation pending'}</small>
                 </div>
                 <div className="edp-decision-item">
                   <span className="edp-decision-label">Where</span>
@@ -228,7 +220,7 @@ export default async function EventDetailPage({ params }: Props) {
                       <span className="edp-info-card-label">Date & Time</span>
                       <span className="edp-info-card-value">{formattedDate}</span>
                       <span className="edp-info-card-sub">
-                        {formatTime(event.start_time)} — {formatTime(event.end_time)}
+                        {schemaDates.hasValidTimeRange ? `${formatTime(event.start_time)} — ${formatTime(event.end_time)}` : 'Timing confirmation pending'}
                       </span>
                     </div>
                   </div>
