@@ -8,7 +8,7 @@ import cardRight from '@/public/images/card1-v3.png';
 export default function Hero() {
   return (
     <section className="hero" id="hero">
-      {/* Background video */}
+      {/* Decorative background video */}
       <div className="hero-bg">
         <video
           autoPlay
@@ -16,9 +16,10 @@ export default function Hero() {
           muted
           playsInline
           preload="auto"
+          aria-hidden="true"
           className="hero-video"
         >
-          <source src="/hero-section-video.mp4" type="video/mp4" />
+          <source src="/videos/4k-hero-video.mp4" type="video/mp4" />
         </video>
       </div>
 
@@ -29,7 +30,7 @@ export default function Hero() {
           Meet, Trade &amp; Connect
         </h1>
         <p className="hero-subtitle">
-          Australia's home of trading card events. Buy, sell and trade your
+          Australia&apos;s home of trading card events. Buy, sell and trade your
           favourite TCGs, discover rare finds, and connect with collectors
           who are as obsessed as you are.
         </p>

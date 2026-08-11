@@ -3137,8 +3137,8 @@ button.login-dropdown-item:hover .login-item-desc {
   object-position: center;
 }
 
-/* Render the original hero clip at its native decode quality. Avoid the
-   previous 1.05 CSS enlargement, which softened the video on larger screens. */
+/* Render the 4K hero clip at its native decode quality. Avoid CSS enlargement,
+   which softens the video on larger screens. */
 .hero-video {
   top: 50%;
   transform: translate(-50%, -50%);

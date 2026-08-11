@@ -10,12 +10,14 @@
 
 .intro { padding: clamp(9rem, 12vw, 10.5rem) 0 clamp(4.5rem, 7vw, 6rem); }
 .introGrid { display: grid; grid-template-columns: 1fr; gap: 2.25rem; justify-items: center; }
-.introHeader { max-width: 760px; text-align: center; }
+.introHeader { width: min(900px, 100%); margin-inline: auto; text-align: center; }
 .label { color: var(--color-blue-primary); font: 800 0.72rem/1.2 var(--font-mono); letter-spacing: 0.1em; text-transform: uppercase; }
+.introHeader .label { width: 100%; margin-inline: auto; text-align: center; }
 .intro h2,
 .etiquette h2,
 .timeline h2 { margin-top: 0.65rem; font: 900 clamp(2.4rem, 4.5vw, 4.8rem)/0.94 var(--font-heading); letter-spacing: -0.05em; text-transform: uppercase; }
-.introCopy { width: min(760px, 100%); font-size: 1rem; line-height: 1.8; }
+.intro h2 { max-width: 18ch; margin-inline: auto; text-align: center; text-wrap: balance; }
+.introCopy { width: min(760px, 100%); margin-inline: auto; font-size: 1rem; line-height: 1.8; text-align: center; }
 .introCopy p + p { margin-top: 1.25rem; }
 .introCopy strong { color: var(--color-blue-primary); }
 
