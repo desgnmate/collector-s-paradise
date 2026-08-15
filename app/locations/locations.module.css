@@ -143,7 +143,7 @@
 .routeStep p { margin-top: 0.4rem; color: #57585c; line-height: 1.65; }
 
 /* Gold Coast */
-.gold { --ink: var(--color-dark); --paper: var(--color-blue-light); background: var(--paper); }
+.gold { --ink: var(--color-dark); --paper: var(--color-cream); background: var(--paper); }
 .gold .kicker { color: var(--color-dark); }
 .goldEvents { padding: 82px 0; border-bottom: 2px solid var(--ink); }
 .goldEvents .eventGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -225,3 +225,22 @@
   .darkButton,
   .outlineButton { transition: none; }
 }
+
+/* Shared editorial scale: section headings stay readable and consistent on
+   desktop instead of expanding into poster-sized blocks. */
+.sectionHeader h2,
+.routeIntro h2,
+.goldPlanHeader h2,
+.canGuideIntro h2,
+.locationFooterCta h2 {
+  font-size: var(--font-size-section-title);
+  line-height: var(--line-height-section-title);
+  letter-spacing: var(--letter-spacing-section-title);
+  text-wrap: balance;
+}
+
+.melEvents,
+.goldEvents,
+.canEvents { border-bottom: 0; }
+
+.goldChecklist { grid-template-columns: 1.1fr 0.9fr 1.1fr; }

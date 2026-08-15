@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { absoluteUrl } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 
 export type BreadcrumbItem = {
   label: string;
@@ -28,7 +29,7 @@ export default function Breadcrumbs({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
       />
       <nav aria-label="Breadcrumb" className={className}>
         <ol>

@@ -3,7 +3,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { COLLECTION_CATEGORIES } from './collections-types';
 import type { Collection, CollectionActionState } from './collections-types';
 
 // ============================================
@@ -20,6 +19,28 @@ const collectionSchema = z.object({
   message: 'Minimum price cannot exceed maximum price',
   path: ['price_min'],
 });
+
+const PUBLIC_COLLECTION_COLUMNS = 'id, title, description, image_urls, price_min, price_max, categories, created_at, updated_at, vendor:vendors(business_name, logo_url)';
+
+function normalizePublicCollection(value: unknown): Collection {
+  const row = value as Record<string, unknown>;
+  const vendorValue = row.vendor;
+  const vendor = Array.isArray(vendorValue) ? vendorValue[0] : vendorValue;
+  return {
+    id: String(row.id),
+    title: String(row.title),
+    description: String(row.description || ''),
+    image_urls: Array.isArray(row.image_urls) ? row.image_urls.map(String) : [],
+    price_min: Number(row.price_min || 0),
+    price_max: Number(row.price_max || 0),
+    categories: Array.isArray(row.categories) ? row.categories.map(String) : [],
+    created_at: String(row.created_at),
+    updated_at: String(row.updated_at),
+    vendor: vendor && typeof vendor === 'object'
+      ? { business_name: String((vendor as Record<string, unknown>).business_name || ''), logo_url: (vendor as Record<string, unknown>).logo_url ? String((vendor as Record<string, unknown>).logo_url) : null }
+      : undefined,
+  };
+}
 
 // ============================================
 // Internal Auth Helper
@@ -48,11 +69,11 @@ export async function getCollections(): Promise<Collection[]> {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('collections')
-    .select('*, vendor:vendors(business_name, logo_url)')
+    .select(PUBLIC_COLLECTION_COLUMNS)
     .order('created_at', { ascending: false });
 
   if (error) { console.error('getCollections error:', error); return []; }
-  return (data ?? []) as Collection[];
+  return (data ?? []).map(normalizePublicCollection);
 }
 
 /** Fetch a single collection by ID */
@@ -60,12 +81,12 @@ export async function getCollectionById(id: string): Promise<Collection | null> 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from('collections')
-    .select('*, vendor:vendors(business_name, logo_url)')
+    .select(PUBLIC_COLLECTION_COLUMNS)
     .eq('id', id)
     .maybeSingle();
 
   if (error) { console.error('getCollectionById error:', error); return null; }
-  return data as Collection | null;
+  return data ? normalizePublicCollection(data) : null;
 }
 
 /** Fetch only the authenticated vendor's collections */

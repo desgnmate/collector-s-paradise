@@ -13,7 +13,7 @@ import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-lo
 import { absoluteUrl } from '@/lib/site';
 export const revalidate = 3600;
 
-const EVENT_COVER_FALLBACK = '/images/event-experience.png';
+const EVENT_COVER_FALLBACK = '/images/event-experience.jpg';
 
 type Props = {
   params: Promise<{ id: string }>;

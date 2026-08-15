@@ -1,9 +1,33 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+
+async function requireAdminClient() {
+  const sessionClient = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await sessionClient.auth.getUser();
+  if (authError || !user) return null;
+
+  const { data: adminRecord, error: adminError } = await sessionClient
+    .from('admin_users')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (adminError || !adminRecord) return null;
+  return createSupabaseAdminClient();
+}
 
 export async function getDashboardStats() {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) {
+    return {
+      totalVendors: 0,
+      pendingVendors: 0,
+      approvedVendors: 0,
+      totalEvents: 0,
+    };
+  }
   const [
     { count: totalVendors },
     { count: pendingVendors },

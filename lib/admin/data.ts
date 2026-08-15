@@ -1,6 +1,7 @@
 import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { getEffectiveEventStatus } from '@/lib/events/status';
 import type { Vendor, VendorEventApplication } from '@/app/actions/vendors';
 import type { Volunteer } from '@/app/actions/volunteers';
@@ -20,7 +21,7 @@ export type AdminDataSnapshot = {
   syncedAt: number;
 };
 
-type SupabaseServerClient = Awaited<ReturnType<typeof createSupabaseServerClient>>;
+type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
 
 const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
 const ADMIN_VOLUNTEER_COLUMNS = 'id, full_name, email, phone, preferred_roles, availability, previous_experience, events_interested, t_shirt_size, emergency_contact_name, emergency_contact_phone, additional_notes, how_heard_about, application_status, rejection_reason, assigned_event_id, applied_at, updated_at';
@@ -37,15 +38,15 @@ function normalizeAdminEvent(event: Event): Event {
   };
 }
 
-async function requireAdminClient(): Promise<SupabaseServerClient> {
-  const supabase = await createSupabaseServerClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+async function requireAdminClient(): Promise<SupabaseAdminClient> {
+  const sessionClient = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await sessionClient.auth.getUser();
 
   if (authError || !user) {
     throw new Error('Authentication required.');
   }
 
-  const { data: adminRecord, error: adminError } = await supabase
+  const { data: adminRecord, error: adminError } = await sessionClient
     .from('admin_users')
     .select('id')
     .eq('user_id', user.id)
@@ -55,10 +56,10 @@ async function requireAdminClient(): Promise<SupabaseServerClient> {
     throw new Error('Admin access required.');
   }
 
-  return supabase;
+  return createSupabaseAdminClient();
 }
 
-async function loadVendors(supabase: SupabaseServerClient): Promise<Vendor[]> {
+async function loadVendors(supabase: SupabaseAdminClient): Promise<Vendor[]> {
   const { data, error } = await supabase
     .from('vendors')
     .select(ADMIN_VENDOR_COLUMNS)
@@ -117,7 +118,7 @@ async function loadVendors(supabase: SupabaseServerClient): Promise<Vendor[]> {
   });
 }
 
-async function loadVolunteers(supabase: SupabaseServerClient): Promise<Volunteer[]> {
+async function loadVolunteers(supabase: SupabaseAdminClient): Promise<Volunteer[]> {
   const { data, error } = await supabase
     .from('volunteers')
     .select(ADMIN_VOLUNTEER_COLUMNS)
@@ -127,7 +128,7 @@ async function loadVolunteers(supabase: SupabaseServerClient): Promise<Volunteer
   return (data || []) as Volunteer[];
 }
 
-async function loadSponsors(supabase: SupabaseServerClient): Promise<Sponsor[]> {
+async function loadSponsors(supabase: SupabaseAdminClient): Promise<Sponsor[]> {
   const { data, error } = await supabase
     .from('sponsors')
     .select(ADMIN_SPONSOR_COLUMNS)
@@ -137,7 +138,7 @@ async function loadSponsors(supabase: SupabaseServerClient): Promise<Sponsor[]> 
   return (data || []) as Sponsor[];
 }
 
-async function loadEvents(supabase: SupabaseServerClient): Promise<Event[]> {
+async function loadEvents(supabase: SupabaseAdminClient): Promise<Event[]> {
   const { data, error } = await supabase
     .from('events')
     .select(ADMIN_EVENT_COLUMNS)
@@ -147,7 +148,7 @@ async function loadEvents(supabase: SupabaseServerClient): Promise<Event[]> {
   return ((data || []) as Event[]).map(normalizeAdminEvent);
 }
 
-const sectionLoaders: Record<AdminDataSection, (supabase: SupabaseServerClient) => Promise<unknown>> = {
+const sectionLoaders: Record<AdminDataSection, (supabase: SupabaseAdminClient) => Promise<unknown>> = {
   vendors: loadVendors,
   volunteers: loadVolunteers,
   sponsors: loadSponsors,

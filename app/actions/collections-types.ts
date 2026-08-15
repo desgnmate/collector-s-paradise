@@ -14,8 +14,10 @@ export const COLLECTION_CATEGORIES = [
 
 export type Collection = {
   id: string;
-  vendor_id: string;
-  user_id: string;
+  /** Present for authenticated owner views; intentionally omitted from public reads. */
+  vendor_id?: string;
+  /** Present for authenticated owner views; intentionally omitted from public reads. */
+  user_id?: string;
   title: string;
   description: string;
   image_urls: string[];

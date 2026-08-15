@@ -11,7 +11,7 @@ export default function LocationEventCard({ event }: { event: Event }) {
     <article className={styles.eventCard}>
       <Link href={`/events/${event.id}`} className={styles.eventImageLink} aria-label={`View ${event.title}`}>
         <Image
-          src={event.cover_image_url || '/images/event-experience.png'}
+          src={event.cover_image_url || '/images/event-experience.jpg'}
           alt={`${event.title} trading card show`}
           fill
           sizes="(max-width: 760px) 92vw, (max-width: 1200px) 45vw, 360px"

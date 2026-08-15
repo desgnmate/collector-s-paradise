@@ -106,3 +106,23 @@
     text-wrap: balance;
   }
 }
+
+/* A quieter editorial rhythm: the process is a two-column reading flow,
+   not four equal tiles, and headings share the site-wide desktop scale. */
+@media (min-width: 921px) {
+  .processGrid { grid-template-columns: 1.1fr 0.9fr; }
+  .processCard { min-height: 0; }
+}
+
+@media (min-width: 760px) {
+  .toolBody h2,
+  .sectionHeader h2,
+  .practical h2,
+  .faq h2,
+  .finalCta h2 {
+    font-size: var(--font-size-section-title);
+    line-height: var(--line-height-section-title);
+    letter-spacing: var(--letter-spacing-section-title);
+    text-wrap: balance;
+  }
+}

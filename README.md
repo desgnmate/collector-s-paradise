@@ -89,7 +89,7 @@ what each controls.
 | `RESEND_FROM_EMAIL` | ✉️ optional | "From" address for outgoing email |
 | `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application notifications |
 | `NEXT_PUBLIC_APP_URL` | ✉️ optional | Public site URL (used in email links) |
-| `SUPABASE_SERVICE_ROLE_KEY` | 🔐 admin scripts only | Used by `create-admin.js`; never expose to the client |
+| `SUPABASE_SERVICE_ROLE_KEY` | 🔐 server only | Required by protected admin actions and legacy image routes; never expose to the client |
 
 > **Never commit `.env.local`.** The service-role key in particular bypasses
 > RLS — keep it off the client.
@@ -118,7 +118,7 @@ collectors-paradise-web/
 │   └── supabase/        #   Supabase clients + SQL migrations/schema
 ├── data/                # Static data (e.g. venue map)
 ├── public/              # Static assets (fonts, images, videos)
-├── middleware.ts        # Auth gating + security headers (edge runtime)
+├── proxy.ts             # Auth gating + security headers
 ├── docs/                # ← This documentation
 └── next.config.ts       # Next.js config (caching, image, headers)
 ```

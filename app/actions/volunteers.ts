@@ -1,6 +1,7 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
 import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
@@ -158,9 +159,25 @@ export async function submitVolunteerApplication(
 // Admin Actions (require admin auth via middleware)
 // ============================================
 
+async function requireAdminClient() {
+  const sessionClient = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await sessionClient.auth.getUser();
+  if (authError || !user) return null;
+
+  const { data: adminRecord, error: adminError } = await sessionClient
+    .from('admin_users')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (adminError || !adminRecord) return null;
+  return createSupabaseAdminClient();
+}
+
 /** Get all volunteers with full details (admin only) */
 export async function getAllVolunteers(): Promise<Volunteer[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('volunteers')
@@ -177,7 +194,8 @@ export async function getAllVolunteers(): Promise<Volunteer[]> {
 
 /** Get pending volunteer applications (admin only) */
 export async function getPendingVolunteers(): Promise<Volunteer[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('volunteers')
@@ -195,7 +213,8 @@ export async function getPendingVolunteers(): Promise<Volunteer[]> {
 
 /** Approve a volunteer application */
 export async function approveVolunteer(volunteerId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { data: volunteer, error } = await supabase
     .from('volunteers')
@@ -220,7 +239,8 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
 
 /** Reject a volunteer application */
 export async function rejectVolunteer(volunteerId: string, reason?: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
@@ -250,7 +270,8 @@ export async function rejectVolunteer(volunteerId: string, reason?: string): Pro
 
 /** Waitlist a volunteer application */
 export async function waitlistVolunteer(volunteerId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { error } = await supabase
     .from('volunteers')
@@ -267,7 +288,8 @@ export async function waitlistVolunteer(volunteerId: string): Promise<ActionStat
 
 /** Delete a volunteer (admin only) */
 export async function deleteVolunteer(volunteerId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { error } = await supabase
     .from('volunteers')
@@ -284,7 +306,8 @@ export async function deleteVolunteer(volunteerId: string): Promise<ActionState>
 
 /** Get approved volunteers (admin only) */
 export async function getApprovedVolunteersAdmin(): Promise<Volunteer[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('volunteers')

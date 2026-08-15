@@ -25,7 +25,7 @@ export default function CollectionCard({ collection }: Props) {
       {/* Image */}
       <div className="collection-card-image">
         {primaryImage ? (
-          <Image src={primaryImage} alt={collection.title} fill style={{ objectFit: 'cover' }} />
+          <Image src={primaryImage} alt={collection.title} fill sizes="(max-width: 600px) 100vw, (max-width: 1024px) 50vw, 33vw" style={{ objectFit: 'cover' }} />
         ) : (
           <div className="collection-card-image-placeholder" />
         )}

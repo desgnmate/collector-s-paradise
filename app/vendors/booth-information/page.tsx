@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
 import { getVendorApplicationEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 import BoothReadiness from './BoothReadiness';
 import styles from './booth.module.css';
 
@@ -48,7 +49,7 @@ export default async function VendorBoothInformationPage() {
   return (
     <main className={styles.page}>
       <Navbar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(faqSchema) }} />
 
       <EditorialPageHero
         title="Build a booth worth finding"

@@ -18,7 +18,7 @@ native Next.js integration.
 ┌──────────────────────────────────────────────────────────────┐
 │                         Vercel                               │
 │  ┌────────────────────────────────────────────────────────┐  │
-│  │  middleware.ts                                          │  │
+│  │  proxy.ts                                               │  │
 │  │  • Auth gates /admin & /admin-login                     │  │
 │  │  • Injects security headers (CSP, HSTS, …)              │  │
 │  └────────────────────────────────────────────────────────┘  │
@@ -41,7 +41,7 @@ native Next.js integration.
 ### Tech stack details
 
 - **Framework:** Next.js 16 (App Router) · React 19
-- **Runtime:** Vercel's native Next.js runtime; middleware currently declares the experimental edge runtime
+- **Runtime:** Vercel's native Next.js runtime; `proxy.ts` performs the optimistic admin redirect check and security headers
 - **Data/auth/storage:** Supabase via `@supabase/ssr` (cookie-based, SSR + browser clients)
 - **Styling:** Vanilla CSS with a centralised design-token system in `app/globals.css`
 - **Animation:** native CSS transitions + Framer Motion; smooth scrolling via Lenis
@@ -89,7 +89,7 @@ collectors-paradise-web/
 │       └── *.sql            # incremental migrations
 ├── data/                    # static data (venue map)
 ├── public/                  # fonts/, images/, videos/
-├── middleware.ts            # auth gating + security headers
+├── proxy.ts                 # auth gating + security headers
 └── next.config.ts           # caching, image, headers config
 ```
 
@@ -131,7 +131,7 @@ All routes use the App Router (filesystem-based).
 | `app/robots.ts` | `robots.txt` with an allowlist for AI crawlers |
 | `app/manifest.ts` | PWA web app manifest |
 | `app/icon.png` | Favicon / PWA icon |
-| `middleware.ts` | Auth gating for `/admin*` + global security headers |
+| `proxy.ts` | Auth gating for `/admin*` + global security headers |
 
 ---
 
@@ -197,7 +197,7 @@ Client Form  ──(useActionState)──►  Server Action (write)
 The admin panel is a **client-side SPA shell** inside a protected server layout:
 
 ```
-middleware.ts (auth gate + admin_users check)
+proxy.ts (auth gate + admin_users check)
         ▼
 app/admin/layout.tsx
   └─ <AdminRouterProvider>      contexts/AdminRouterContext.tsx
@@ -226,16 +226,16 @@ app/admin/layout.tsx
 
 Route protection is layered:
 
-1. **Middleware** (`middleware.ts`) — redirects unauthenticated or non-admin
+1. **Proxy** (`proxy.ts`) — redirects unauthenticated or non-admin
    users away from `/admin*` (and bounces already-logged-in admins away from
-   `/admin-login`). This is the primary gate.
-2. **`requireAdmin()`** (in `app/actions/events.ts`) — event mutation actions
-   re-verify the session + `admin_users` server-side.
+   `/admin-login`). This is the early routing gate.
+2. **Per-action admin checks** — vendor, sponsor, volunteer, dashboard, event,
+   and snapshot actions re-verify the session + `admin_users` server-side,
+   then use the server-only Supabase service client for private reads/writes.
 3. **`adminLogin`** — checks the `admin_users` row before redirecting.
 
-> ⚠️ **Known gap:** the vendor/sponsor/volunteer mutation actions rely on the
-> middleware gate alone (no per-action `requireAdmin`), unlike event actions.
-> Documented in [ADMIN_PANEL.md](ADMIN_PANEL.md).
+> The proxy gate is an optimistic redirect only; it is not the authorization
+> boundary. Server actions and Supabase policies provide the enforcement.
 
 ---
 
@@ -248,8 +248,8 @@ Configured in `next.config.ts`:
 - **`optimizePackageImports`** — tree-shakes `lucide-react` and `framer-motion`.
 - **Asset cache headers** — `_next/static/*` is `immutable` for 1 year;
   `/images/*` and `/videos/*` for 1 day.
-- **Images** — currently configured with `images.unoptimized: true`, with
-  AVIF/WebP formats and explicit device/image sizes.
+- **Images** — Next image optimization is enabled with AVIF/WebP formats,
+  Supabase storage patterns, and explicit device/image sizes.
 - **Compression** on; source maps off in production; `poweredByHeader` off.
 - **ISR** — events & vendors pages use `revalidate = 3600`.
 - **Admin client cache** — see [BACKEND.md](BACKEND.md) § "Admin data caching".
@@ -258,7 +258,7 @@ Configured in `next.config.ts`:
 
 ## 🔒 Security (summary)
 
-Enforced in `middleware.ts` (see [SEO_SECURITY.md](SEO_SECURITY.md) for detail):
+Enforced in `proxy.ts` (see [SEO_SECURITY.md](SEO_SECURITY.md) for detail):
 
 - **CSP** — strict `default-src 'self'`; script/style/img/font connect-src
   locked to self + Supabase + Google Fonts.

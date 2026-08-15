@@ -3,6 +3,7 @@ import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
 import { absoluteUrl, CONTACT_EMAIL } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 import AccessPlanner from './AccessPlanner';
 import styles from './accessibility.module.css';
 
@@ -32,7 +33,7 @@ export default function AccessibilityPage() {
   return (
     <main className={styles.page}>
       <Navbar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageSchema) }} />
 
       <EditorialPageHero
         title="Plan the visit that works for you"

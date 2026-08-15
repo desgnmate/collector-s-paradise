@@ -126,7 +126,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: newContentLastMod,
       changeFrequency: 'weekly',
       priority: 0.8,
-      images: [`${baseUrl}/images/event-experience.png`],
+      images: [`${baseUrl}/images/event-experience.jpg`],
     },
     {
       url: `${baseUrl}/locations/canberra`,

@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 import LocationEventCard, { NoLocationEvents } from '../LocationEventCard';
 import { getLocationEvents } from '../location-data';
 import styles from '../locations.module.css';
@@ -51,7 +52,7 @@ export default async function MelbourneLocationPage() {
   return (
     <main className={`${styles.page} ${styles.melbourne}`}>
       <Navbar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageSchema) }} />
 
       <EditorialPageHero
         title="Melbourne card shows"

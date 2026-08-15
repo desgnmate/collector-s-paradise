@@ -105,3 +105,23 @@
   .progressTrack span,
   .checkItem { transition: none; }
 }
+
+/* Keep the guide editorial and calm: one shared desktop title scale, with
+   color blocks reserved for functional moments (checklist and CTA). */
+@media (min-width: 760px) {
+  .intro { padding-top: clamp(7.5rem, 10vw, 9rem); }
+  .intro h2,
+  .checklistTopline h2,
+  .timeline h2,
+  .etiquette h2,
+  .nextStep h2 {
+    font-size: var(--font-size-section-title);
+    line-height: var(--line-height-section-title);
+    letter-spacing: var(--letter-spacing-section-title);
+    text-wrap: balance;
+  }
+}
+
+.etiquette { border-block: 0; }
+.etiquetteGrid { grid-template-columns: 1.1fr 0.9fr 1.1fr; }
+.nextStep { border-top: 0; }

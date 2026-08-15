@@ -111,7 +111,9 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
                   <nav
                     aria-label="Choose vendor directory"
                     data-lenis-prevent="true"
+                    data-lenis-prevent-wheel="true"
                     data-lenis-prevent-touch="true"
+                    tabIndex={0}
                   >
                     <VendorNavigationLink href="/vendors" closeMenu className={unassignedOnly ? 'is-active' : ''} aria-current={unassignedOnly ? 'page' : undefined}>
                       <span><strong>Approved vendors</strong><small>Current directory</small></span>
@@ -172,7 +174,7 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
                       fill
                       style={{ objectFit: 'contain', padding: '1rem' }}
                       sizes="(max-width: 768px) 100vw, 33vw"
-                      priority={index < 4}
+                      priority={index === 0}
                     />
                   </div>
 

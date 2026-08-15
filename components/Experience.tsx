@@ -46,6 +46,7 @@ const slides = [
 
 const Experience = () => {
   const [current, setCurrent] = useState(0);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const slideVideoRefs = useRef<(HTMLVideoElement | null)[]>([]);
   const activeVideoRef = useRef<HTMLVideoElement | null>(null);
 
@@ -53,6 +54,15 @@ const Experience = () => {
   const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), []);
 
   useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setReducedMotion(mediaQuery.matches);
+    updatePreference();
+    mediaQuery.addEventListener('change', updatePreference);
+    return () => mediaQuery.removeEventListener('change', updatePreference);
+  }, []);
+
+  useEffect(() => {
+    if (reducedMotion) return;
     const prevVideo = activeVideoRef.current;
     if (prevVideo) {
       prevVideo.pause();
@@ -65,12 +75,13 @@ const Experience = () => {
       nextVideo.play().catch(() => {});
       activeVideoRef.current = nextVideo;
     }
-  }, [current]);
+  }, [current, reducedMotion]);
 
   useEffect(() => {
+    if (reducedMotion) return;
     const id = setInterval(next, 8000);
     return () => clearInterval(id);
-  }, [next]);
+  }, [next, reducedMotion]);
 
 
   return (
@@ -111,11 +122,12 @@ const Experience = () => {
               >
                 <video
                   ref={(el) => { slideVideoRefs.current[i] = el; }}
-                  src={slide.src}
+                  src={i === current ? slide.src : undefined}
                   muted
                   loop
                   playsInline
-                  preload={i === 0 ? 'metadata' : 'none'}
+                  preload={i === current ? 'metadata' : 'none'}
+                  aria-hidden={i !== current}
                   aria-label={slide.alt}
                 />
               </div>

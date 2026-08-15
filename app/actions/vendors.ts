@@ -1,7 +1,8 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
 import { sendNewApplicationEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
@@ -75,8 +76,13 @@ const createPublicVendorsClient = () => createClient(
   },
 );
 
+function normalizePublicLogoUrl(logoUrl: string | null | undefined, vendorId: string): string | null {
+  if (!logoUrl) return null;
+  return logoUrl.startsWith('data:') ? `/api/vendors/${vendorId}/logo` : logoUrl;
+}
+
 async function attachEventApplications(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: SupabaseClient,
   vendors: Omit<Vendor, 'event_applications'>[],
 ): Promise<Vendor[]> {
   if (vendors.length === 0) return [];
@@ -196,6 +202,12 @@ async function verifyAdmin(
   return null;
 }
 
+async function requireAdminClient(): Promise<SupabaseClient | null> {
+  const sessionClient = await createSupabaseServerClient();
+  if (await verifyAdmin(sessionClient)) return null;
+  return createSupabaseAdminClient();
+}
+
 // Admin update schema — more lenient than the application form
 const vendorUpdateSchema = z.object({
   business_name: z.string().min(1, 'Business name is required').max(200),
@@ -265,9 +277,8 @@ async function sendToGoogleSheet(data: Record<string, unknown>): Promise<{ succe
 
 export async function syncAllVendorsToSheet() {
   'use server';
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) return { success: false, message: adminError };
+  const supabase = await requireAdminClient();
+  if (!supabase) return { success: false, message: 'Admin access required.' };
   const { data: vendors, error } = await supabase
     .from('vendors')
     .select(ADMIN_VENDOR_COLUMNS)
@@ -545,6 +556,7 @@ async function fetchApprovedVendors(
     return {
       vendors: (fallbackData || []).map((vendor) => ({
         ...vendor,
+        logo_url: normalizePublicLogoUrl(vendor.logo_url, vendor.id),
         event_applications: [],
       })),
       totalCount: count || 0,
@@ -557,7 +569,7 @@ async function fetchApprovedVendors(
     contact_name: String(row.contact_name),
     description: row.description ? String(row.description) : null,
     categories: Array.isArray(row.categories) ? row.categories.map(String) : [],
-    logo_url: row.logo_url ? String(row.logo_url) : null,
+    logo_url: normalizePublicLogoUrl(row.logo_url ? String(row.logo_url) : null, String(row.id)),
     social_links: row.social_links ? String(row.social_links) : null,
     booth_assignment: row.booth_assignment ? String(row.booth_assignment) : null,
     event_applications: (Array.isArray(row.event_applications) ? row.event_applications : []).map((application: Record<string, unknown>) => ({
@@ -605,9 +617,8 @@ export async function getApprovedVendors(
 // ============================================
 
 export async function getAllVendors(): Promise<Vendor[]> {
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) throw new Error(adminError);
+  const supabase = await requireAdminClient();
+  if (!supabase) throw new Error('Admin access required.');
 
   const { data, error } = await supabase
     .from('vendors')
@@ -637,9 +648,8 @@ export async function assignVendorsToEvents(input: z.input<typeof assignVendorsS
   const validated = assignVendorsSchema.safeParse(input);
   if (!validated.success) return { message: 'Select at least one valid vendor and event.' };
 
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) return { message: adminError };
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
   const vendorIds = [...new Set(validated.data.vendor_ids)];
   const eventIds = [...new Set(validated.data.event_ids)];
   const [{ data: vendors, error: vendorError }, { data: events, error: eventError }] = await Promise.all([
@@ -697,9 +707,8 @@ export async function updateVendorEventApplication(
   const validated = eventApplicationUpdateSchema.safeParse(input);
   if (!id.success || !validated.success) return { message: 'Invalid application update.' };
 
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) return { message: adminError };
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
   const { data: application, error } = await supabase
     .from('vendor_event_applications')
     .update({
@@ -741,9 +750,8 @@ export async function updateVendorEventApplication(
 export async function removeVendorEventApplication(applicationId: string): Promise<ActionState> {
   if (!z.string().uuid().safeParse(applicationId).success) return { message: 'Invalid application.' };
 
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) return { message: adminError };
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
   const { error } = await supabase.from('vendor_event_applications').delete().eq('id', applicationId);
   if (error) return { message: `Failed to remove application: ${error.message}` };
 
@@ -762,9 +770,8 @@ export async function updateVendor(vendorId: string, data: VendorUpdateData): Pr
     };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) return { message: adminError };
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
   const fields = validated.data;
   const { error } = await supabase.from('vendors').update({
     business_name: fields.business_name,
@@ -794,9 +801,8 @@ export async function updateVendor(vendorId: string, data: VendorUpdateData): Pr
 export async function deleteVendor(vendorId: string): Promise<ActionState> {
   if (!z.string().uuid().safeParse(vendorId).success) return { message: 'Invalid vendor.' };
 
-  const supabase = await createSupabaseServerClient();
-  const adminError = await verifyAdmin(supabase);
-  if (adminError) return { message: adminError };
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
   const { error } = await supabase.from('vendors').delete().eq('id', vendorId);
   if (error) return { message: `Failed to delete vendor: ${error.message}` };
 

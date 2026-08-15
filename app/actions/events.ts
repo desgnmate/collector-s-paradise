@@ -1,7 +1,8 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
 import { getEffectiveEventStatus } from '@/lib/events/status';
@@ -30,6 +31,7 @@ export type Event = {
 };
 
 const EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, created_at, updated_at';
+const PUBLIC_EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, booking_link, created_at, updated_at';
 
 // ============================================
 // Validation Schemas
@@ -74,13 +76,19 @@ const normalizeEvent = (event: Event): Event => ({
     : event.cover_image_url,
 });
 
+const normalizePublicEvent = (event: Omit<Event, 'cover_image_url'> & { cover_image_url?: string | null }): Event => ({
+  ...event,
+  status: getEffectiveEventStatus(event as Event),
+  cover_image_url: `/api/events/${event.id}/cover`,
+});
+
 const getCachedEvents = unstable_cache(
   async (): Promise<Event[]> => {
     const supabase = createPublicEventsClient();
 
     const { data, error } = await supabase
       .from('events')
-      .select(EVENT_COLUMNS)
+      .select(PUBLIC_EVENT_COLUMNS)
       .in('status', ['upcoming', 'active', 'completed'])
       .order('event_date', { ascending: true });
 
@@ -89,7 +97,7 @@ const getCachedEvents = unstable_cache(
       return [];
     }
 
-    return (data as Event[]).map(normalizeEvent);
+    return (data as Omit<Event, 'cover_image_url'>[]).map((event) => normalizePublicEvent(event));
   },
   ['public-events-v2'],
   { revalidate: 3600, tags: ['events'] }
@@ -100,7 +108,7 @@ const getCachedEventById = unstable_cache(
     const supabase = createPublicEventsClient();
     const { data, error } = await supabase
       .from('events')
-      .select(EVENT_COLUMNS)
+      .select(PUBLIC_EVENT_COLUMNS)
       .eq('id', id)
       .single();
 
@@ -109,7 +117,7 @@ const getCachedEventById = unstable_cache(
       return null;
     }
 
-    return normalizeEvent(data as Event);
+    return normalizePublicEvent(data as Omit<Event, 'cover_image_url'>);
   },
   ['public-event-v2'],
   { revalidate: 3600, tags: ['events'] }
@@ -206,9 +214,16 @@ async function requireAdmin(supabase: Awaited<ReturnType<typeof createSupabaseSe
   return { user, adminRecord };
 }
 
+async function requireAdminClient(): Promise<SupabaseClient | null> {
+  const sessionClient = await createSupabaseServerClient();
+  const auth = await requireAdmin(sessionClient);
+  if ('error' in auth) return null;
+  return createSupabaseAdminClient();
+}
+
 /** Upload cover images to public Storage so they remain crawlable and cacheable. */
 async function uploadCoverImage(
-  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  supabase: SupabaseClient,
   file: File,
   eventId?: string
 ): Promise<string | null> {
@@ -239,12 +254,8 @@ export async function createEvent(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
-  const auth = await requireAdmin(supabase);
-
-  if ('error' in auth) {
-    return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
-  }
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required' };
 
   const coverImage = formData.get('cover_image') as File | null;
 
@@ -317,12 +328,8 @@ export async function updateEvent(
   prevState: ActionState,
   formData: FormData
 ): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
-  const auth = await requireAdmin(supabase);
-
-  if ('error' in auth) {
-    return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
-  }
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required' };
 
   const coverImage = formData.get('cover_image') as File | null;
 
@@ -414,12 +421,8 @@ export async function updateEvent(
 
 /** Delete an event (admin only) */
 export async function deleteEvent(eventId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
-  const auth = await requireAdmin(supabase);
-
-  if ('error' in auth) {
-    return { message: auth.error === 'unauthorized' ? 'Unauthorized' : 'Admin access required' };
-  }
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required' };
 
   const { error } = await supabase.from('events').delete().eq('id', eventId);
 
@@ -436,10 +439,8 @@ export async function deleteEvent(eventId: string): Promise<ActionState> {
 
 /** Fetch all events for admin (including past/cancelled) */
 export async function getAdminEvents(): Promise<Event[]> {
-  const supabase = await createSupabaseServerClient();
-  const auth = await requireAdmin(supabase);
-
-  if ('error' in auth) return [];
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('events')

@@ -1,6 +1,7 @@
 'use server';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
 import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
 
@@ -212,9 +213,25 @@ export async function submitSponsorApplication(
 // Admin Actions (require admin auth via middleware)
 // ============================================
 
+async function requireAdminClient() {
+  const sessionClient = await createSupabaseServerClient();
+  const { data: { user }, error: authError } = await sessionClient.auth.getUser();
+  if (authError || !user) return null;
+
+  const { data: adminRecord, error: adminError } = await sessionClient
+    .from('admin_users')
+    .select('id')
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (adminError || !adminRecord) return null;
+  return createSupabaseAdminClient();
+}
+
 /** Get all sponsors with full details (admin only) */
 export async function getAllSponsors(): Promise<Sponsor[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('sponsors')
@@ -231,7 +248,8 @@ export async function getAllSponsors(): Promise<Sponsor[]> {
 
 /** Get pending sponsor applications (admin only) */
 export async function getPendingSponsors(): Promise<Sponsor[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('sponsors')
@@ -249,7 +267,8 @@ export async function getPendingSponsors(): Promise<Sponsor[]> {
 
 /** Approve a sponsor application */
 export async function approveSponsor(sponsorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { data: sponsor, error } = await supabase
     .from('sponsors')
@@ -274,7 +293,8 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
 
 /** Reject a sponsor application */
 export async function rejectSponsor(sponsorId: string, reason?: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const updateData: Record<string, string> = { application_status: 'rejected' };
   if (reason) {
@@ -304,7 +324,8 @@ export async function rejectSponsor(sponsorId: string, reason?: string): Promise
 
 /** Waitlist a sponsor application */
 export async function waitlistSponsor(sponsorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { error } = await supabase
     .from('sponsors')
@@ -321,7 +342,8 @@ export async function waitlistSponsor(sponsorId: string): Promise<ActionState> {
 
 /** Set sponsor to negotiating status */
 export async function negotiateSponsor(sponsorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { error } = await supabase
     .from('sponsors')
@@ -338,7 +360,8 @@ export async function negotiateSponsor(sponsorId: string): Promise<ActionState> 
 
 /** Delete a sponsor (admin only) */
 export async function deleteSponsor(sponsorId: string): Promise<ActionState> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
 
   const { error } = await supabase
     .from('sponsors')
@@ -355,7 +378,8 @@ export async function deleteSponsor(sponsorId: string): Promise<ActionState> {
 
 /** Get approved sponsors (admin only) */
 export async function getApprovedSponsorsAdmin(): Promise<Sponsor[]> {
-  const supabase = await createSupabaseServerClient();
+  const supabase = await requireAdminClient();
+  if (!supabase) return [];
 
   const { data, error } = await supabase
     .from('sponsors')

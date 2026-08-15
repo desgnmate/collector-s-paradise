@@ -213,7 +213,7 @@ export default function EventsContent() {
               {/* Event Cover Image */}
               {event.cover_image_url && (
                 <div className="event-cover-image-wrapper">
-                  <Image src={event.cover_image_url} alt={event.title} className="event-cover-image" fill style={{ objectFit: 'cover' }} />
+                  <Image src={event.cover_image_url} alt={event.title} className="event-cover-image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{ objectFit: 'cover' }} />
                 </div>
               )}
               <div className="event-card-header">

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import type { Event } from '@/app/actions/events';
 import { getEffectiveEventStatus, getLocalDateKey } from '@/lib/events/status';
 
-const EVENT_COVER_FALLBACK = '/images/event-experience.png';
+const EVENT_COVER_FALLBACK = '/images/event-experience.jpg';
 
 interface EventCardProps {
   event: Event;

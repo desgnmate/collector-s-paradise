@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 import LocationEventCard, { NoLocationEvents } from '../LocationEventCard';
 import { getLocationEvents } from '../location-data';
 import styles from '../locations.module.css';
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
     title: "Gold Coast Trading Card Shows | Collector's Paradise",
     description: 'Upcoming Pokémon TCG, sports card, and collectibles events on the Gold Coast.',
     url: absoluteUrl('/locations/gold-coast'),
-    images: [{ url: '/images/event-experience.png', alt: "Collector's Paradise show experience" }],
+    images: [{ url: '/images/event-experience.jpg', alt: "Collector's Paradise show experience" }],
   },
 };
 
@@ -48,7 +49,7 @@ export default async function GoldCoastLocationPage() {
   return (
     <main className={`${styles.page} ${styles.gold}`}>
       <Navbar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageSchema) }} />
 
       <EditorialPageHero
         title="Gold Coast collector days"

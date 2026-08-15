@@ -17649,10 +17649,11 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
   right: -1.5px;
   z-index: 10;
   width: min(420px, calc(100vw - 2rem));
-  max-height: 280px;
-  overflow-y: auto;
+  max-height: min(280px, calc(100dvh - 180px));
+  overflow-y: scroll;
   overscroll-behavior-y: contain;
   touch-action: pan-y;
+  pointer-events: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
   padding: 5px;

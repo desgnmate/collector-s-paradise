@@ -21,6 +21,11 @@ npm run start
    Environment Variables settings.
 5. Assign `collectorsparadise.au` in the project's Domains settings.
 
+Before the first production deploy, run `lib/supabase/security_hardening.sql`
+in the Supabase SQL editor. It removes public access to private vendor,
+sponsor, volunteer, and legacy event-image fields while preserving public
+directory/form behavior. Apply it only after reviewing the deployed schema.
+
 Vercel creates production deployments from the production branch and preview
 deployments from other branches and pull requests.
 
@@ -29,6 +34,10 @@ deployments from other branches and pull requests.
 Configure the required Supabase variables for Production, Preview, and
 Development as appropriate. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only and do
 not expose it with a `NEXT_PUBLIC_` prefix.
+
+`SUPABASE_SERVICE_ROLE_KEY` is required in Vercel for protected admin actions
+and the legacy event/vendor image route. The app intentionally fails closed if
+that server-only key is missing.
 
 ## Runtime behavior
 

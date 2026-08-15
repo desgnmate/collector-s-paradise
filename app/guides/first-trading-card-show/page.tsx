@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import { absoluteUrl } from '@/lib/site';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 import FirstShowChecklist from './FirstShowChecklist';
 import styles from './guide.module.css';
 
@@ -40,7 +41,7 @@ export default function FirstTradingCardShowGuidePage() {
   return (
     <main className={styles.page}>
       <Navbar />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(howToSchema) }} />
 
       <section id="before" className={styles.intro} aria-labelledby="before-title">
         <div className={`${styles.shell} ${styles.introGrid}`}>
