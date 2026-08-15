@@ -4,6 +4,16 @@ import { absoluteUrl, CONTACT_EMAIL, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@
 const siteDescription =
   "Australia’s Collectibles Market. Buy, sell and trade your favourite TCGs, discover rare finds, and connect with collectors";
 
+const serializeJsonLd = (value: unknown) =>
+  JSON.stringify(value).replace(/</g, '\\u003c');
+
+const presentingOrganization = {
+  '@type': 'Organization',
+  '@id': `${SITE_URL}/#organization`,
+  name: SITE_NAME,
+  url: SITE_URL,
+};
+
 interface OrganizationSchemaProps {
   name?: string;
   url?: string;
@@ -65,7 +75,7 @@ export function FAQSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   );
 }
@@ -88,6 +98,7 @@ export function EventSeriesSchema() {
       name: SITE_NAME,
       url: SITE_URL,
     },
+    performer: presentingOrganization,
     areaServed: { '@type': 'Country', name: 'Australia' },
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     inLanguage: 'en-AU',
@@ -95,7 +106,7 @@ export function EventSeriesSchema() {
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   );
 }
@@ -149,11 +160,11 @@ export function OrganizationSchema({
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(orgSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(orgSchema) }}
       />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(websiteSchema) }}
       />
     </>
   );
@@ -171,6 +182,7 @@ interface EventSchemaProps {
   postalCode?: string;         // e.g. "3000", "4211"
   ticketPrice?: number;
   ticketUrl?: string;
+  offerValidFrom?: string;
   eventUrl?: string;
   imageUrl?: string;
   status?: 'upcoming' | 'active' | 'completed' | 'cancelled';
@@ -193,6 +205,7 @@ export function EventSchema({
   postalCode,
   ticketPrice,
   ticketUrl,
+  offerValidFrom,
   eventUrl,
   imageUrl,
   status = 'upcoming',
@@ -237,6 +250,7 @@ export function EventSchema({
       name: SITE_NAME,
       url: SITE_URL,
     },
+    performer: presentingOrganization,
   };
 
   // An invalid same-day end time is worse than omitting this optional field.
@@ -252,19 +266,26 @@ export function EventSchema({
   }
 
   if (ticketPrice !== undefined && ticketUrl && status !== 'completed' && status !== 'cancelled') {
-    schema.offers = {
+    const offer: Record<string, unknown> = {
       '@type': 'Offer',
       url: ticketUrl,
       price: ticketPrice,
       priceCurrency: 'AUD',
       availability: isSoldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
     };
+
+    if (offerValidFrom) {
+      const timestamp = Date.parse(offerValidFrom);
+      if (!Number.isNaN(timestamp)) offer.validFrom = new Date(timestamp).toISOString();
+    }
+
+    schema.offers = offer;
   }
 
   return (
     <script
       type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(schema) }}
     />
   );
 }

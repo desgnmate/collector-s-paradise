@@ -69,6 +69,7 @@ export default async function EventsPage() {
               postalCode={address.postcode}
               ticketPrice={event.ticket_price ?? undefined}
               ticketUrl={event.booking_link || undefined}
+              offerValidFrom={event.created_at}
               eventUrl={eventUrl}
               imageUrl={event.cover_image_url || undefined}
               status={event.status}

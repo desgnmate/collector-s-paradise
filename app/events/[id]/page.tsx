@@ -142,6 +142,7 @@ export default async function EventDetailPage({ params }: Props) {
         postalCode={postcode}
         ticketPrice={event.ticket_price ?? undefined}
         ticketUrl={event.booking_link || undefined}
+        offerValidFrom={event.created_at}
         eventUrl={absoluteUrl(`/events/${event.id}`)}
         imageUrl={event.cover_image_url || undefined}
         status={effectiveStatus}
