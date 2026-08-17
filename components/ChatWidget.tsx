@@ -1,142 +1,287 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import {
+  ArrowUpRight,
+  BadgeCheck,
+  CalendarDays,
+  ChevronLeft,
+  CircleDollarSign,
+  Grid2X2,
+  Mail,
+  MessageCircle,
+  Store,
+  Ticket,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
-const FAQS = [
+type FaqGroup = 'Plan a visit' | 'Join the show';
+
+type Faq = {
+  id: string;
+  group: FaqGroup;
+  label: string;
+  question: string;
+  answer: string;
+  action: {
+    href: string;
+    label: string;
+  };
+  icon: LucideIcon;
+};
+
+const FAQS: Faq[] = [
   {
     id: 'events',
+    group: 'Plan a visit',
+    label: 'Upcoming events',
     question: 'When is the next event?',
-    answer: "Our next event is coming up soon! Head to the Events page to see all upcoming shows, dates, venues, and ticket availability.",
+    answer:
+      'Open the event calendar for confirmed show dates, venues, opening times, and ticket availability.',
+    action: { href: '/events', label: 'View event calendar' },
+    icon: CalendarDays,
   },
   {
     id: 'tickets',
+    group: 'Plan a visit',
+    label: 'Tickets',
     question: 'How do I get tickets?',
-    answer: "You can purchase tickets directly on our Events page. Click on any upcoming event and follow the booking steps. Tickets are limited so grab yours early!",
-  },
-  {
-    id: 'vendor',
-    question: 'How do I become a vendor?',
-    answer: "We'd love to have you! Visit the Vendors page and click 'Apply as Vendor'. Fill in your business details and we'll review your application. Approved vendors get a booth at our events.",
-  },
-  {
-    id: 'collections',
-    question: 'How do I post a collection?',
-    answer: "Vendors can share their cards via the Vendor Dashboard after approval.",
-  },
-  {
-    id: 'contact',
-    question: 'How do I contact you?',
-    answer: "You can reach us at hello@collectorsparadise.au. We typically respond within 1–2 business days. For urgent event enquiries, please email us directly.",
+    answer:
+      'Choose an upcoming event and use its booking link. Availability and entry options are shown on each event page.',
+    action: { href: '/events', label: 'Find tickets' },
+    icon: Ticket,
   },
   {
     id: 'refund',
+    group: 'Plan a visit',
+    label: 'Refund policy',
     question: 'What is the refund policy?',
-    answer: "Refund policies vary per event and are outlined at the time of ticket purchase. Generally, tickets are non-refundable but may be transferable. Contact us if you have a specific situation.",
+    answer:
+      'Refund and transfer terms can vary by event. Check the terms shown during booking, or email us about a specific ticket.',
+    action: {
+      href: 'mailto:hello@collectorsparadise.au?subject=Ticket%20refund%20enquiry',
+      label: 'Ask about a ticket',
+    },
+    icon: CircleDollarSign,
   },
   {
     id: 'grading',
+    group: 'Plan a visit',
+    label: 'Card grading',
     question: 'Is there card grading at events?',
-    answer: "Yes! We offer live PSA card evaluation sessions at select events. Check the event details page for the specific services available at each show.",
+    answer:
+      'Selected shows may include card evaluation or grading services. Check the event details before travelling to confirm what is available.',
+    action: { href: '/events', label: 'Check event services' },
+    icon: BadgeCheck,
+  },
+  {
+    id: 'vendor',
+    group: 'Join the show',
+    label: 'Vendor applications',
+    question: 'How do I become a vendor?',
+    answer:
+      'Send one application for the events you want to attend. We review your business details and contact you about each selected show.',
+    action: { href: '/vendors/apply', label: 'Apply as a vendor' },
+    icon: Store,
+  },
+  {
+    id: 'collections',
+    group: 'Join the show',
+    label: 'Vendor collections',
+    question: 'How do I share a collection?',
+    answer:
+      'Collection publishing is available to approved vendors. Email support if you need help accessing or updating your vendor content.',
+    action: {
+      href: 'mailto:hello@collectorsparadise.au?subject=Vendor%20collection%20support',
+      label: 'Email vendor support',
+    },
+    icon: Grid2X2,
+  },
+  {
+    id: 'contact',
+    group: 'Join the show',
+    label: 'Contact support',
+    question: 'How do I contact you?',
+    answer:
+      'Email hello@collectorsparadise.au. We usually reply within 1-2 business days.',
+    action: { href: 'mailto:hello@collectorsparadise.au', label: 'Email collector support' },
+    icon: Mail,
   },
 ];
 
-type Message = {
-  from: 'bot' | 'user';
-  text: string;
-};
+const FAQ_GROUPS: FaqGroup[] = ['Plan a visit', 'Join the show'];
 
 export default function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    { from: 'bot', text: "👋 Hi there! Welcome to Collector's Paradise. What can I help you with today?" },
-  ]);
-  const [answered, setAnswered] = useState<string[]>([]);
-  
+  const [selectedFaqId, setSelectedFaqId] = useState<string | null>(null);
+  const dialogId = useId();
   const bodyRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Scroll to bottom on new message
+  const selectedFaq = FAQS.find((faq) => faq.id === selectedFaqId) ?? null;
+
+  const closeChat = useCallback(() => {
+    setIsOpen(false);
+    window.requestAnimationFrame(() => triggerRef.current?.focus());
+  }, []);
+
+  const openChat = () => {
+    setIsOpen(true);
+  };
+
+  const selectFaq = (faqId: string) => {
+    setSelectedFaqId(faqId);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.requestAnimationFrame(() => {
+      bodyRef.current?.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    });
+  };
+
   useEffect(() => {
-    if (bodyRef.current) {
-      bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
-    }
-  }, [messages, isOpen]);
+    if (!isOpen) return;
 
-  const handleQuestion = (faq: typeof FAQS[0]) => {
-    setMessages(prev => [
-      ...prev,
-      { from: 'user', text: faq.question },
-      { from: 'bot', text: faq.answer },
-    ]);
-    setAnswered(prev => [...prev, faq.id]);
-  };
+    const focusTimer = window.setTimeout(() => {
+      closeButtonRef.current?.focus({ preventScroll: true });
+    }, 0);
 
-  const handleReset = () => {
-    setMessages([{ from: 'bot', text: "👋 Hi there! Welcome to Collector's Paradise. What can I help you with today?" }]);
-    setAnswered([]);
-  };
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeChat();
+    };
 
-  const remaining = FAQS.filter(f => !answered.includes(f.id));
+    document.addEventListener('keydown', handleEscape);
+    return () => {
+      window.clearTimeout(focusTimer);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, [closeChat, isOpen]);
 
   return (
     <div className={`chat-widget-container ${isOpen ? 'is-open' : ''}`}>
-      {/* Chat Window */}
-      <div className="chat-window">
-        {/* Header */}
-        <div className="chat-header">
-          <div className="chat-header-info">
-            <div className="chat-header-avatar">CP</div>
-            <div>
-              <h3>Collector Support</h3>
-              <span className="chat-header-status">● Online</span>
-            </div>
-          </div>
-          <button className="close-btn" onClick={() => setIsOpen(false)} aria-label="Close chat">×</button>
-        </div>
-
-        {/* Messages */}
-        <div className="chat-body" ref={bodyRef} data-lenis-prevent data-lenis-prevent-touch>
-          {messages.map((msg, i) => (
-            <div key={i} className={`chat-message chat-message--${msg.from}`}>
-              {msg.from === 'bot' && <div className="chat-bot-avatar">CP</div>}
-              <div className="chat-bubble">{msg.text}</div>
-            </div>
-          ))}
-
-          {/* Question buttons */}
-          {remaining.length > 0 && (
-            <div className="chat-questions">
-              <p className="chat-questions-label">Choose a question:</p>
-              {remaining.map(faq => (
-                <button
-                  key={faq.id}
-                  className="chat-question-btn"
-                  onClick={() => handleQuestion(faq)}
-                >
-                  {faq.question}
-                </button>
-              ))}
-            </div>
-          )}
-
-          {remaining.length === 0 && (
-            <div className="chat-all-answered">
-              <p>You've covered all the common questions!</p>
-              <button className="chat-reset-btn" onClick={handleReset}>Start over</button>
-            </div>
-          )}
-        </div>
-      </div>
-
       <div className="widget-triggers">
-        {/* Pokéball trigger */}
-        <div className="pokeball-widget" onClick={() => setIsOpen(!isOpen)} role="button" aria-label="Open support chat">
-          <div className="poke-top" />
-          <div className="poke-bottom" />
-          <div className="poke-center">
-            <div className="poke-button" />
-          </div>
-        </div>
+        {!isOpen && <span className="chat-trigger-label">Need help?</span>}
+        <button
+          ref={triggerRef}
+          type="button"
+          className="pokeball-widget"
+          onClick={isOpen ? closeChat : openChat}
+          aria-label={isOpen ? 'Close support chat' : 'Open support chat'}
+          aria-expanded={isOpen}
+          aria-controls={dialogId}
+        >
+          <span className="poke-top" aria-hidden="true" />
+          <span className="poke-bottom" aria-hidden="true" />
+          <span className="poke-center" aria-hidden="true">
+            <span className="poke-button" />
+          </span>
+        </button>
       </div>
+
+      <section
+        id={dialogId}
+        className="chat-window"
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby={`${dialogId}-title`}
+        aria-describedby={`${dialogId}-description`}
+        aria-hidden={!isOpen}
+      >
+        <header className="chat-header">
+          <div className="chat-header-info">
+            <div className="chat-header-avatar" aria-hidden="true">CP</div>
+            <div className="chat-header-copy">
+              <h2 id={`${dialogId}-title`}>How can we help?</h2>
+              <p id={`${dialogId}-description`}>Quick answers for event visitors</p>
+            </div>
+          </div>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="chat-icon-button"
+            onClick={closeChat}
+            aria-label="Close support chat"
+          >
+            <X size={19} strokeWidth={2.25} aria-hidden="true" />
+          </button>
+        </header>
+
+        <div className="chat-body" ref={bodyRef} data-lenis-prevent data-lenis-prevent-touch>
+          {selectedFaq ? (
+            <div className="chat-answer-view" aria-live="polite">
+              <button
+                type="button"
+                className="chat-back-button"
+                onClick={() => setSelectedFaqId(null)}
+              >
+                <ChevronLeft size={16} strokeWidth={2.25} aria-hidden="true" />
+                All help topics
+              </button>
+
+              <div className="chat-message chat-message--user">
+                <div className="chat-bubble">{selectedFaq.question}</div>
+              </div>
+
+              <div className="chat-message chat-message--bot">
+                <div className="chat-bot-avatar" aria-hidden="true">CP</div>
+                <div className="chat-answer-card">
+                  <h3>{selectedFaq.label}</h3>
+                  <p>{selectedFaq.answer}</p>
+                  <a className="chat-answer-action" href={selectedFaq.action.href}>
+                    {selectedFaq.action.label}
+                    <ArrowUpRight size={16} strokeWidth={2.25} aria-hidden="true" />
+                  </a>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="chat-secondary-action"
+                onClick={() => setSelectedFaqId(null)}
+              >
+                Ask another question
+              </button>
+            </div>
+          ) : (
+            <div className="chat-start-view">
+              <div className="chat-welcome">
+                <MessageCircle size={20} strokeWidth={2.1} aria-hidden="true" />
+                <p>Select a topic and we will point you to the right place.</p>
+              </div>
+
+              {FAQ_GROUPS.map((group) => (
+                <div className="chat-topic-group" key={group}>
+                  <h3>{group}</h3>
+                  <div className="chat-topic-list">
+                    {FAQS.filter((faq) => faq.group === group).map((faq) => {
+                      const Icon = faq.icon;
+
+                      return (
+                        <button
+                          type="button"
+                          key={faq.id}
+                          className="chat-topic-button"
+                          onClick={() => selectFaq(faq.id)}
+                        >
+                          <span className="chat-topic-icon" aria-hidden="true">
+                            <Icon size={17} strokeWidth={2.1} />
+                          </span>
+                          <span>{faq.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              <a className="chat-email-link" href="mailto:hello@collectorsparadise.au">
+                Need a person? Email collector support
+              </a>
+            </div>
+          )}
+        </div>
+      </section>
+
     </div>
   );
 }
