@@ -24,15 +24,25 @@ export default function Navbar() {
   
   const pathname = usePathname();
   const isHomePage = pathname === '/';
-  const navItems = [
-    { href: '/', label: 'Home' },
-    { href: '/about', label: 'About' },
-    { href: '/events', label: 'Events' },
-    { href: '/guides/first-trading-card-show', label: 'Visit Guide' },
-    { href: '/faq', label: 'FAQ' },
-    { href: '/vendors', label: 'Vendors' },
-    { href: '/sponsorship', label: 'Sponsorship' },
-    { href: '/volunteers', label: 'Volunteers' },
+  const navGroups = [
+    {
+      label: 'Explore',
+      items: [
+        { href: '/', label: 'Home' },
+        { href: '/events', label: 'Events' },
+        { href: '/guides/first-trading-card-show', label: 'Visit Guide' },
+        { href: '/faq', label: 'FAQ' },
+      ],
+    },
+    {
+      label: 'Community',
+      items: [
+        { href: '/about', label: 'About' },
+        { href: '/vendors', label: 'Vendors' },
+        { href: '/sponsorship', label: 'Sponsorship' },
+        { href: '/volunteers', label: 'Volunteers' },
+      ],
+    },
   ];
 
   const isActiveRoute = (href: string) => href === '/' ? pathname === '/' : pathname.startsWith(href);
@@ -211,7 +221,7 @@ export default function Navbar() {
       <div className="navbar-inner">
         {/* Left: Logo (acts as Home button — scrolls to top when on home) */}
         <Link href="/" className="navbar-logo-link" onClick={handleLogoClick} prefetch>
-          <Image src={logo} alt="Collector's Paradise — Australian trading card and collectibles events" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
+          <Image src={logo} alt="Collector's Paradise - Australian trading card and collectibles events" height={55} priority className="navbar-logo" style={{ width: 'auto' }} />
         </Link>
 
         {/* Right: Actions Group */}
@@ -323,23 +333,28 @@ export default function Navbar() {
 
             <div className={overlayStyles.content}>
               <div className={overlayStyles.links} aria-label="Primary navigation">
-                {navItems.map((item, index) => {
-                  const active = isActiveRoute(item.href);
-                  return (
-                    <Link
-                      href={item.href}
-                      className={`${overlayStyles.link} ${active ? overlayStyles.active : ''}`}
-                      aria-current={active ? 'page' : undefined}
-                      onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
-                      prefetch
-                      key={item.href}
-                    >
-                      <span className={overlayStyles.index}>0{index + 1}</span>
-                      <span>{item.label}</span>
-                      <span className={overlayStyles.arrow} aria-hidden="true">→</span>
-                    </Link>
-                  );
-                })}
+                {navGroups.map((group) => (
+                  <div className={overlayStyles.linkGroup} key={group.label}>
+                    <p className={overlayStyles.groupLabel}>{group.label}</p>
+                    <div className={overlayStyles.groupLinks}>
+                      {group.items.map((item) => {
+                        const active = isActiveRoute(item.href);
+                        return (
+                          <Link
+                            href={item.href}
+                            className={`${overlayStyles.link} ${active ? overlayStyles.active : ''}`}
+                            aria-current={active ? 'page' : undefined}
+                            onClick={item.href === '/' ? handleLogoClick : () => setMenuOpen(false)}
+                            prefetch
+                            key={item.href}
+                          >
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
 
               <div className={overlayStyles.footer}>

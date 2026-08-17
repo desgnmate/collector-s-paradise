@@ -48,10 +48,10 @@ export default function Hero() {
           <Image src={cardLeft} alt="Pokémon trading card on display at Collector's Paradise event" width={190} height={265} loading="lazy" />
         </div>
         <div className="hero-card hero-card-center">
-          <Image src={cardCenter} alt="Rare Pokémon TCG card featured at a Collector's Paradise trading card show" width={210} height={290} loading="lazy" />
+          <Image src={cardCenter} alt="Rare Pokémon TCG card featured at a Collector's Paradise trading card show" width={210} height={290} preload />
         </div>
         <div className="hero-card hero-card-right">
-          <Image src={cardRight} alt="Pokémon trading card hero image for Melbourne collector event" width={380} height={530} priority />
+          <Image src={cardRight} alt="Pokémon trading card hero image for Melbourne collector event" width={380} height={530} loading="lazy" />
         </div>
       </div>
     </section>
