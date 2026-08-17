@@ -4,9 +4,9 @@ const reviews = [
   {
     title: 'Packed Every Time',
     quote:
-      'Collector\'s Paradise events always bring serious foot traffic. We sold out half our singles table by midday — best Melbourne show we\'ve done this year.',
+      'Collector\'s Paradise events always bring serious foot traffic. We sold out half our singles table by midday. It was the best Melbourne show we\'ve done this year.',
     author: 'Marcus T.',
-    role: 'TCG Vendor · Melbourne',
+    role: 'TCG Vendor, Melbourne',
     rating: 5,
   },
   {
@@ -20,12 +20,14 @@ const reviews = [
   {
     title: 'Trade Floor Energy',
     quote:
-      'The vibe at these events is unreal. Kids, veterans, and traders all in one room. We came for the sales and stayed for the community — already booked our next booth.',
+      'The vibe at these events is unreal. Kids, veterans, and traders all in one room. We came for the sales and stayed for the community. We have already booked our next booth.',
     author: 'Liam C.',
     role: 'Pokémon & One Piece Vendor',
     rating: 5,
   },
 ];
+
+type Review = (typeof reviews)[number];
 
 function Stars({ count }: { count: number }) {
   return (
@@ -47,11 +49,25 @@ function Stars({ count }: { count: number }) {
   );
 }
 
+function ReviewCard({ review, duplicate = false }: { review: Review; duplicate?: boolean }) {
+  return (
+    <article className="review-card" tabIndex={duplicate ? -1 : 0}>
+      <Stars count={review.rating} />
+      <h3 className="review-card-title">{review.title}</h3>
+      <p className="review-card-quote">&ldquo;{review.quote}&rdquo;</p>
+      <div className="review-card-author">
+        <span className="review-card-name">{review.author}</span>
+        <span className="review-card-role">{review.role}</span>
+      </div>
+    </article>
+  );
+}
+
 const Brands = () => {
   return (
     <section id="brands" className="brands-section">
       <div className="brands-header" data-aos="fade-up">
-        <h2 className="section-title">
+        <h2 id="vendor-reviews-title" className="section-title">
           WHAT VENDORS <br className="brands-mobile-break" /> ARE SAYING
         </h2>
         <p className="section-subtitle">
@@ -59,23 +75,25 @@ const Brands = () => {
         </p>
       </div>
 
-      <div className="reviews-grid">
-        {reviews.map((review, index) => (
-          <article
-            key={review.title}
-            className="review-card"
-            data-aos="fade-up"
-            data-aos-delay={String(100 + index * 100)}
-          >
-            <Stars count={review.rating} />
-            <h3 className="review-card-title">{review.title}</h3>
-            <p className="review-card-quote">&ldquo;{review.quote}&rdquo;</p>
-            <div className="review-card-author">
-              <span className="review-card-name">{review.author}</span>
-              <span className="review-card-role">{review.role}</span>
-            </div>
-          </article>
-        ))}
+      <div
+        className="reviews-marquee"
+        role="region"
+        aria-labelledby="vendor-reviews-title"
+        aria-live="off"
+      >
+        <div className="reviews-track">
+          <div className="reviews-group">
+            {reviews.map((review) => (
+              <ReviewCard key={review.title} review={review} />
+            ))}
+          </div>
+
+          <div className="reviews-group" aria-hidden="true">
+            {reviews.map((review) => (
+              <ReviewCard key={`duplicate-${review.title}`} review={review} duplicate />
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
