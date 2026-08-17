@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
+import ResourcePageNav from '@/components/ResourcePageNav';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
 import FirstShowChecklist from './FirstShowChecklist';
@@ -45,13 +46,20 @@ export default function FirstTradingCardShowGuidePage() {
 
       <section id="before" className={styles.intro} aria-labelledby="before-title">
         <div className={`${styles.shell} ${styles.introGrid}`}>
-          <div className={styles.introHeader}><p className={styles.label}>Before you go</p><h2 id="before-title">Give yourself a simple mission</h2></div>
+          <div className={styles.introHeader}><p className={styles.label}>Before you go</p><h1 id="before-title">Give yourself a simple mission</h1></div>
           <div className={styles.introCopy}>
             <p>Your first show is easier when you choose one or two priorities: find a specific card, learn what a set is worth, meet local sellers, or simply see what the hobby looks like in person. <strong>Start with the live event page.</strong> That is where confirmed venue, time, entry, and ticket details belong. Re-check it before travelling.</p>
             <p>Bring a short want list and note any condition, edition, language, grading, or budget requirements. This makes conversations quicker and helps you compare like with like. If you plan to trade, organise your cards so another collector can inspect them without handling your whole collection.</p>
           </div>
         </div>
       </section>
+
+      <ResourcePageNav items={[
+        { href: '#before', label: 'Before you go' },
+        { href: '#checklist', label: 'Packing check' },
+        { href: '#day-of', label: 'On the day' },
+        { href: '#etiquette', label: 'Etiquette' },
+      ]} />
 
       <section id="checklist" className={styles.checklistSection} aria-label="First show preparation checklist">
         <div className={styles.shell}><FirstShowChecklist /></div>

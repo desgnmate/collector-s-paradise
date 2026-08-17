@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
+import ResourcePageNav from '@/components/ResourcePageNav';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
@@ -56,6 +57,12 @@ export default async function CanberraLocationPage() {
         description="A clear, practical briefing for Collector's Paradise shows in Canberra: what is scheduled, where to verify details, and how to prepare for a day of collecting."
       />
 
+      <ResourcePageNav items={[
+        { href: '#canberra-events', label: 'Upcoming shows' },
+        { href: '#canberra-briefing', label: 'Show-day briefing' },
+        { href: '#access-planning', label: 'Access planning' },
+      ]} />
+
       <section id="canberra-events" className={styles.canEvents} aria-labelledby="canberra-events-title">
         <div className={styles.shell}>
           <div className={styles.sectionHeader}>
@@ -68,7 +75,7 @@ export default async function CanberraLocationPage() {
         </div>
       </section>
 
-      <section className={styles.canGuide} aria-labelledby="briefing-notes-title">
+      <section id="canberra-briefing" className={styles.canGuide} aria-labelledby="briefing-notes-title">
         <div className={`${styles.shell} ${styles.canGuideGrid}`}>
           <div className={styles.canGuideIntro}><p className={styles.kicker}>Briefing notes</p><h2 id="briefing-notes-title">Four checks before show day</h2></div>
           <div className={styles.briefCards}>
@@ -80,7 +87,7 @@ export default async function CanberraLocationPage() {
         </div>
       </section>
 
-      <section className={styles.locationFooterCta}>
+      <section id="access-planning" className={styles.locationFooterCta}>
         <div className={`${styles.shell} ${styles.locationFooterCtaInner}`}>
           <div className={styles.locationFooterCtaCopy}>
             <h2>Need venue-specific accessibility information?</h2>

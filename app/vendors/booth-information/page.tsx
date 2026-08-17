@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
+import ResourcePageNav from '@/components/ResourcePageNav';
 import { getVendorApplicationEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
@@ -56,7 +57,14 @@ export default async function VendorBoothInformationPage() {
         description="Understand the application path, prepare the information the team needs, and see which events are currently available. Event-specific inclusions and fees are only final when confirmed in writing."
       />
 
-      <section className={styles.readinessSection} aria-label="Vendor application readiness tool"><div className={styles.shell}><BoothReadiness /></div></section>
+      <ResourcePageNav items={[
+        { href: '#readiness', label: 'Readiness check' },
+        { href: '#process', label: 'Application flow' },
+        { href: '#opportunities', label: 'Live events' },
+        { href: '#booth-faq', label: 'Vendor FAQ' },
+      ]} />
+
+      <section id="readiness" className={styles.readinessSection} aria-label="Vendor application readiness tool"><div className={styles.shell}><BoothReadiness /></div></section>
 
       <section id="process" className={styles.process} aria-labelledby="process-title">
         <div className={styles.shell}>
@@ -70,7 +78,7 @@ export default async function VendorBoothInformationPage() {
         </div>
       </section>
 
-      <section className={styles.opportunities} aria-labelledby="opportunities-title">
+      <section id="opportunities" className={styles.opportunities} aria-labelledby="opportunities-title">
         <div className={styles.shell}>
           <div className={styles.sectionHeader}><div><p className={styles.label}>Live availability</p><h2 id="opportunities-title">Events in the application</h2></div><p>This list is read directly from the current vendor application data. Availability and approval remain subject to review.</p></div>
           {availableEvents.length ? (
@@ -93,7 +101,7 @@ export default async function VendorBoothInformationPage() {
         </div>
       </section>
 
-      <section className={styles.faq} aria-labelledby="booth-faq-title">
+      <section id="booth-faq" className={styles.faq} aria-labelledby="booth-faq-title">
         <div className={styles.shell}><p className={styles.label}>Vendor FAQ</p><h2 id="booth-faq-title">Before you apply</h2><div className={styles.faqList}>{faqItems.map(([question, answer]) => <details key={question}><summary>{question}</summary><p>{answer}</p></details>)}</div></div>
       </section>
 

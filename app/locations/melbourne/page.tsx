@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
+import ResourcePageNav from '@/components/ResourcePageNav';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
@@ -59,6 +60,12 @@ export default async function MelbourneLocationPage() {
         description="A rotating market for trading cards, graded favourites, sealed product, and collector culture. Use this page to find the next Melbourne-area show and arrive with a plan."
       />
 
+      <ResourcePageNav items={[
+        { href: '#melbourne-events', label: 'Upcoming shows' },
+        { href: '#melbourne-route', label: 'Plan the day' },
+        { href: '#more-cities', label: 'More cities' },
+      ]} />
+
       <section id="melbourne-events" className={styles.melEvents} aria-labelledby="melbourne-events-title">
         <div className={styles.shell}>
           <div className={styles.sectionHeader}>
@@ -74,7 +81,7 @@ export default async function MelbourneLocationPage() {
         </div>
       </section>
 
-      <section className={styles.melRoute} aria-labelledby="melbourne-route-title">
+      <section id="melbourne-route" className={styles.melRoute} aria-labelledby="melbourne-route-title">
         <div className={`${styles.shell} ${styles.routeGrid}`}>
           <div className={styles.routeIntro}>
             <p className={styles.kicker}>A collector&apos;s route</p>
@@ -95,7 +102,7 @@ export default async function MelbourneLocationPage() {
         </div>
       </section>
 
-      <section className={styles.locationFooterCta}>
+      <section id="more-cities" className={styles.locationFooterCta}>
         <div className={`${styles.shell} ${styles.locationFooterCtaInner}`}>
           <div className={styles.locationFooterCtaCopy}>
             <h2>Looking beyond Victoria?</h2>

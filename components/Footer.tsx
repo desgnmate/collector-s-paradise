@@ -53,12 +53,22 @@ export default function Footer() {
           </nav>
 
           <nav className="footer-resource-nav" aria-label="Visitor resources">
-            <Link href="/locations/melbourne">MELBOURNE</Link>
-            <Link href="/locations/gold-coast">GOLD COAST</Link>
-            <Link href="/locations/canberra">CANBERRA</Link>
-            <Link href="/guides/first-trading-card-show">FIRST-SHOW GUIDE</Link>
-            <Link href="/vendors/booth-information">BOOTH INFORMATION</Link>
-            <Link href="/accessibility">ACCESSIBILITY</Link>
+            <div className="footer-resource-group">
+              <span>Find a show</span>
+              <div className="footer-resource-links">
+                <Link href="/locations/melbourne">Melbourne</Link>
+                <Link href="/locations/gold-coast">Gold Coast</Link>
+                <Link href="/locations/canberra">Canberra</Link>
+              </div>
+            </div>
+            <div className="footer-resource-group">
+              <span>Plan the experience</span>
+              <div className="footer-resource-links">
+                <Link href="/guides/first-trading-card-show">First-show guide</Link>
+                <Link href="/vendors/booth-information">Booth information</Link>
+                <Link href="/accessibility">Accessibility</Link>
+              </div>
+            </div>
           </nav>
 
           {/* Address block — supports Local SEO NAP consistency */}

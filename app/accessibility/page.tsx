@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
+import ResourcePageNav from '@/components/ResourcePageNav';
 import { absoluteUrl, CONTACT_EMAIL } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
 import AccessPlanner from './AccessPlanner';
@@ -40,7 +41,14 @@ export default function AccessibilityPage() {
         description="We want event information and online journeys to be easier to understand and use. Venue facilities vary, so this page helps you ask the right questions before booking."
       />
 
-      <section className={styles.principles} aria-labelledby="principles-title">
+      <ResourcePageNav items={[
+        { href: '#access-principles', label: 'Access basics' },
+        { href: '#access-planner', label: 'Email planner' },
+        { href: '#visit-plan', label: 'Visit plan' },
+        { href: '#access-statement', label: 'Website access' },
+      ]} />
+
+      <section id="access-principles" className={styles.principles} aria-labelledby="principles-title">
         <div className={styles.shell}>
           <div className={styles.sectionHeader}><p className={styles.label}>What good access information looks like</p><h2 id="principles-title">Specific, early, and confirmed</h2><p>The most useful conversation starts with a named event and a clear question. That allows the team to check the selected venue rather than make a general promise.</p></div>
           <div className={styles.principleGrid}>
@@ -53,7 +61,7 @@ export default function AccessibilityPage() {
 
       <section id="access-planner" className={styles.plannerSection} aria-label="Accessibility email planner"><div className={styles.shell}><AccessPlanner /></div></section>
 
-      <section className={styles.visitGuide} aria-labelledby="access-visit-title">
+      <section id="visit-plan" className={styles.visitGuide} aria-labelledby="access-visit-title">
         <div className={`${styles.shell} ${styles.visitGrid}`}>
           <div><p className={styles.label}>Before and during a visit</p><h2 id="access-visit-title">A simple access plan</h2></div>
           <div className={styles.visitSteps}>
@@ -65,7 +73,7 @@ export default function AccessibilityPage() {
         </div>
       </section>
 
-      <section className={styles.statement} aria-labelledby="statement-title">
+      <section id="access-statement" className={styles.statement} aria-labelledby="statement-title">
         <div className={`${styles.shell} ${styles.statementGrid}`}>
           <div><p className={styles.label}>Website accessibility statement</p><h2 id="statement-title">Tell us when information gets in the way</h2></div>
           <div className={styles.statementCopy}>

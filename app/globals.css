@@ -3974,8 +3974,9 @@ button.login-dropdown-item:hover .login-item-desc {
 .reviews-marquee {
   position: relative;
   z-index: 2;
-  width: 100%;
+  width: min(1520px, 100%);
   overflow: hidden;
+  margin-inline: auto;
   padding: 0.4rem clamp(1rem, 3.5vw, 3.5rem) 0.65rem;
   text-align: left;
 }
@@ -3987,6 +3988,10 @@ button.login-dropdown-item:hover .login-item-desc {
   will-change: transform;
 }
 
+.reviews-track-paused {
+  animation-play-state: paused;
+}
+
 .reviews-group {
   display: flex;
   flex: none;
@@ -3995,15 +4000,40 @@ button.login-dropdown-item:hover .login-item-desc {
   padding-right: clamp(1rem, 2vw, 1.5rem);
 }
 
-.reviews-marquee:hover .reviews-track,
-.reviews-marquee:focus-within .reviews-track {
-  animation-play-state: paused;
-}
-
 @keyframes reviews-loop {
   to {
-    transform: translate3d(-50%, 0, 0);
+    transform: translate3d(-20%, 0, 0);
   }
+}
+
+.reviews-motion-button {
+  min-height: 38px;
+  margin-top: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius-pill);
+  padding: 0.62rem 0.9rem;
+  background: transparent;
+  color: #fff;
+  font: 800 0.66rem/1 var(--font-heading);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.reviews-motion-button:hover,
+.reviews-motion-button[aria-pressed='true'] {
+  background: var(--color-yellow);
+  color: var(--color-dark);
+}
+
+.reviews-motion-button:active {
+  transform: translateY(1px);
+}
+
+.reviews-motion-button:focus-visible {
+  outline: 3px solid var(--color-yellow);
+  outline-offset: 3px;
 }
 
 .review-card {
@@ -4134,6 +4164,10 @@ button.login-dropdown-item:hover .login-item-desc {
 
   .review-card {
     scroll-snap-align: start;
+  }
+
+  .reviews-motion-button {
+    display: none;
   }
 }
 
@@ -4697,27 +4731,72 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .footer-resource-nav {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 0.7rem 1.2rem;
-  max-width: 980px;
-  margin: 1.7rem auto 0;
+  width: min(900px, calc(100% - 2rem));
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 0.75rem;
+  margin: 2rem auto 0;
+  padding: 0.75rem;
+  border: 2px solid var(--color-dark);
+  border-radius: var(--radius-lg);
+  background: var(--color-dark);
+  text-align: left;
 }
 
-.footer-resource-nav a {
-  color: var(--color-dark);
+.footer-resource-group {
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+}
+
+.footer-resource-group > span {
+  display: block;
+  margin-bottom: 0.75rem;
+  color: #716d63;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
-  font-weight: 750;
-  letter-spacing: 0.06em;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.footer-resource-nav a:hover,
-.footer-resource-nav a:focus-visible {
-  color: var(--color-red);
+.footer-resource-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.footer-resource-links a {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  padding: 0.62rem 0.85rem;
+  background: #fff;
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transition: background 160ms ease, transform 160ms ease;
+}
+
+.footer-resource-links a:hover,
+.footer-resource-links a:focus-visible {
+  background: var(--color-yellow);
+  transform: translateY(-1px);
+}
+
+.footer-resource-links a:focus-visible {
+  outline: 3px solid var(--color-dark);
+  outline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .footer-resource-nav {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Bottom Contact / Legal Bar */

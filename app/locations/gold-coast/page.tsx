@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
+import ResourcePageNav from '@/components/ResourcePageNav';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
@@ -56,6 +57,12 @@ export default async function GoldCoastLocationPage() {
         description="Big hobby energy, one room, and plenty to discover. Find upcoming Gold Coast-area events, then open the show page for the final venue, entry, and booking information."
       />
 
+      <ResourcePageNav items={[
+        { href: '#gold-coast-events', label: 'Upcoming shows' },
+        { href: '#coast-plan', label: 'Plan the day' },
+        { href: '#first-show-guide', label: 'First-show guide' },
+      ]} />
+
       <section id="gold-coast-events" className={styles.goldEvents} aria-labelledby="gold-events-title">
         <div className={styles.shell}>
           <div className={styles.sectionHeader}>
@@ -68,7 +75,7 @@ export default async function GoldCoastLocationPage() {
         </div>
       </section>
 
-      <section className={styles.goldPlan} aria-labelledby="coast-plan-title">
+      <section id="coast-plan" className={styles.goldPlan} aria-labelledby="coast-plan-title">
         <div className={styles.shell}>
           <div className={styles.goldPlanHeader}>
             <h2 id="coast-plan-title">Pack light. Plan smart.</h2>
@@ -82,7 +89,7 @@ export default async function GoldCoastLocationPage() {
         </div>
       </section>
 
-      <section className={styles.locationFooterCta}>
+      <section id="first-show-guide" className={styles.locationFooterCta}>
         <div className={`${styles.shell} ${styles.locationFooterCtaInner}`}>
           <div className={styles.locationFooterCtaCopy}>
             <h2>Make the first lap easier.</h2>

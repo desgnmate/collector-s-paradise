@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 
 const reviews = [
   {
@@ -26,6 +28,8 @@ const reviews = [
     rating: 5,
   },
 ];
+
+const marqueeGroups = 5;
 
 type Review = (typeof reviews)[number];
 
@@ -64,6 +68,8 @@ function ReviewCard({ review, duplicate = false }: { review: Review; duplicate?:
 }
 
 const Brands = () => {
+  const [isPaused, setIsPaused] = useState(false);
+
   return (
     <section id="brands" className="brands-section">
       <div className="brands-header" data-aos="fade-up">
@@ -73,6 +79,14 @@ const Brands = () => {
         <p className="section-subtitle">
           Hear from the vendors who make every event unforgettable.
         </p>
+        <button
+          type="button"
+          className="reviews-motion-button"
+          aria-pressed={isPaused}
+          onClick={() => setIsPaused((paused) => !paused)}
+        >
+          {isPaused ? 'Resume testimonials' : 'Pause testimonials'}
+        </button>
       </div>
 
       <div
@@ -81,18 +95,26 @@ const Brands = () => {
         aria-labelledby="vendor-reviews-title"
         aria-live="off"
       >
-        <div className="reviews-track">
-          <div className="reviews-group">
-            {reviews.map((review) => (
-              <ReviewCard key={review.title} review={review} />
-            ))}
-          </div>
+        <div className={`reviews-track ${isPaused ? 'reviews-track-paused' : ''}`}>
+          {Array.from({ length: marqueeGroups }, (_, groupIndex) => {
+            const duplicate = groupIndex > 0;
 
-          <div className="reviews-group" aria-hidden="true">
-            {reviews.map((review) => (
-              <ReviewCard key={`duplicate-${review.title}`} review={review} duplicate />
-            ))}
-          </div>
+            return (
+              <div
+                key={`review-group-${groupIndex}`}
+                className="reviews-group"
+                aria-hidden={duplicate || undefined}
+              >
+                {reviews.map((review) => (
+                  <ReviewCard
+                    key={`${groupIndex}-${review.title}`}
+                    review={review}
+                    duplicate={duplicate}
+                  />
+                ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
