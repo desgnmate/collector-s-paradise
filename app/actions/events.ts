@@ -26,16 +26,43 @@ export type Event = {
   ticket_price: number;
   cover_image_url: string | null;
   booking_link: string | null;
+  vendor_table_price: number | null;
+  vendor_power_fee: number;
+  vendor_response_deadline: string | null;
+  vendor_load_in_time: string | null;
+  vendor_payment_link: string | null;
+  vendor_contact_email: string | null;
+  vendor_instructions: string | null;
   created_at: string;
   updated_at: string;
 };
 
-const EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, created_at, updated_at';
+const EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions, created_at, updated_at';
 const PUBLIC_EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, booking_link, created_at, updated_at';
 
 // ============================================
 // Validation Schemas
 // ============================================
+const optionalCurrencySchema = z.preprocess(
+  (value) => value === '' || value === null || value === undefined ? null : value,
+  z.coerce.number().min(0, 'Amount cannot be negative').max(100000).nullable(),
+);
+
+const optionalTextSchema = (maximum: number) => z.preprocess(
+  (value) => value === '' || value === null || value === undefined ? null : value,
+  z.string().max(maximum).nullable(),
+);
+
+const optionalDateSchema = z.preprocess(
+  (value) => value === '' || value === null || value === undefined ? null : value,
+  z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Vendor response deadline must be a valid date').nullable(),
+);
+
+const optionalTimeSchema = z.preprocess(
+  (value) => value === '' || value === null || value === undefined ? null : value,
+  z.string().regex(/^([01]\d|2[0-3]):[0-5]\d(?::[0-5]\d)?$/, 'Vendor load-in time must be valid').nullable(),
+);
+
 const createEventSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200),
   description: z.string().optional(),
@@ -47,7 +74,46 @@ const createEventSchema = z.object({
   capacity: z.coerce.number().min(1, 'Capacity must be at least 1'),
   ticket_price: z.coerce.number().min(0, 'Price cannot be negative'),
   booking_link: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  vendor_table_price: optionalCurrencySchema,
+  vendor_power_fee: optionalCurrencySchema,
+  vendor_response_deadline: optionalDateSchema,
+  vendor_load_in_time: optionalTimeSchema,
+  vendor_payment_link: z.string().url('Vendor payment link must be a valid URL').optional().or(z.literal('')),
+  vendor_contact_email: z.string().email('Vendor contact email must be valid').optional().or(z.literal('')),
+  vendor_instructions: optionalTextSchema(5000),
 });
+
+function parseEventFormData(formData: FormData) {
+  return {
+    title: formData.get('title'),
+    description: formData.get('description'),
+    event_date: formData.get('event_date'),
+    start_time: formData.get('start_time'),
+    end_time: formData.get('end_time'),
+    venue: formData.get('venue'),
+    venue_address: formData.get('venue_address'),
+    capacity: formData.get('capacity'),
+    ticket_price: formData.get('ticket_price'),
+    booking_link: formData.get('booking_link'),
+    vendor_table_price: formData.get('vendor_table_price'),
+    vendor_power_fee: formData.get('vendor_power_fee'),
+    vendor_response_deadline: formData.get('vendor_response_deadline'),
+    vendor_load_in_time: formData.get('vendor_load_in_time'),
+    vendor_payment_link: formData.get('vendor_payment_link'),
+    vendor_contact_email: formData.get('vendor_contact_email'),
+    vendor_instructions: formData.get('vendor_instructions'),
+  };
+}
+
+function toEventWriteData(data: z.infer<typeof createEventSchema>) {
+  return {
+    ...data,
+    booking_link: data.booking_link || null,
+    vendor_power_fee: data.vendor_power_fee ?? 0,
+    vendor_payment_link: data.vendor_payment_link || null,
+    vendor_contact_email: data.vendor_contact_email || null,
+  };
+}
 
 // ============================================
 // Public Actions
@@ -76,10 +142,28 @@ const normalizeEvent = (event: Event): Event => ({
     : event.cover_image_url,
 });
 
-const normalizePublicEvent = (event: Omit<Event, 'cover_image_url'> & { cover_image_url?: string | null }): Event => ({
+type PublicEventRow = Omit<Event,
+  | 'cover_image_url'
+  | 'vendor_table_price'
+  | 'vendor_power_fee'
+  | 'vendor_response_deadline'
+  | 'vendor_load_in_time'
+  | 'vendor_payment_link'
+  | 'vendor_contact_email'
+  | 'vendor_instructions'
+>;
+
+const normalizePublicEvent = (event: PublicEventRow): Event => ({
   ...event,
   status: getEffectiveEventStatus(event as Event),
   cover_image_url: `/api/events/${event.id}/cover`,
+  vendor_table_price: null,
+  vendor_power_fee: 0,
+  vendor_response_deadline: null,
+  vendor_load_in_time: null,
+  vendor_payment_link: null,
+  vendor_contact_email: null,
+  vendor_instructions: null,
 });
 
 const getCachedEvents = unstable_cache(
@@ -97,7 +181,7 @@ const getCachedEvents = unstable_cache(
       return [];
     }
 
-    return (data as Omit<Event, 'cover_image_url'>[]).map((event) => normalizePublicEvent(event));
+    return (data as PublicEventRow[]).map(normalizePublicEvent);
   },
   ['public-events-v2'],
   { revalidate: 3600, tags: ['events'] }
@@ -117,7 +201,7 @@ const getCachedEventById = unstable_cache(
       return null;
     }
 
-    return normalizePublicEvent(data as Omit<Event, 'cover_image_url'>);
+    return normalizePublicEvent(data as PublicEventRow);
   },
   ['public-event-v2'],
   { revalidate: 3600, tags: ['events'] }
@@ -269,18 +353,7 @@ export async function createEvent(
     }
   }
 
-  const validatedFields = createEventSchema.safeParse({
-    title: formData.get('title'),
-    description: formData.get('description'),
-    event_date: formData.get('event_date'),
-    start_time: formData.get('start_time'),
-    end_time: formData.get('end_time'),
-    venue: formData.get('venue'),
-    venue_address: formData.get('venue_address'),
-    capacity: formData.get('capacity'),
-    ticket_price: formData.get('ticket_price'),
-    booking_link: formData.get('booking_link'),
-  });
+  const validatedFields = createEventSchema.safeParse(parseEventFormData(formData));
 
   if (!validatedFields.success) {
     return {
@@ -301,7 +374,7 @@ export async function createEvent(
   const { data: createdEvent, error } = await supabase
     .from('events')
     .insert({
-      ...validatedFields.data,
+      ...toEventWriteData(validatedFields.data),
       cover_image_url: coverImageUrl,
     })
     .select(EVENT_COLUMNS)
@@ -343,18 +416,7 @@ export async function updateEvent(
     }
   }
 
-  const validatedFields = createEventSchema.safeParse({
-    title: formData.get('title'),
-    description: formData.get('description'),
-    event_date: formData.get('event_date'),
-    start_time: formData.get('start_time'),
-    end_time: formData.get('end_time'),
-    venue: formData.get('venue'),
-    venue_address: formData.get('venue_address'),
-    capacity: formData.get('capacity'),
-    ticket_price: formData.get('ticket_price'),
-    booking_link: formData.get('booking_link'),
-  });
+  const validatedFields = createEventSchema.safeParse(parseEventFormData(formData));
 
   if (!validatedFields.success) {
     return {
@@ -392,7 +454,7 @@ export async function updateEvent(
     }
   }
 
-  const updateData: Record<string, unknown> = { ...validatedFields.data };
+  const updateData: Record<string, unknown> = toEventWriteData(validatedFields.data);
   if (coverImageUrl !== undefined) {
     updateData.cover_image_url = coverImageUrl;
   }

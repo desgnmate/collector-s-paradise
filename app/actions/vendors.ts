@@ -5,13 +5,27 @@ import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
-import { sendNewApplicationEmail, sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
+import {
+  sendNewApplicationEmail,
+  sendRejectionEmail,
+  sendVendorInvitationEmail,
+  type VendorInvitationEmailInput,
+} from '@/lib/email';
 import { getEventMarketDate } from '@/lib/event-date';
 
 // ============================================
 // Types
 // ============================================
 export type VendorApplicationStatus = 'pending' | 'approved' | 'rejected' | 'waitlisted';
+export type VendorInvitationStatus =
+  | 'not_sent'
+  | 'sending'
+  | 'sent'
+  | 'failed'
+  | 'delivered'
+  | 'bounced'
+  | 'complained'
+  | 'suppressed';
 
 export type VendorEventApplication = {
   id: string;
@@ -22,6 +36,14 @@ export type VendorEventApplication = {
   power_requirements: string | null;
   booth_assignment: string | null;
   rejection_reason: string | null;
+  approved_vendor_fee: number | null;
+  invitation_status: VendorInvitationStatus;
+  invitation_sent_at: string | null;
+  invitation_last_attempt_at: string | null;
+  invitation_attempt_count: number;
+  invitation_resend_id: string | null;
+  invitation_error: string | null;
+  invitation_version: number;
   applied_at: string;
   updated_at: string;
   event_name: string;
@@ -89,7 +111,7 @@ async function attachEventApplications(
 
   const { data: applications, error } = await supabase
     .from('vendor_event_applications')
-    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, booth_assignment, rejection_reason, applied_at, updated_at, events(title, event_date, venue)')
+    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, applied_at, updated_at, events(title, event_date, venue)')
     .in('vendor_id', vendors.map((vendor) => vendor.id))
     .order('applied_at', { ascending: false });
 
@@ -115,6 +137,14 @@ async function attachEventApplications(
       power_requirements: row.power_requirements,
       booth_assignment: row.booth_assignment,
       rejection_reason: row.rejection_reason,
+      approved_vendor_fee: row.approved_vendor_fee === null ? null : Number(row.approved_vendor_fee),
+      invitation_status: row.invitation_status,
+      invitation_sent_at: row.invitation_sent_at,
+      invitation_last_attempt_at: row.invitation_last_attempt_at,
+      invitation_attempt_count: row.invitation_attempt_count,
+      invitation_resend_id: row.invitation_resend_id,
+      invitation_error: row.invitation_error,
+      invitation_version: row.invitation_version,
       applied_at: row.applied_at,
       updated_at: row.updated_at,
       event_name: event?.title || 'Deleted event',
@@ -182,6 +212,9 @@ type ActionState = {
   errors?: Record<string, string[]>;
   success?: boolean;
   fields?: Partial<VendorApplicationFields>;
+  invitation_status?: VendorInvitationStatus;
+  invitation_sent_at?: string | null;
+  invitation_error?: string | null;
 };
 
 /** Verify the current user is an admin — returns error message or null if OK */
@@ -581,6 +614,14 @@ async function fetchApprovedVendors(
       power_requirements: null,
       booth_assignment: application.booth_assignment ? String(application.booth_assignment) : null,
       rejection_reason: null,
+      approved_vendor_fee: null,
+      invitation_status: 'not_sent',
+      invitation_sent_at: null,
+      invitation_last_attempt_at: null,
+      invitation_attempt_count: 0,
+      invitation_resend_id: null,
+      invitation_error: null,
+      invitation_version: 1,
       applied_at: '',
       updated_at: '',
       event_name: String(application.event_name || 'Event'),
@@ -636,6 +677,18 @@ const eventApplicationUpdateSchema = z.object({
   status: z.enum(['pending', 'approved', 'rejected', 'waitlisted']),
   booth_assignment: z.string().max(100).optional().default(''),
   rejection_reason: z.string().max(1000).optional().default(''),
+  approved_vendor_fee: z.preprocess(
+    (value) => value === '' || value === undefined || value === null ? null : value,
+    z.coerce.number().min(0, 'Vendor fee cannot be negative').max(100000).nullable(),
+  ),
+}).superRefine((value, context) => {
+  if (value.status === 'approved' && value.approved_vendor_fee === null) {
+    context.addIssue({
+      code: 'custom',
+      path: ['approved_vendor_fee'],
+      message: 'Confirm the final vendor fee before approving.',
+    });
+  }
 });
 
 const assignVendorsSchema = z.object({
@@ -699,28 +752,274 @@ export async function assignVendorsToEvents(input: z.input<typeof assignVendorsS
   };
 }
 
+type InvitationVendorRecord = {
+  email: string;
+  business_name: string;
+  contact_name: string;
+};
+
+type InvitationEventRecord = {
+  id: string;
+  title: string;
+  event_date: string;
+  start_time: string;
+  end_time: string;
+  venue: string | null;
+  venue_address: string | null;
+  vendor_table_price: number | string | null;
+  vendor_power_fee: number | string | null;
+  vendor_response_deadline: string | null;
+  vendor_load_in_time: string | null;
+  vendor_payment_link: string | null;
+  vendor_contact_email: string | null;
+  vendor_instructions: string | null;
+};
+
+type InvitationApplicationRecord = {
+  id: string;
+  event_id: string;
+  application_status: VendorApplicationStatus;
+  tables_requested: string | null;
+  power_requirements: string | null;
+  booth_assignment: string | null;
+  approved_vendor_fee: number | string | null;
+  invitation_status: VendorInvitationStatus;
+  invitation_sent_at: string | null;
+  invitation_last_attempt_at: string | null;
+  invitation_attempt_count: number;
+  invitation_version: number;
+  vendors: InvitationVendorRecord | InvitationVendorRecord[] | null;
+  events: InvitationEventRecord | InvitationEventRecord[] | null;
+};
+
+const INVITATION_APPLICATION_SELECT = [
+  'id',
+  'event_id',
+  'application_status',
+  'tables_requested',
+  'power_requirements',
+  'booth_assignment',
+  'approved_vendor_fee',
+  'invitation_status',
+  'invitation_sent_at',
+  'invitation_last_attempt_at',
+  'invitation_attempt_count',
+  'invitation_version',
+  'vendors(email, business_name, contact_name)',
+  'events(id, title, event_date, start_time, end_time, venue, venue_address, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions)',
+].join(', ');
+
+function oneRelation<T>(value: T | T[] | null): T | null {
+  return Array.isArray(value) ? value[0] || null : value;
+}
+
+async function getInvitationApplication(
+  supabase: SupabaseClient,
+  applicationId: string,
+): Promise<{ record: InvitationApplicationRecord | null; error: string | null }> {
+  const { data, error } = await supabase
+    .from('vendor_event_applications')
+    .select(INVITATION_APPLICATION_SELECT)
+    .eq('id', applicationId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error loading vendor invitation:', JSON.stringify(error, null, 2));
+    return { record: null, error: error.message };
+  }
+
+  return { record: data as unknown as InvitationApplicationRecord | null, error: null };
+}
+
+async function sendInvitationForApplication(
+  supabase: SupabaseClient,
+  applicationId: string,
+  force: boolean,
+): Promise<ActionState> {
+  const { record, error: loadError } = await getInvitationApplication(supabase, applicationId);
+  if (loadError) return { message: `Could not load invitation details: ${loadError}` };
+  if (!record) return { message: 'Vendor event application not found.' };
+  if (record.application_status !== 'approved') {
+    return { message: 'Only approved applications can receive a vendor invitation.' };
+  }
+
+  const vendor = oneRelation(record.vendors);
+  const event = oneRelation(record.events);
+  const approvedFee = record.approved_vendor_fee === null ? null : Number(record.approved_vendor_fee);
+  if (!vendor || !event) return { message: 'Vendor or event details are missing.' };
+  if (approvedFee === null || !Number.isFinite(approvedFee)) {
+    return { message: 'Confirm the final vendor fee before sending the invitation.' };
+  }
+
+  const sendingAttemptAge = record.invitation_last_attempt_at
+    ? Date.now() - new Date(record.invitation_last_attempt_at).getTime()
+    : 0;
+  const sendingIsFresh = record.invitation_status === 'sending'
+    && Number.isFinite(sendingAttemptAge)
+    && sendingAttemptAge < 10 * 60 * 1000;
+
+  if (sendingIsFresh || (!force && ['sending', 'sent', 'delivered'].includes(record.invitation_status))) {
+    return {
+      success: true,
+      message: record.invitation_status === 'sending'
+        ? 'Application approved. The invitation is already being sent.'
+        : 'Application approved. The invitation was already sent.',
+      invitation_status: record.invitation_status,
+      invitation_sent_at: record.invitation_sent_at,
+    };
+  }
+
+  const terminalDeliveryStatuses: VendorInvitationStatus[] = [
+    'sent',
+    'delivered',
+    'bounced',
+    'complained',
+    'suppressed',
+  ];
+  const nextAttempt = record.invitation_attempt_count + 1;
+  const nextVersion = force && terminalDeliveryStatuses.includes(record.invitation_status)
+    ? record.invitation_version + 1
+    : record.invitation_version;
+  const attemptedAt = new Date().toISOString();
+  const baseClaim = supabase
+    .from('vendor_event_applications')
+    .update({
+      invitation_status: 'sending',
+      invitation_last_attempt_at: attemptedAt,
+      invitation_attempt_count: nextAttempt,
+      invitation_version: nextVersion,
+      invitation_error: null,
+    })
+    .eq('id', applicationId)
+    .eq('invitation_attempt_count', record.invitation_attempt_count);
+  const claimQuery = force
+    ? baseClaim.eq('invitation_status', record.invitation_status)
+    : baseClaim.in('invitation_status', ['not_sent', 'failed', 'bounced', 'complained', 'suppressed']);
+  const { data: claimed, error: claimError } = await claimQuery.select('id').maybeSingle();
+
+  if (claimError) {
+    console.error('Error claiming vendor invitation:', JSON.stringify(claimError, null, 2));
+    return { message: `Could not start invitation delivery: ${claimError.message}` };
+  }
+  if (!claimed) {
+    return {
+      message: 'Another invitation request is already in progress. Refresh before trying again.',
+      invitation_status: 'sending',
+    };
+  }
+
+  const emailInput: VendorInvitationEmailInput = {
+    applicationId: record.id,
+    eventId: event.id,
+    vendorEmail: vendor.email,
+    businessName: vendor.business_name,
+    contactName: vendor.contact_name,
+    eventName: event.title,
+    eventDate: event.event_date,
+    startTime: event.start_time,
+    endTime: event.end_time,
+    venue: event.venue,
+    venueAddress: event.venue_address,
+    boothAssignment: record.booth_assignment,
+    tablesRequested: record.tables_requested,
+    powerRequirements: record.power_requirements,
+    approvedVendorFee: approvedFee,
+    tablePrice: event.vendor_table_price === null ? null : Number(event.vendor_table_price),
+    powerFee: Number(event.vendor_power_fee || 0),
+    responseDeadline: event.vendor_response_deadline,
+    loadInTime: event.vendor_load_in_time,
+    paymentLink: event.vendor_payment_link,
+    contactEmail: event.vendor_contact_email,
+    instructions: event.vendor_instructions,
+  };
+  const sendResult = await sendVendorInvitationEmail(
+    emailInput,
+    `vendor-invitation-${applicationId}-v${nextVersion}`,
+  );
+
+  if (!sendResult.success) {
+    const failureMessage = sendResult.error.slice(0, 1000);
+    const { error: failureUpdateError } = await supabase
+      .from('vendor_event_applications')
+      .update({ invitation_status: 'failed', invitation_error: failureMessage })
+      .eq('id', applicationId)
+      .eq('invitation_attempt_count', nextAttempt);
+    if (failureUpdateError) {
+      console.error('Could not record invitation failure:', JSON.stringify(failureUpdateError, null, 2));
+    }
+    return {
+      message: `Application approved, but the invitation email failed: ${failureMessage}`,
+      invitation_status: 'failed',
+      invitation_error: failureMessage,
+    };
+  }
+
+  const sentAt = new Date().toISOString();
+  const { error: sentUpdateError } = await supabase
+    .from('vendor_event_applications')
+    .update({
+      invitation_status: 'sent',
+      invitation_sent_at: sentAt,
+      invitation_resend_id: sendResult.id,
+      invitation_error: null,
+    })
+    .eq('id', applicationId)
+    .eq('invitation_attempt_count', nextAttempt);
+
+  if (sentUpdateError) {
+    console.error('Invitation sent but delivery record update failed:', JSON.stringify(sentUpdateError, null, 2));
+    return {
+      success: true,
+      message: 'Invitation was accepted by the email provider, but its delivery record could not be updated. Check Resend before sending again.',
+      invitation_status: 'sending',
+      invitation_sent_at: sentAt,
+    };
+  }
+
+  return {
+    success: true,
+    message: force ? 'Vendor invitation resent successfully.' : 'Application approved and vendor invitation sent.',
+    invitation_status: 'sent',
+    invitation_sent_at: sentAt,
+    invitation_error: null,
+  };
+}
+
 export async function updateVendorEventApplication(
   applicationId: string,
   input: z.input<typeof eventApplicationUpdateSchema>,
 ): Promise<ActionState> {
   const id = z.string().uuid().safeParse(applicationId);
   const validated = eventApplicationUpdateSchema.safeParse(input);
-  if (!id.success || !validated.success) return { message: 'Invalid application update.' };
+  if (!id.success) return { message: 'Invalid application identifier.' };
+  if (!validated.success) {
+    return { message: validated.error.issues[0]?.message || 'Invalid application update.' };
+  }
 
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
+  const { record: currentApplication, error: currentApplicationError } = await getInvitationApplication(
+    supabase,
+    applicationId,
+  );
+  if (currentApplicationError) return { message: `Failed to load application: ${currentApplicationError}` };
+  if (!currentApplication) return { message: 'Vendor event application not found.' };
+
   const { data: application, error } = await supabase
     .from('vendor_event_applications')
     .update({
       application_status: validated.data.status,
       booth_assignment: validated.data.booth_assignment || null,
+      approved_vendor_fee: validated.data.status === 'approved'
+        ? validated.data.approved_vendor_fee
+        : currentApplication.approved_vendor_fee,
       rejection_reason: validated.data.status === 'rejected'
         ? validated.data.rejection_reason || null
         : null,
       updated_at: new Date().toISOString(),
     })
     .eq('id', applicationId)
-    .select('id, vendors(email, business_name, contact_name), events(title)')
+    .select('id')
     .maybeSingle();
 
   if (error) {
@@ -729,15 +1028,26 @@ export async function updateVendorEventApplication(
   }
   if (!application) return { message: 'Vendor event application not found.' };
 
-  const vendorValue = application.vendors as unknown as { email: string; business_name: string; contact_name: string } | { email: string; business_name: string; contact_name: string }[] | null;
-  const eventValue = application.events as unknown as { title: string } | { title: string }[] | null;
-  const vendor = Array.isArray(vendorValue) ? vendorValue[0] : vendorValue;
-  const event = Array.isArray(eventValue) ? eventValue[0] : eventValue;
-  if (vendor && validated.data.status === 'approved') {
-    sendApprovalEmail(vendor.email, vendor.business_name, vendor.contact_name, event?.title)
-      .catch((emailError) => console.error('Failed to send approval email:', emailError));
+  if (
+    validated.data.status === 'approved' &&
+    currentApplication.application_status !== 'approved'
+  ) {
+    const invitationResult = await sendInvitationForApplication(supabase, applicationId, false);
+    revalidatePath('/vendors');
+    updateTag('vendors');
+    return {
+      ...invitationResult,
+      success: true,
+    };
   }
-  if (vendor && validated.data.status === 'rejected') {
+
+  const vendor = oneRelation(currentApplication.vendors);
+  const event = oneRelation(currentApplication.events);
+  if (
+    vendor &&
+    validated.data.status === 'rejected' &&
+    currentApplication.application_status !== 'rejected'
+  ) {
     sendRejectionEmail(vendor.email, vendor.business_name, vendor.contact_name, validated.data.rejection_reason || undefined, event?.title)
       .catch((emailError) => console.error('Failed to send rejection email:', emailError));
   }
@@ -745,6 +1055,28 @@ export async function updateVendorEventApplication(
   revalidatePath('/vendors');
   updateTag('vendors');
   return { success: true, message: `Application marked ${validated.data.status}.` };
+}
+
+export async function resendVendorInvitation(
+  applicationId: string,
+  approvedVendorFee: number | string,
+): Promise<ActionState> {
+  const id = z.string().uuid().safeParse(applicationId);
+  const fee = z.coerce.number().min(0).max(100000).safeParse(approvedVendorFee);
+  if (!id.success || !fee.success) return { message: 'Confirm a valid vendor fee before sending.' };
+
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
+  const { error } = await supabase
+    .from('vendor_event_applications')
+    .update({ approved_vendor_fee: fee.data, updated_at: new Date().toISOString() })
+    .eq('id', applicationId)
+    .eq('application_status', 'approved');
+  if (error) return { message: `Could not update the final vendor fee: ${error.message}` };
+  const result = await sendInvitationForApplication(supabase, applicationId, true);
+  revalidatePath('/vendors');
+  updateTag('vendors');
+  return result;
 }
 
 export async function removeVendorEventApplication(applicationId: string): Promise<ActionState> {

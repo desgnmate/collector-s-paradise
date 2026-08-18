@@ -7,14 +7,17 @@ import {
   assignVendorsToEvents,
   deleteVendor,
   removeVendorEventApplication,
+  resendVendorInvitation,
   syncAllVendorsToSheet,
   updateVendor,
   updateVendorEventApplication,
   type Vendor,
   type VendorApplicationStatus,
   type VendorEventApplication,
+  type VendorInvitationStatus,
   type VendorUpdateData,
 } from '@/app/actions/vendors';
+import type { Event as ManagedEvent } from '@/app/actions/events';
 
 type View = 'events' | 'unassigned' | 'vendors';
 type StatusFilter = 'all' | VendorApplicationStatus;
@@ -29,6 +32,17 @@ const statusLabels: Record<VendorApplicationStatus, string> = {
   approved: 'Approved',
   rejected: 'Rejected',
   waitlisted: 'Waitlisted',
+};
+
+const invitationStatusLabels: Record<VendorInvitationStatus, string> = {
+  not_sent: 'Not sent',
+  sending: 'Sending',
+  sent: 'Sent',
+  failed: 'Failed',
+  delivered: 'Delivered',
+  bounced: 'Bounced',
+  complained: 'Spam complaint',
+  suppressed: 'Suppressed',
 };
 
 const australianStates = [
@@ -64,6 +78,24 @@ function formatEventDate(value: string) {
     month: 'short',
     year: 'numeric',
   });
+}
+
+function formatAud(value: number) {
+  return new Intl.NumberFormat('en-AU', { style: 'currency', currency: 'AUD' }).format(value);
+}
+
+function calculateSuggestedFee(
+  application: VendorEventApplication,
+  event: ManagedEvent | undefined,
+) {
+  if (!event || event.vendor_table_price === null) return null;
+  const tableValue = application.tables_requested || '';
+  if (!/^\d+$/.test(tableValue)) return null;
+  const tableCount = Number(tableValue);
+  const needsPower = Boolean(
+    application.power_requirements && application.power_requirements !== 'none',
+  );
+  return tableCount * event.vendor_table_price + (needsPower ? event.vendor_power_fee : 0);
 }
 
 function StatusBadge({ status }: { status: VendorApplicationStatus }) {
@@ -129,6 +161,7 @@ export default function AdminVendorsClient() {
   const [nextStatus, setNextStatus] = useState<VendorApplicationStatus>('pending');
   const [boothAssignment, setBoothAssignment] = useState('');
   const [rejectionReason, setRejectionReason] = useState('');
+  const [approvedVendorFee, setApprovedVendorFee] = useState('');
   const [selectedVendor, setSelectedVendor] = useState<Vendor | null>(null);
   const [editData, setEditData] = useState<VendorUpdateData | null>(null);
   const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
@@ -167,6 +200,16 @@ export default function AdminVendorsClient() {
   }), [applications, manageableEvents]);
 
   const selectedEvent = eventSummaries.find(({ event }) => event.id === selectedEventId);
+  const activeEvent = activeApplication
+    ? events.find((event) => event.id === activeApplication.event_id)
+    : undefined;
+  const hasValidApprovedFee = approvedVendorFee !== '' &&
+    Number.isFinite(Number(approvedVendorFee)) && Number(approvedVendorFee) >= 0;
+  const approvalWillSend = Boolean(
+    activeApplication &&
+    nextStatus === 'approved' &&
+    activeApplication.application_status !== 'approved',
+  );
   const normalizedSearch = search.trim().toLowerCase();
   const visibleApplications = (selectedEvent?.applications || []).filter((application) => {
     const matchesStatus = statusFilter === 'all' || application.application_status === statusFilter;
@@ -240,6 +283,11 @@ export default function AdminVendorsClient() {
     setNextStatus(application.application_status);
     setBoothAssignment(application.booth_assignment || '');
     setRejectionReason(application.rejection_reason || '');
+    const suggestedFee = calculateSuggestedFee(
+      application,
+      events.find((event) => event.id === application.event_id),
+    );
+    setApprovedVendorFee(String(application.approved_vendor_fee ?? suggestedFee ?? ''));
     setNotice(null);
   };
 
@@ -274,6 +322,9 @@ export default function AdminVendorsClient() {
       status: nextStatus,
       booth_assignment: boothAssignment,
       rejection_reason: rejectionReason,
+      approved_vendor_fee: nextStatus === 'approved'
+        ? approvedVendorFee
+        : activeApplication.approved_vendor_fee,
     });
     setProcessing(false);
     if (!result.success) {
@@ -283,7 +334,10 @@ export default function AdminVendorsClient() {
     const applicationId = activeApplication.id;
     const updatedAt = new Date().toISOString();
     setActiveApplication(null);
-    setNotice({ type: 'success', message: result.message });
+    setNotice({
+      type: result.invitation_status === 'failed' ? 'error' : 'success',
+      message: result.message,
+    });
     setVendors((current) => current.map((vendor) => ({
       ...vendor,
       event_applications: vendor.event_applications.map((application) => (
@@ -292,12 +346,37 @@ export default function AdminVendorsClient() {
               ...application,
               application_status: nextStatus,
               booth_assignment: boothAssignment || null,
+              approved_vendor_fee: nextStatus === 'approved'
+                ? Number(approvedVendorFee)
+                : application.approved_vendor_fee,
               rejection_reason: nextStatus === 'rejected' ? rejectionReason || null : null,
+              invitation_status: result.invitation_status || application.invitation_status,
+              invitation_sent_at: result.invitation_sent_at ?? application.invitation_sent_at,
+              invitation_error: result.invitation_error ?? application.invitation_error,
               updated_at: updatedAt,
             }
           : application
       )),
     })));
+    void refreshData(['vendors']);
+  };
+
+  const resendInvitation = async () => {
+    if (!activeApplication) return;
+    setProcessing(true);
+    const result = await resendVendorInvitation(activeApplication.id, approvedVendorFee);
+    setProcessing(false);
+    setNotice({
+      type: result.success ? 'success' : 'error',
+      message: result.message,
+    });
+    setActiveApplication((current) => current ? {
+      ...current,
+      invitation_status: result.invitation_status || current.invitation_status,
+      invitation_sent_at: result.invitation_sent_at ?? current.invitation_sent_at,
+      invitation_error: result.invitation_error ?? current.invitation_error,
+    } : null);
+    void refreshData(['vendors']);
   };
 
   const removeApplication = async () => {
@@ -666,11 +745,75 @@ export default function AdminVendorsClient() {
                 <label>Status<select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as VendorApplicationStatus)}><option value="pending">Pending</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
                 <label>Booth assignment<input value={boothAssignment} onChange={(event) => setBoothAssignment(event.target.value)} placeholder="e.g. B12" /></label>
                 {nextStatus === 'rejected' && <label>Rejection reason<textarea value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} rows={4} placeholder="Optional reason included in email" /></label>}
+                {nextStatus === 'approved' && (
+                  <section className="vendor-invitation-preview" aria-labelledby="vendor-invitation-preview-title">
+                    <div className="vendor-invitation-preview-header">
+                      <div>
+                        <span>Automatic email</span>
+                        <h4 id="vendor-invitation-preview-title">Vendor invitation</h4>
+                      </div>
+                      <span className={`vendor-invitation-status is-${activeApplication.invitation_status}`}>
+                        {invitationStatusLabels[activeApplication.invitation_status]}
+                      </span>
+                    </div>
+
+                    <dl className="vendor-invitation-preview-facts">
+                      <div><dt>Event</dt><dd>{activeEvent?.title || activeApplication.event_name}</dd></div>
+                      <div><dt>Date</dt><dd>{formatEventDate(activeEvent?.event_date || activeApplication.event_date)}</dd></div>
+                      <div><dt>Tables</dt><dd>{activeApplication.tables_requested || 'Not specified'}</dd></div>
+                      <div><dt>Table rate</dt><dd>{activeEvent?.vendor_table_price === null || activeEvent?.vendor_table_price === undefined ? 'Not configured' : formatAud(activeEvent.vendor_table_price)}</dd></div>
+                      <div><dt>Power fee</dt><dd>{formatAud(activeEvent?.vendor_power_fee || 0)}</dd></div>
+                      <div><dt>Deadline</dt><dd>{activeEvent?.vendor_response_deadline ? formatEventDate(activeEvent.vendor_response_deadline) : 'Not configured'}</dd></div>
+                    </dl>
+
+                    <label className="vendor-invitation-fee-field">
+                      Final vendor fee (AUD) *
+                      <input
+                        type="number"
+                        min="0"
+                        max="100000"
+                        step="0.01"
+                        value={approvedVendorFee}
+                        onChange={(event) => setApprovedVendorFee(event.target.value)}
+                        placeholder="Confirm final amount"
+                        required
+                      />
+                      <small>This exact total is included in the email. You can override the suggested amount.</small>
+                    </label>
+
+                    {!hasValidApprovedFee && (
+                      <p className="vendor-invitation-warning">Enter the final vendor fee before approval.</p>
+                    )}
+                    {activeApplication.invitation_error && (
+                      <p className="vendor-invitation-error">Last email issue: {activeApplication.invitation_error}</p>
+                    )}
+                    <p className="vendor-invitation-preview-note">
+                      {approvalWillSend
+                        ? 'Saving this approval will send the event invitation automatically.'
+                        : 'Saving changes will not send another email. Use resend only when a replacement invitation is required.'}
+                    </p>
+                  </section>
+                )}
               </div>
             </div>
             <div className="modal-footer vendor-management-modal-actions">
               <button type="button" className="modal-footer-btn modal-footer-danger" onClick={removeApplication} disabled={processing}>Remove from event</button>
-              <div><button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setActiveApplication(null)} disabled={processing}>Cancel</button><button type="button" className="modal-footer-btn modal-footer-primary" onClick={saveApplication} disabled={processing}>{processing ? 'Saving...' : 'Save decision'}</button></div>
+              <div>
+                <button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setActiveApplication(null)} disabled={processing}>Cancel</button>
+                {activeApplication.application_status === 'approved' && (
+                  <button type="button" className="modal-footer-btn modal-footer-secondary" onClick={resendInvitation} disabled={processing || !hasValidApprovedFee}>
+                    {processing ? 'Sending...' : activeApplication.invitation_status === 'not_sent' ? 'Send invitation' : 'Resend invitation'}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  className="modal-footer-btn modal-footer-primary"
+                  onClick={saveApplication}
+                  disabled={processing || (nextStatus === 'approved' && !hasValidApprovedFee)}
+                >
+                  {processing ? 'Saving...' : approvalWillSend ? 'Approve & send invitation' : 'Save decision'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

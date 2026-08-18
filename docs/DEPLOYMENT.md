@@ -39,6 +39,11 @@ not expose it with a `NEXT_PUBLIC_` prefix.
 and the legacy event/vendor image route. The app intentionally fails closed if
 that server-only key is missing.
 
+For transactional email, configure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and
+`NEXT_PUBLIC_APP_URL`. To track final delivery outcomes, also configure
+`RESEND_WEBHOOK_SECRET` and add a Resend webhook for
+`https://<your-production-domain>/api/webhooks/resend`.
+
 ## Runtime behavior
 
 - Server Components, Server Actions, dynamic routes, and Route Handlers run

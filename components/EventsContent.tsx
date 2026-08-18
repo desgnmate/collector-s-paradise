@@ -434,6 +434,91 @@ export default function EventsContent() {
                     />
                   </div>
 
+                  <div className="event-form-section-heading full-width">
+                    <span>Vendor invitation</span>
+                    <p>These details are used when an application is approved for this event.</p>
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="vendor_table_price">Price per Vendor Table (AUD)</label>
+                    <input
+                      type="number"
+                      id="vendor_table_price"
+                      name="vendor_table_price"
+                      step="0.01"
+                      min="0"
+                      placeholder="150.00"
+                      defaultValue={editingEvent?.vendor_table_price ?? ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="vendor_power_fee">Power Fee (AUD)</label>
+                    <input
+                      type="number"
+                      id="vendor_power_fee"
+                      name="vendor_power_fee"
+                      step="0.01"
+                      min="0"
+                      placeholder="0.00"
+                      defaultValue={editingEvent?.vendor_power_fee ?? 0}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="vendor_response_deadline">Confirmation Deadline</label>
+                    <input
+                      type="date"
+                      id="vendor_response_deadline"
+                      name="vendor_response_deadline"
+                      defaultValue={editingEvent?.vendor_response_deadline || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group">
+                    <label htmlFor="vendor_load_in_time">Vendor Load-in Time</label>
+                    <input
+                      type="time"
+                      id="vendor_load_in_time"
+                      name="vendor_load_in_time"
+                      defaultValue={editingEvent?.vendor_load_in_time?.slice(0, 5) || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group full-width">
+                    <label htmlFor="vendor_payment_link">Payment or Confirmation Link</label>
+                    <input
+                      type="url"
+                      id="vendor_payment_link"
+                      name="vendor_payment_link"
+                      placeholder="https://..."
+                      defaultValue={editingEvent?.vendor_payment_link || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group full-width">
+                    <label htmlFor="vendor_contact_email">Vendor Contact Email</label>
+                    <input
+                      type="email"
+                      id="vendor_contact_email"
+                      name="vendor_contact_email"
+                      placeholder="vendors@collectorsparadise.au"
+                      defaultValue={editingEvent?.vendor_contact_email || ''}
+                    />
+                  </div>
+
+                  <div className="event-form-group full-width">
+                    <label htmlFor="vendor_instructions">Vendor Instructions</label>
+                    <textarea
+                      id="vendor_instructions"
+                      name="vendor_instructions"
+                      rows={5}
+                      maxLength={5000}
+                      placeholder="Parking, access, setup requirements, what to bring, and other event-specific information..."
+                      defaultValue={editingEvent?.vendor_instructions || ''}
+                    />
+                  </div>
+
                   {/* Cover Image Upload */}
                   <div className="event-form-group full-width">
                     <label htmlFor="cover_image">Cover Image</label>

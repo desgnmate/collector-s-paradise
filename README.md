@@ -87,12 +87,18 @@ what each controls.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon (public) key |
 | `RESEND_API_KEY` | ✉️ optional | Enables transactional email. If unset, emails are skipped. |
 | `RESEND_FROM_EMAIL` | ✉️ optional | "From" address for outgoing email |
+| `RESEND_WEBHOOK_SECRET` | ✉️ optional | Verifies Resend delivery events at `/api/webhooks/resend` |
 | `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application notifications |
 | `NEXT_PUBLIC_APP_URL` | ✉️ optional | Public site URL (used in email links) |
 | `SUPABASE_SERVICE_ROLE_KEY` | 🔐 server only | Required by protected admin actions and legacy image routes; never expose to the client |
 
 > **Never commit `.env.local`.** The service-role key in particular bypasses
 > RLS — keep it off the client.
+
+Vendor invitation delivery tracking is enabled when a Resend webhook points to
+`https://<your-domain>/api/webhooks/resend` and subscribes to delivery, bounce,
+complaint, and suppression events. Sending and retry tracking still work when
+the webhook is not configured.
 
 ---
 
