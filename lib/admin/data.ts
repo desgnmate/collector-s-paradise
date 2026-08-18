@@ -1,7 +1,10 @@
 import 'server-only';
 
 import { createSupabaseServerClient } from '@/lib/supabase/server';
-import { createSupabaseAdminClient } from '@/lib/supabase/admin';
+import {
+  createSupabaseAdminClient,
+  SupabaseAdminConfigurationError,
+} from '@/lib/supabase/admin';
 import { getEffectiveEventStatus } from '@/lib/events/status';
 import type { Vendor, VendorEventApplication } from '@/app/actions/vendors';
 import type { Volunteer } from '@/app/actions/volunteers';
@@ -17,6 +20,7 @@ export type AdminDataSnapshot = {
   volunteers?: Volunteer[];
   sponsors?: Sponsor[];
   events?: Event[];
+  configurationError?: string;
   errors: Partial<Record<AdminDataSection, string>>;
   syncedAt: number;
 };
@@ -163,7 +167,24 @@ export async function loadAdminDataSnapshot(
   requestedSections: readonly AdminDataSection[] = ADMIN_DATA_SECTIONS,
 ): Promise<AdminDataSnapshot> {
   const sections = [...new Set(requestedSections)];
-  const supabase = await requireAdminClient();
+  let supabase: SupabaseAdminClient;
+
+  try {
+    supabase = await requireAdminClient();
+  } catch (error) {
+    if (!(error instanceof SupabaseAdminConfigurationError)) throw error;
+
+    console.error(
+      'Admin data access is unavailable because SUPABASE_SERVICE_ROLE_KEY is not configured.',
+    );
+
+    return {
+      configurationError: 'Admin data access is not configured for this deployment.',
+      errors: {},
+      syncedAt: 0,
+    };
+  }
+
   const results = await Promise.allSettled(
     sections.map((section) => sectionLoaders[section](supabase)),
   );

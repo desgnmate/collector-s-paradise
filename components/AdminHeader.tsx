@@ -3,7 +3,13 @@
 import { useAdminData } from '@/contexts/AdminDataContext';
 
 export default function AdminHeader() {
-  const { refreshData, refreshing, error, lastFetchedAt } = useAdminData();
+  const {
+    refreshData,
+    refreshing,
+    error,
+    configurationError,
+    lastFetchedAt,
+  } = useAdminData();
   
   const handleRefresh = async () => {
     await refreshData();
@@ -33,13 +39,16 @@ export default function AdminHeader() {
         {error && !refreshing && (
           <span className="admin-header-cache-info" role="status">Some data could not sync</span>
         )}
+        {configurationError && (
+          <span className="admin-header-cache-info" role="status">Server configuration required</span>
+        )}
       </div>
       
       <button 
         className={`admin-refresh-btn ${refreshing ? 'loading' : ''}`}
         onClick={handleRefresh}
-        disabled={refreshing}
-        title="Refresh all data"
+        disabled={refreshing || Boolean(configurationError)}
+        title={configurationError ? 'Admin data access is not configured' : 'Refresh all data'}
       >
         <svg 
           width="16" 

@@ -8,6 +8,7 @@ import { AdminDataProvider } from '@/contexts/AdminDataContext';
 import AdminContentRouter from '@/components/AdminContentRouter';
 import AdminHeader from '@/components/AdminHeader';
 import AdminThemeToggle from '@/components/AdminThemeToggle';
+import AdminConfigurationNotice from '@/components/AdminConfigurationNotice';
 import { loadAdminDataSnapshot } from '@/lib/admin/data';
 import logo from '@/public/images/logo.png';
 
@@ -56,7 +57,11 @@ export default async function AdminLayout({
 
           <div className="admin-content">
             <AdminHeader />
-            <AdminContentRouter />
+            {initialData.configurationError ? (
+              <AdminConfigurationNotice />
+            ) : (
+              <AdminContentRouter />
+            )}
           </div>
         </div>
       </AdminDataProvider>

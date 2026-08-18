@@ -16906,6 +16906,83 @@ html[data-admin-theme="dark"] .admin-refresh-btn { background: var(--admin-yello
   box-shadow: none;
 }
 
+.admin-configuration-notice {
+  min-height: calc(100dvh - 138px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+  padding: clamp(36px, 7vw, 88px);
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+}
+
+.admin-configuration-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 24px;
+  border-radius: 14px;
+  background: var(--admin-yellow-soft);
+  color: var(--admin-text-primary);
+}
+
+.admin-configuration-eyebrow {
+  margin: 0 0 10px;
+  color: var(--admin-text-muted);
+  font-family: var(--font-heading, system-ui, sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.admin-configuration-notice h1 {
+  max-width: 720px;
+  margin: 0;
+  color: var(--admin-text-primary);
+  font-family: var(--font-heading, system-ui, sans-serif);
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+}
+
+.admin-configuration-notice > p:not(.admin-configuration-eyebrow) {
+  max-width: 680px;
+  margin: 20px 0 0;
+  color: var(--admin-text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.admin-configuration-action {
+  max-width: 680px;
+  display: grid;
+  gap: 7px;
+  margin-top: 30px;
+  padding: 18px 20px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface-hover);
+  color: var(--admin-text-secondary);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+.admin-configuration-action strong {
+  color: var(--admin-text-primary);
+  font-family: var(--font-heading, system-ui, sans-serif);
+  font-size: 0.72rem;
+}
+
+.admin-configuration-action code {
+  color: var(--admin-text-primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
 .vendor-page-header {
   min-height: 0;
   margin-bottom: 26px;
@@ -17370,6 +17447,10 @@ html[data-admin-theme="dark"] .modal-footer-primary { background: var(--admin-ye
   .admin-nav-link-active:hover { background: #292a27; color: #fffdf8 !important; }
   .admin-content-panel,
   .admin-page { padding: 20px; }
+  .admin-configuration-notice {
+    min-height: 440px;
+    padding: 32px 22px;
+  }
   .modal-overlay { padding: 12px; }
   .modal-content,
   .vendor-management-modal { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); }

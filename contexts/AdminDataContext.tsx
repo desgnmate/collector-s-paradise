@@ -37,6 +37,7 @@ interface AdminDataContextType {
   refreshingSections: AdminDataSection[];
   error: string | null;
   errors: Partial<Record<AdminDataSection, string>>;
+  configurationError: string | null;
   lastFetchedAt: number;
   setVendors: Dispatch<SetStateAction<Vendor[]>>;
   setVolunteers: Dispatch<SetStateAction<Volunteer[]>>;
@@ -65,6 +66,7 @@ export function AdminDataProvider({
   const [errors, setErrors] = useState<Partial<Record<AdminDataSection, string>>>(
     initialData?.errors || {},
   );
+  const configurationError = initialData?.configurationError || null;
   const [lastFetchedAt, setLastFetchedAt] = useState(initialData?.syncedAt || 0);
   const latestRequestBySection = useRef<Partial<Record<AdminDataSection, number>>>({});
   const activeCountBySection = useRef<Partial<Record<AdminDataSection, number>>>({});
@@ -181,6 +183,7 @@ export function AdminDataProvider({
         refreshingSections,
         error,
         errors,
+        configurationError,
         lastFetchedAt,
         setVendors,
         setVolunteers,
