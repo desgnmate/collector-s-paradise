@@ -233,7 +233,7 @@ export default async function VendorsPage({ searchParams }: VendorsPageProps) {
                             <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
                           </svg>
                           Follow vendor
-                          <span aria-hidden="true">↗</span>
+                          <span className="vendor-card-social-arrow" aria-hidden="true">→</span>
                         </a>
                       )}
                     </div>

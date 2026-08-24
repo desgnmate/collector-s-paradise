@@ -3988,10 +3988,6 @@ button.login-dropdown-item:hover .login-item-desc {
   will-change: transform;
 }
 
-.reviews-track-paused {
-  animation-play-state: paused;
-}
-
 .reviews-group {
   display: flex;
   flex: none;
@@ -4006,34 +4002,12 @@ button.login-dropdown-item:hover .login-item-desc {
   }
 }
 
-.reviews-motion-button {
-  min-height: 38px;
-  margin-top: 1rem;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: var(--radius-pill);
-  padding: 0.62rem 0.9rem;
-  background: transparent;
-  color: #fff;
-  font: 800 0.66rem/1 var(--font-heading);
-  letter-spacing: 0.035em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
-}
-
-.reviews-motion-button:hover,
-.reviews-motion-button[aria-pressed='true'] {
-  background: var(--color-yellow);
-  color: var(--color-dark);
-}
-
-.reviews-motion-button:active {
-  transform: translateY(1px);
-}
-
-.reviews-motion-button:focus-visible {
-  outline: 3px solid var(--color-yellow);
-  outline-offset: 3px;
+/* Let visitors pause the loop naturally while reading a card. */
+@media (hover: hover) {
+  .reviews-track:has(.review-card:hover),
+  .reviews-track:has(.review-card:focus-visible) {
+    animation-play-state: paused;
+  }
 }
 
 .review-card {
@@ -4166,9 +4140,6 @@ button.login-dropdown-item:hover .login-item-desc {
     scroll-snap-align: start;
   }
 
-  .reviews-motion-button {
-    display: none;
-  }
 }
 
 /* ==============================
@@ -5341,13 +5312,13 @@ button.login-dropdown-item:hover .login-item-desc {
 /* Chat widget refresh: guided support with compact, actionable topic groups. */
 .chat-widget-container {
   position: fixed;
-  right: max(1.5rem, env(safe-area-inset-right));
-  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  right: max(1.25rem, env(safe-area-inset-right));
+  bottom: max(1.25rem, env(safe-area-inset-bottom));
   z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 0.75rem;
+  gap: 0.6rem;
   pointer-events: none;
 }
 
@@ -5359,18 +5330,18 @@ button.login-dropdown-item:hover .login-item-desc {
   order: 2;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
 }
 
 .chat-trigger-label {
-  border: 1.5px solid var(--color-dark);
+  border: 1px solid var(--color-dark);
   border-radius: var(--radius-pill);
-  padding: 0.58rem 0.82rem;
+  padding: 0.45rem 0.68rem;
   background: var(--color-white);
-  box-shadow: 3px 3px 0 rgba(244, 197, 66, 0.9);
+  box-shadow: 2px 2px 0 rgba(244, 197, 66, 0.9);
   color: var(--color-dark);
   font-family: var(--font-heading);
-  font-size: 0.68rem;
+  font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.025em;
   text-transform: uppercase;
@@ -5379,15 +5350,15 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .pokeball-widget {
   position: relative;
-  width: 56px;
-  height: 56px;
-  flex: 0 0 56px;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
   appearance: none;
   padding: 0;
-  border: 3px solid var(--color-dark);
+  border: 2px solid var(--color-dark);
   border-radius: var(--radius-full);
   background: var(--color-white);
-  box-shadow: 0 10px 24px rgba(46, 46, 46, 0.18), 3px 3px 0 var(--color-yellow);
+  box-shadow: 0 8px 18px rgba(46, 46, 46, 0.16), 2px 2px 0 var(--color-yellow);
   animation: none;
   overflow: hidden;
   cursor: pointer;
@@ -5396,7 +5367,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .pokeball-widget:hover {
   transform: translateY(-3px);
-  box-shadow: 0 14px 28px rgba(46, 46, 46, 0.22), 4px 4px 0 var(--color-yellow);
+  box-shadow: 0 11px 22px rgba(46, 46, 46, 0.2), 3px 3px 0 var(--color-yellow);
 }
 
 .pokeball-widget:active {
@@ -5414,7 +5385,7 @@ button.login-dropdown-item:hover .login-item-desc {
   left: 0;
   width: 100%;
   height: 50%;
-  border-bottom: 4px solid var(--color-dark);
+  border-bottom: 3px solid var(--color-dark);
   background-color: var(--color-poke-red);
   transition: none;
 }
@@ -5433,20 +5404,20 @@ button.login-dropdown-item:hover .login-item-desc {
   top: 50%;
   left: 50%;
   z-index: 2;
-  width: 18px;
-  height: 18px;
+  width: 15px;
+  height: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 3px solid var(--color-dark);
+  border: 2px solid var(--color-dark);
   border-radius: var(--radius-full);
   background: var(--color-white);
   transform: translate(-50%, -50%);
 }
 
 .poke-button {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border: 1px solid rgba(46, 46, 46, 0.28);
   border-radius: var(--radius-full);
   background: var(--color-white);
@@ -5467,13 +5438,13 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .chat-window {
   order: 1;
-  width: min(390px, calc(100vw - 2rem));
+  width: min(340px, calc(100vw - 2rem));
   margin-bottom: 0;
   overflow: hidden;
   border: 2px solid var(--color-dark);
   border-radius: var(--radius-lg);
   background: var(--color-cream);
-  box-shadow: 0 24px 70px rgba(46, 46, 46, 0.25), 6px 6px 0 rgba(244, 197, 66, 0.94);
+  box-shadow: 0 20px 54px rgba(46, 46, 46, 0.22), 4px 4px 0 rgba(244, 197, 66, 0.94);
   opacity: 0;
   visibility: hidden;
   transform: translateY(16px) scale(0.96);
@@ -5488,12 +5459,12 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .chat-header {
-  min-height: 76px;
+  min-height: 68px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem 0.95rem 0.9rem 1rem;
+  gap: 0.6rem;
+  padding: 0.75rem 0.8rem 0.75rem 0.85rem;
   border-bottom: 2px solid var(--color-dark);
   background: var(--color-dark);
 }
@@ -5502,23 +5473,23 @@ button.login-dropdown-item:hover .login-item-desc {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
 }
 
 .chat-header-avatar {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: 2px solid var(--color-yellow);
   background: var(--color-yellow);
   color: var(--color-dark);
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.42);
   display: flex;
-  flex: 0 0 40px;
+  flex: 0 0 36px;
   align-items: center;
   justify-content: center;
   border-radius: var(--radius-full);
   font-family: var(--font-heading);
-  font-size: 0.72rem;
+  font-size: 0.65rem;
   font-weight: 900;
 }
 
@@ -5530,7 +5501,7 @@ button.login-dropdown-item:hover .login-item-desc {
   margin: 0;
   color: var(--color-white);
   font-family: var(--font-poppins), var(--font-heading);
-  font-size: 1rem;
+  font-size: 0.92rem;
   font-weight: 800;
   line-height: 1.2;
   letter-spacing: -0.01em;
@@ -5540,16 +5511,16 @@ button.login-dropdown-item:hover .login-item-desc {
   margin: 0.2rem 0 0;
   overflow: hidden;
   color: rgba(255, 255, 255, 0.72);
-  font-size: 0.72rem;
+  font-size: 0.67rem;
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .chat-icon-button {
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -5576,10 +5547,10 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .chat-body {
-  max-height: min(520px, calc(100dvh - 190px));
+  max-height: min(460px, calc(100dvh - 190px));
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0.9rem;
+  padding: 0.75rem;
   gap: 0;
   background: var(--color-cream);
   scrollbar-width: thin;
@@ -5603,17 +5574,17 @@ button.login-dropdown-item:hover .login-item-desc {
 .chat-answer-view {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 0.7rem;
 }
 
 .chat-welcome {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.55rem;
   border: 1.5px solid rgba(46, 46, 46, 0.22);
   border-radius: var(--radius-md);
-  padding: 0.7rem 0.75rem;
+  padding: 0.6rem 0.65rem;
   background: rgba(244, 197, 66, 0.22);
   color: var(--color-dark);
 }
@@ -5624,7 +5595,7 @@ button.login-dropdown-item:hover .login-item-desc {
 
 .chat-welcome p {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: 0.74rem;
   font-weight: 600;
   line-height: 1.45;
 }
@@ -5632,14 +5603,14 @@ button.login-dropdown-item:hover .login-item-desc {
 .chat-topic-group {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.4rem;
 }
 
 .chat-topic-group h3 {
   margin: 0;
   color: var(--color-text-secondary);
   font-family: var(--font-heading);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
   letter-spacing: 0.02em;
 }
@@ -5647,25 +5618,25 @@ button.login-dropdown-item:hover .login-item-desc {
 .chat-topic-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .chat-topic-button {
-  min-height: 62px;
+  min-height: 56px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.4rem;
+  gap: 0.3rem;
   border: 1.5px solid rgba(46, 46, 46, 0.34);
   border-radius: var(--radius-md);
-  padding: 0.55rem 0.6rem;
+  padding: 0.48rem 0.5rem;
   background: var(--color-white);
   color: var(--color-dark);
   text-align: left;
   cursor: pointer;
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
   line-height: 1.25;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
@@ -5688,8 +5659,8 @@ button.login-dropdown-item:hover .login-item-desc {
 }
 
 .chat-topic-icon {
-  width: 28px;
-  height: 28px;
+  width: 25px;
+  height: 25px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -11224,13 +11195,14 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 .vendor-card-events {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-top: 0.45rem;
+  gap: 0.35rem;
+  margin-top: 0.1rem;
 }
 
 .vendor-card-events span {
-  padding: 0.18rem 0.42rem;
-  border-left: 3px solid var(--color-yellow);
+  padding: 0.24rem 0.5rem;
+  border: 1px solid rgba(46, 46, 46, 0.14);
+  border-radius: var(--radius-pill);
   background: var(--color-cream);
   color: #555;
   font-family: var(--font-heading);
@@ -11247,7 +11219,8 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 .vendors-cards-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1rem, 2vw, 1.5rem);
+  gap: clamp(1.25rem, 2.3vw, 1.8rem);
+  align-items: stretch;
 }
 
 .vendors-pagination {
@@ -11339,12 +11312,12 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   position: relative;
   min-width: 0;
   background: var(--color-white);
-  border: 2px solid var(--color-dark);
-  border-radius: 14px;
+  border: 1.5px solid rgba(46, 46, 46, 0.78);
+  border-radius: 18px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: border-color var(--transition-fast), transform var(--transition-fast);
+  transition: border-color var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .vendor-card::after {
@@ -11361,18 +11334,18 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 }
 
 .vendor-card:hover {
-  transform: none;
-  border-color: var(--color-red);
-  box-shadow: none;
+  transform: translateY(-4px);
+  border-color: var(--color-blue-primary);
+  box-shadow: 4px 4px 0 rgba(92, 143, 201, 0.22);
 }
 
 .vendor-card-logo {
   position: relative;
   width: 100%;
-  aspect-ratio: 1.65 / 1;
+  aspect-ratio: 1.8 / 1;
   /* Neutral contrast stage: transparent white or pale vendor marks stay visible. */
-  background: #6f7072;
-  border-bottom: 2px solid var(--color-dark);
+  background: #686a6d;
+  border-bottom: 1.5px solid rgba(46, 46, 46, 0.78);
 }
 
 .vendor-card-logo::after {
@@ -11388,9 +11361,9 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   left: 0.75rem;
   bottom: 0.7rem;
   z-index: 1;
-  padding: 0.22rem 0.42rem;
-  border: 1.5px solid var(--color-dark);
-  border-radius: 3px;
+  padding: 0.24rem 0.52rem;
+  border: 1px solid var(--color-dark);
+  border-radius: var(--radius-pill);
   background: var(--color-yellow);
   color: var(--color-dark);
   font-family: var(--font-heading);
@@ -11524,10 +11497,11 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 }
 
 .vendor-card-body {
-  padding: 1.05rem 1.1rem 0.9rem;
+  flex: 1;
+  padding: 1.2rem 1.25rem 1.15rem;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .vendor-card-top {
@@ -11540,7 +11514,7 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 .vendor-card-name {
   min-width: 0;
   font-family: var(--font-poppins), var(--font-heading);
-  font-size: clamp(1rem, 1.35vw, 1.12rem);
+  font-size: clamp(0.98rem, 1.2vw, 1.08rem);
   font-weight: 800;
   color: var(--color-dark);
   text-transform: uppercase;
@@ -11552,20 +11526,20 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   flex-shrink: 0;
   background: var(--color-yellow);
   color: var(--color-dark);
-  border: 2px solid var(--color-dark);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-dark);
+  border-radius: var(--radius-pill);
   font-family: var(--font-heading);
-  font-size: 0.7rem;
+  font-size: 0.62rem;
   font-weight: 900;
-  padding: 0.2rem 0.6rem;
+  padding: 0.24rem 0.55rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .vendor-card-contact {
-  margin-top: -0.1rem;
+  margin: 0;
   font-family: var(--font-heading);
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 700;
   color: #999;
   text-transform: uppercase;
@@ -11573,29 +11547,32 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 }
 
 .vendor-card-desc {
-  max-width: 38ch;
-  margin-top: 0.45rem;
-  color: #666;
-  font-size: 0.82rem;
-  line-height: 1.55;
+  max-width: 42ch;
+  margin: 0.35rem 0 0;
+  color: #5f6062;
+  font-size: 0.84rem;
+  line-height: 1.62;
 }
 
 .vendor-card-footer {
-  margin-top: 1.05rem;
-  padding-top: 0.8rem;
-  border-top: 1px solid rgba(46, 46, 46, 0.2);
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(46, 46, 46, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
 }
 
 .vendor-card-tags {
   display: flex;
   flex-direction: column;
-  gap: 0.42rem;
+  gap: 0.48rem;
 }
 
 .vendor-card-tags-label {
-  color: var(--color-red);
+  color: var(--color-blue-primary);
   font-family: var(--font-heading);
-  font-size: 0.56rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -11604,7 +11581,7 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 .vendor-card-tags-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
 }
 
 .vendor-card-tag-more {
@@ -11621,14 +11598,14 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   justify-content: center;
   align-self: flex-start;
   gap: 0.5rem;
-  margin-top: 0.85rem;
-  padding: 0.55rem 0.9rem;
-  border: 2px solid var(--color-dark);
+  margin-top: 0;
+  padding: 0.52rem 0.85rem;
+  border: 1.5px solid var(--color-dark);
   border-radius: var(--radius-pill);
   background: var(--color-yellow);
   color: var(--color-dark);
   font-family: var(--font-heading);
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-decoration: none;
@@ -11644,9 +11621,9 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   stroke-width: 1.8;
 }
 
-.vendor-card-social-link span {
+.vendor-card-social-arrow {
   margin-left: 0.1rem;
-  font-size: 0.9rem;
+  font-size: 1rem;
   line-height: 1;
 }
 
@@ -11668,11 +11645,11 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 
 .vendor-card-tag {
   font-family: var(--font-heading);
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  padding: 0.25rem 0.6rem;
+  padding: 0.3rem 0.64rem;
   border-radius: var(--radius-pill);
   background: var(--color-cream);
   border: 1.5px solid var(--color-dark);
@@ -13608,10 +13585,11 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 }
 
 .hero .btn-hero-ticket {
-  min-width: clamp(190px, 22vw, 280px);
-  min-height: clamp(50px, 6.5vh, 66px);
-  padding: clamp(0.72rem, 1.5vh, 0.95rem) clamp(2rem, 4vw, 3rem);
-  font-size: clamp(0.95rem, min(1.45vw, 2.1vh), 1.15rem);
+  box-sizing: border-box;
+  min-width: clamp(180px, 17vw, 240px);
+  min-height: clamp(48px, 5.5vh, 60px);
+  padding: clamp(0.68rem, 1.2vh, 0.82rem) clamp(1.35rem, 2.4vw, 1.9rem);
+  font-size: clamp(0.88rem, min(1.15vw, 1.9vh), 1rem);
 }
 
 .hero .hero-cards-fan {
@@ -13651,10 +13629,10 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   }
 
   .hero .btn-hero-ticket {
-    min-width: clamp(220px, 21vw, 270px);
+    min-width: clamp(190px, 17vw, 235px);
     min-height: 52px;
-    padding: 0.72rem 2.4rem;
-    font-size: clamp(0.96rem, 1.2vw, 1.05rem);
+    padding: 0.68rem 1.55rem;
+    font-size: clamp(0.92rem, 1.1vw, 1.02rem);
   }
 
   .hero .hero-cards-fan {
@@ -13702,10 +13680,10 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
   }
 
   .hero .btn-hero-ticket {
-    min-width: clamp(170px, 56vw, 220px);
-    min-height: 48px;
-    padding: 0.7rem 1.8rem;
-    font-size: clamp(0.92rem, 3.8vw, 1.05rem);
+    min-width: clamp(165px, 50vw, 210px);
+    min-height: 46px;
+    padding: 0.65rem 1.4rem;
+    font-size: clamp(0.9rem, 3.5vw, 1rem);
   }
 
   .hero .hero-cards-fan {
@@ -13737,9 +13715,9 @@ html[data-admin-theme="light"] .admin-theme-toggle:hover {
 
   .hero .btn-hero-ticket {
     min-width: 165px;
-    min-height: 44px;
-    padding: 0.6rem 1.6rem;
-    font-size: 0.9rem;
+    min-height: 42px;
+    padding: 0.58rem 1.25rem;
+    font-size: 0.88rem;
   }
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 const reviews = [
   {
@@ -68,8 +68,6 @@ function ReviewCard({ review, duplicate = false }: { review: Review; duplicate?:
 }
 
 const Brands = () => {
-  const [isPaused, setIsPaused] = useState(false);
-
   return (
     <section id="brands" className="brands-section">
       <div className="brands-header" data-aos="fade-up">
@@ -79,14 +77,6 @@ const Brands = () => {
         <p className="section-subtitle">
           Hear from the vendors who make every event unforgettable.
         </p>
-        <button
-          type="button"
-          className="reviews-motion-button"
-          aria-pressed={isPaused}
-          onClick={() => setIsPaused((paused) => !paused)}
-        >
-          {isPaused ? 'Resume testimonials' : 'Pause testimonials'}
-        </button>
       </div>
 
       <div
@@ -95,7 +85,7 @@ const Brands = () => {
         aria-labelledby="vendor-reviews-title"
         aria-live="off"
       >
-        <div className={`reviews-track ${isPaused ? 'reviews-track-paused' : ''}`}>
+        <div className="reviews-track">
           {Array.from({ length: marqueeGroups }, (_, groupIndex) => {
             const duplicate = groupIndex > 0;
 
