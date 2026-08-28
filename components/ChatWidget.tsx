@@ -113,9 +113,17 @@ const FAQS: Faq[] = [
 
 const FAQ_GROUPS: FaqGroup[] = ['Plan a visit', 'Join the show'];
 
+const CHAT_PROMPTS = [
+  'Got an issue?',
+  'Want to know upcoming events?',
+  'How to apply as a vendor?',
+  'Need help?',
+] as const;
+
 export default function ChatWidget() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [promptIndex, setPromptIndex] = useState(0);
   const [selectedFaqId, setSelectedFaqId] = useState<string | null>(null);
   const dialogId = useId();
   const bodyRef = useRef<HTMLDivElement>(null);
@@ -133,6 +141,16 @@ export default function ChatWidget() {
   const openChat = () => {
     setIsOpen(true);
   };
+
+  useEffect(() => {
+    if (isOpen || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const promptTimer = window.setInterval(() => {
+      setPromptIndex((currentIndex) => (currentIndex + 1) % CHAT_PROMPTS.length);
+    }, 3600);
+
+    return () => window.clearInterval(promptTimer);
+  }, [isOpen]);
 
   const selectFaq = (faqId: string) => {
     setSelectedFaqId(faqId);
@@ -163,7 +181,16 @@ export default function ChatWidget() {
   return (
     <div className={`chat-widget-container ${isOpen ? 'is-open' : ''}`}>
       <div className="widget-triggers">
-        {!isOpen && <span className="chat-trigger-label">Need help?</span>}
+        {!isOpen && (
+          <button
+            type="button"
+            className="chat-trigger-label"
+            onClick={openChat}
+            aria-label={`Open support chat: ${CHAT_PROMPTS[promptIndex]}`}
+          >
+            <span key={CHAT_PROMPTS[promptIndex]}>{CHAT_PROMPTS[promptIndex]}</span>
+          </button>
+        )}
         <button
           ref={triggerRef}
           type="button"
