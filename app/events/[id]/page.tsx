@@ -15,6 +15,43 @@ export const revalidate = 3600;
 
 const EVENT_COVER_FALLBACK = '/images/event-experience.jpg';
 
+const LOCATION_EVENT_COVERS = [
+  {
+    src: '/images/event-covers/gold-coast.png',
+    terms: ['gold coast', 'nerang', 'ashmore', 'qld', 'queensland'],
+  },
+  {
+    src: '/images/event-covers/melbourne.png',
+    terms: ['melbourne', 'oakleigh', 'epping', 'vic', 'victoria'],
+  },
+  {
+    src: '/images/event-covers/canberra.png',
+    terms: ['canberra', 'act', 'australian capital territory'],
+  },
+] as const;
+
+type EventCoverInput = {
+  title: string;
+  venue: string | null;
+  venue_address: string | null;
+  cover_image_url: string | null;
+};
+
+function getEventCoverImage(event: EventCoverInput) {
+  const haystack = [event.title, event.venue, event.venue_address]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+
+  const locationCover = LOCATION_EVENT_COVERS.find(({ terms }) => terms.some((term) => (
+    term.length <= 3
+      ? new RegExp(`\\b${term}\\b`).test(haystack)
+      : haystack.includes(term)
+  )));
+
+  return locationCover?.src ?? event.cover_image_url ?? EVENT_COVER_FALLBACK;
+}
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -35,9 +72,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { locality, region } = parseAustralianEventAddress(event.venue_address);
   const locationLabel = locality || 'Australia';
-  const eventImage = event.cover_image_url?.startsWith('/')
-    ? absoluteUrl(event.cover_image_url)
-    : event.cover_image_url;
+  const eventCoverImage = getEventCoverImage(event);
+  const eventImage = eventCoverImage.startsWith('/')
+    ? absoluteUrl(eventCoverImage)
+    : eventCoverImage;
+  const isLocationCover = eventCoverImage.startsWith('/images/event-covers/');
 
   return {
     title: `${event.title} — ${dateStr} | ${locationLabel} Trading Card Event`,
@@ -60,7 +99,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       type: 'website',
       locale: 'en_AU',
       ...(eventImage ? {
-        images: [{ url: eventImage, width: 1200, height: 630, alt: event.title }],
+        images: [{
+          url: eventImage,
+          width: isLocationCover ? 1600 : 1200,
+          height: isLocationCover ? 1200 : 630,
+          alt: event.title,
+        }],
       } : {}),
     },
     twitter: {
@@ -93,6 +137,7 @@ export default async function EventDetailPage({ params }: Props) {
 
   const { streetAddress, locality, region, postcode } = parseAustralianEventAddress(event.venue_address);
   const locationLabel = locality || 'Australia';
+  const eventCoverImage = getEventCoverImage(event);
 
   const formatTime = (time: string) => {
     const [h, m] = time.split(':');
@@ -144,7 +189,7 @@ export default async function EventDetailPage({ params }: Props) {
         ticketUrl={event.booking_link || undefined}
         offerValidFrom={event.created_at}
         eventUrl={absoluteUrl(`/events/${event.id}`)}
-        imageUrl={event.cover_image_url || undefined}
+        imageUrl={eventCoverImage}
         status={effectiveStatus}
         isSoldOut={isSoldOut}
       />
@@ -188,10 +233,10 @@ export default async function EventDetailPage({ params }: Props) {
 
             <div className="edp-cover">
                 <Image
-                  src={event.cover_image_url || EVENT_COVER_FALLBACK}
+                  src={eventCoverImage}
                   alt={event.title}
-                  width={800}
-                  height={450}
+                  width={1600}
+                  height={1200}
                   priority
                   style={{ objectFit: 'cover' }}
                 />
