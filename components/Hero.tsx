@@ -16,7 +16,6 @@ export default function Hero() {
           muted
           playsInline
           preload="metadata"
-          poster="/images/experience-background.jpg"
           aria-hidden="true"
           className="hero-video"
         >

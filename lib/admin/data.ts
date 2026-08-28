@@ -10,8 +10,9 @@ import type { Vendor, VendorEventApplication } from '@/app/actions/vendors';
 import type { Volunteer } from '@/app/actions/volunteers';
 import type { Sponsor } from '@/app/actions/sponsors';
 import type { Event } from '@/app/actions/events';
+import type { SupportReport } from '@/lib/reports';
 
-export const ADMIN_DATA_SECTIONS = ['vendors', 'volunteers', 'sponsors', 'events'] as const;
+export const ADMIN_DATA_SECTIONS = ['vendors', 'volunteers', 'sponsors', 'events', 'reports'] as const;
 
 export type AdminDataSection = (typeof ADMIN_DATA_SECTIONS)[number];
 
@@ -20,6 +21,7 @@ export type AdminDataSnapshot = {
   volunteers?: Volunteer[];
   sponsors?: Sponsor[];
   events?: Event[];
+  reports?: SupportReport[];
   configurationError?: string;
   errors: Partial<Record<AdminDataSection, string>>;
   syncedAt: number;
@@ -31,6 +33,7 @@ const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, loc
 const ADMIN_VOLUNTEER_COLUMNS = 'id, full_name, email, phone, preferred_roles, availability, previous_experience, events_interested, t_shirt_size, emergency_contact_name, emergency_contact_phone, additional_notes, how_heard_about, application_status, rejection_reason, assigned_event_id, applied_at, updated_at';
 const ADMIN_SPONSOR_COLUMNS = 'id, company_name, website, industry, company_size, contact_name, contact_email, contact_phone, contact_position, sponsorship_tier, sponsorship_interest, previous_sponsor, sponsorship_history, logo_url, brand_description, social_media_links, marketing_goals, events_interested, preferred_booth_size, additional_services, budget_range, custom_proposal, additional_notes, how_heard_about, application_status, rejection_reason, assigned_account_manager, contract_sent, contract_signed, payment_received, applied_at, updated_at';
 const ADMIN_EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions, created_at, updated_at';
+const ADMIN_REPORT_COLUMNS = 'id, ticket_number, reporter_name, reporter_email, category, impact, priority, subject, description, page_url, browser_details, status, admin_notes, admin_notification_status, admin_notification_resend_id, admin_notification_error, admin_notification_attempt_count, admin_notification_sent_at, created_at, updated_at, resolved_at';
 
 function normalizeAdminEvent(event: Event): Event {
   return {
@@ -160,11 +163,22 @@ async function loadEvents(supabase: SupabaseAdminClient): Promise<Event[]> {
   return ((data || []) as Event[]).map(normalizeAdminEvent);
 }
 
+async function loadReports(supabase: SupabaseAdminClient): Promise<SupportReport[]> {
+  const { data, error } = await supabase
+    .from('reports')
+    .select(ADMIN_REPORT_COLUMNS)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data || []) as SupportReport[];
+}
+
 const sectionLoaders: Record<AdminDataSection, (supabase: SupabaseAdminClient) => Promise<unknown>> = {
   vendors: loadVendors,
   volunteers: loadVolunteers,
   sponsors: loadSponsors,
   events: loadEvents,
+  reports: loadReports,
 };
 
 /**
@@ -213,6 +227,7 @@ export async function loadAdminDataSnapshot(
     if (section === 'volunteers') snapshot.volunteers = result.value as Volunteer[];
     if (section === 'sponsors') snapshot.sponsors = result.value as Sponsor[];
     if (section === 'events') snapshot.events = result.value as Event[];
+    if (section === 'reports') snapshot.reports = result.value as SupportReport[];
   });
 
   return snapshot;

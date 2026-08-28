@@ -18,12 +18,14 @@ import type { Volunteer } from '@/app/actions/volunteers';
 import type { Sponsor } from '@/app/actions/sponsors';
 import type { Event } from '@/app/actions/events';
 import type { AdminDataSection, AdminDataSnapshot } from '@/lib/admin/data';
+import type { SupportReport } from '@/lib/reports';
 
 interface DashboardStats {
   totalVendors: number;
   pendingVendors: number;
   approvedVendors: number;
   totalEvents: number;
+  openReports: number;
 }
 
 interface AdminDataContextType {
@@ -31,6 +33,7 @@ interface AdminDataContextType {
   volunteers: Volunteer[];
   sponsors: Sponsor[];
   events: Event[];
+  reports: SupportReport[];
   stats: DashboardStats;
   loading: boolean;
   refreshing: boolean;
@@ -43,11 +46,12 @@ interface AdminDataContextType {
   setVolunteers: Dispatch<SetStateAction<Volunteer[]>>;
   setSponsors: Dispatch<SetStateAction<Sponsor[]>>;
   setEvents: Dispatch<SetStateAction<Event[]>>;
+  setReports: Dispatch<SetStateAction<SupportReport[]>>;
   refreshData: (sections?: AdminDataSection[]) => Promise<void>;
 }
 
 const AdminDataContext = createContext<AdminDataContextType | undefined>(undefined);
-const ALL_SECTIONS: AdminDataSection[] = ['vendors', 'volunteers', 'sponsors', 'events'];
+const ALL_SECTIONS: AdminDataSection[] = ['vendors', 'volunteers', 'sponsors', 'events', 'reports'];
 const FOCUS_REFRESH_INTERVAL = 5 * 60 * 1000;
 
 export function AdminDataProvider({
@@ -61,6 +65,7 @@ export function AdminDataProvider({
   const [volunteers, setVolunteers] = useState<Volunteer[]>(initialData?.volunteers || []);
   const [sponsors, setSponsors] = useState<Sponsor[]>(initialData?.sponsors || []);
   const [events, setEvents] = useState<Event[]>(initialData?.events || []);
+  const [reports, setReports] = useState<SupportReport[]>(initialData?.reports || []);
   const [loading, setLoading] = useState(!initialData);
   const [refreshingSections, setRefreshingSections] = useState<AdminDataSection[]>([]);
   const [errors, setErrors] = useState<Partial<Record<AdminDataSection, string>>>(
@@ -79,7 +84,8 @@ export function AdminDataProvider({
     pendingVendors: vendors.filter((vendor) => vendor.application_status === 'pending').length,
     approvedVendors: vendors.filter((vendor) => vendor.application_status === 'approved').length,
     totalEvents: events.length,
-  }), [events.length, vendors]);
+    openReports: reports.filter((report) => !['resolved', 'closed'].includes(report.status)).length,
+  }), [events.length, reports, vendors]);
 
   const refreshData = useCallback(async (requestedSections: AdminDataSection[] = ALL_SECTIONS) => {
     const sections = [...new Set(requestedSections)];
@@ -104,6 +110,7 @@ export function AdminDataProvider({
         if (section === 'volunteers' && snapshot.volunteers) setVolunteers(snapshot.volunteers);
         if (section === 'sponsors' && snapshot.sponsors) setSponsors(snapshot.sponsors);
         if (section === 'events' && snapshot.events) setEvents(snapshot.events);
+        if (section === 'reports' && snapshot.reports) setReports(snapshot.reports);
         if (!snapshot.errors[section]) appliedSection = true;
       }
 
@@ -177,6 +184,7 @@ export function AdminDataProvider({
         volunteers,
         sponsors,
         events,
+        reports,
         stats,
         loading,
         refreshing,
@@ -189,6 +197,7 @@ export function AdminDataProvider({
         setVolunteers,
         setSponsors,
         setEvents,
+        setReports,
         refreshData,
       }}
     >

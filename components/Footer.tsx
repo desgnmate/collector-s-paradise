@@ -49,7 +49,7 @@ export default function Footer() {
             <Link href="/sponsorship" prefetch>SPONSORSHIP</Link>
             <Link href="/volunteers" prefetch>VOLUNTEER</Link>
             <Link href="/about" prefetch>ABOUT</Link>
-            <a href={`mailto:${CONTACT_EMAIL}`}>CONTACT</a>
+            <Link href="/reports" prefetch>REPORT AN ISSUE</Link>
           </nav>
 
           <nav className="footer-resource-nav" aria-label="Visitor resources">

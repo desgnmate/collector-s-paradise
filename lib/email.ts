@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import type { SupportReport } from './reports';
 
 function getResend() {
   if (!process.env.RESEND_API_KEY) return null;
@@ -21,8 +22,7 @@ function plainText(value: string | number | null | undefined) {
   return String(value ?? '')
     .replaceAll('\r', ' ')
     .replaceAll('\n', ' ')
-    .replaceAll('<', '')
-    .replaceAll('>', '')
+    .replace(/<[^>]*>/g, '')
     .trim();
 }
 
@@ -83,6 +83,94 @@ export type VendorInvitationEmailResult =
   | { success: false; error: string };
 
 export type ApplicationStatusEmailResult = VendorInvitationEmailResult;
+
+const REPORT_CATEGORY_LABELS: Record<SupportReport['category'], string> = {
+  website_bug: 'Website bug or error',
+  ticket_booking: 'Ticket or booking issue',
+  vendor_account: 'Vendor application or account',
+  event_information: 'Event information',
+  accessibility: 'Accessibility issue',
+  payment_refund: 'Payment or refund',
+  other: 'Something else',
+};
+
+const REPORT_IMPACT_LABELS: Record<SupportReport['impact'], string> = {
+  low: 'Minor',
+  medium: 'Disruptive',
+  high: 'Blocking',
+  urgent: 'Urgent',
+};
+
+export async function sendReportNotificationEmail(
+  report: SupportReport,
+  idempotencyKey: string,
+): Promise<ApplicationStatusEmailResult> {
+  const resend = getResend();
+  if (!resend) return { success: false, error: 'Resend not configured' };
+
+  const category = REPORT_CATEGORY_LABELS[report.category];
+  const impact = REPORT_IMPACT_LABELS[report.impact];
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.collectorsparadise.au').replace(/\/$/, '');
+  const adminUrl = `${appUrl}/admin/reports`;
+  const optionalRow = (label: string, value: string | null) => value
+    ? '<tr><td style="padding:8px 0;color:#77736c;font-size:13px;vertical-align:top">' + escapeHtml(label) + '</td>' +
+      '<td style="padding:8px 0;color:#242522;font-size:13px;font-weight:700;text-align:right;word-break:break-word">' + escapeHtml(value) + '</td></tr>'
+    : '';
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: "Collector's Paradise <" + FROM_EMAIL + ">",
+      to: ADMIN_EMAIL,
+      replyTo: report.reporter_email,
+      subject: `[${report.ticket_number}] ${impact}: ${plainText(report.subject)}`,
+      tags: [{ name: 'ticket_number', value: report.ticket_number }],
+      html:
+        '<div style="margin:0;background:#efede6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">' +
+        '<div style="max-width:620px;margin:0 auto;overflow:hidden;border:1px solid #d5d1c8;border-radius:22px;background:#fff">' +
+        '<div style="padding:30px 32px;background:#2b2c29;color:#fff">' +
+        '<p style="margin:0 0 10px;color:#f3c447;font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase">New website report</p>' +
+        '<h1 style="margin:0;font-size:27px;line-height:1.2">' + escapeHtml(report.subject) + '</h1>' +
+        '<p style="margin:12px 0 0;color:#d7d5cf;font-size:13px">' + escapeHtml(report.ticket_number) + '</p>' +
+        '</div>' +
+        '<div style="padding:32px">' +
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;border-bottom:1px solid #e2dfd7">' +
+        optionalRow('Reporter', report.reporter_name) +
+        optionalRow('Email', report.reporter_email) +
+        optionalRow('Category', category) +
+        optionalRow('Impact', impact) +
+        optionalRow('Affected page', report.page_url) +
+        optionalRow('Browser / device', report.browser_details) +
+        '</table>' +
+        '<div style="margin:24px 0;padding:20px;border-radius:14px;background:#f3f1eb">' +
+        '<p style="margin:0 0 8px;color:#77736c;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase">What happened</p>' +
+        '<p style="margin:0;color:#3a3a36;font-size:14px;line-height:1.7;white-space:pre-wrap">' + escapeHtml(report.description) + '</p>' +
+        '</div>' +
+        '<div style="margin-top:28px;text-align:center"><a href="' + escapeHtml(adminUrl) + '" style="display:inline-block;padding:14px 25px;border-radius:999px;background:#f3c447;color:#242522;font-size:14px;font-weight:800;text-decoration:none">Open Reports dashboard</a></div>' +
+        '<p style="margin:24px 0 0;color:#77736c;font-size:12px;line-height:1.6">Reply directly to this email to contact ' + escapeHtml(report.reporter_name) + '.</p>' +
+        '</div></div></div>',
+      text: [
+        `New website report: ${plainText(report.ticket_number)}`,
+        `Subject: ${plainText(report.subject)}`,
+        `Reporter: ${plainText(report.reporter_name)} <${plainText(report.reporter_email)}>`,
+        `Category: ${plainText(category)}`,
+        `Impact: ${plainText(impact)}`,
+        report.page_url ? `Affected page: ${plainText(report.page_url)}` : '',
+        report.browser_details ? `Browser / device: ${plainText(report.browser_details)}` : '',
+        '',
+        plainText(report.description),
+        '',
+        `Manage this report: ${adminUrl}`,
+      ].filter(Boolean).join('\n'),
+    }, { idempotencyKey });
+
+    if (error || !data?.id) {
+      return { success: false, error: error?.message || 'Email send failed' };
+    }
+    return { success: true, id: data.id };
+  } catch (error) {
+    return { success: false, error: error instanceof Error ? error.message : 'Unknown email error' };
+  }
+}
 
 // Email: New Vendor Application Submitted
 export async function sendNewApplicationEmail(

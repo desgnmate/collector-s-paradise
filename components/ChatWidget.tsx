@@ -15,6 +15,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 type FaqGroup = 'Plan a visit' | 'Join the show';
 
@@ -104,8 +105,8 @@ const FAQS: Faq[] = [
     label: 'Contact support',
     question: 'How do I contact you?',
     answer:
-      'Email hello@collectorsparadise.au. We usually reply within 1-2 business days.',
-    action: { href: 'mailto:hello@collectorsparadise.au', label: 'Email collector support' },
+      'File a support report and our team will receive the details with a ticket reference you can keep.',
+    action: { href: '/reports', label: 'File a support report' },
     icon: Mail,
   },
 ];
@@ -113,6 +114,7 @@ const FAQS: Faq[] = [
 const FAQ_GROUPS: FaqGroup[] = ['Plan a visit', 'Join the show'];
 
 export default function ChatWidget() {
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFaqId, setSelectedFaqId] = useState<string | null>(null);
   const dialogId = useId();
@@ -121,6 +123,7 @@ export default function ChatWidget() {
   const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   const selectedFaq = FAQS.find((faq) => faq.id === selectedFaqId) ?? null;
+  const reportsHref = `/reports?from=${encodeURIComponent(pathname)}`;
 
   const closeChat = useCallback(() => {
     setIsOpen(false);
@@ -227,7 +230,7 @@ export default function ChatWidget() {
                 <div className="chat-answer-card">
                   <h3>{selectedFaq.label}</h3>
                   <p>{selectedFaq.answer}</p>
-                  <a className="chat-answer-action" href={selectedFaq.action.href}>
+                  <a className="chat-answer-action" href={selectedFaq.id === 'contact' ? reportsHref : selectedFaq.action.href}>
                     {selectedFaq.action.label}
                     <ArrowUpRight size={16} strokeWidth={2.25} aria-hidden="true" />
                   </a>
@@ -274,8 +277,8 @@ export default function ChatWidget() {
                 </div>
               ))}
 
-              <a className="chat-email-link" href="mailto:hello@collectorsparadise.au">
-                Need a person? Email collector support
+              <a className="chat-email-link" href={reportsHref}>
+                Still need help? File a support report
               </a>
             </div>
           )}

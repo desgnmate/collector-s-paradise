@@ -9,6 +9,7 @@ import HighlightsSkeleton from "@/components/HighlightsSkeleton";
 import Brands from "@/components/Brands";
 import VendorShowcase from "@/components/VendorShowcase";
 import Footer from "@/components/Footer";
+import NextEventPromotions, { NextEventPromotionFallback } from "@/components/NextEventPromotions";
 
 const homepageDescription =
   "Australia’s Collectibles Market. Buy, sell and trade your favourite TCGs, discover rare finds, and connect with collectors";
@@ -29,6 +30,9 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <main className="homepage">
+      <Suspense fallback={<NextEventPromotionFallback />}>
+        <NextEventPromotions />
+      </Suspense>
       <Navbar />
       <Hero />
       <About />

@@ -217,7 +217,10 @@ export default function Navbar() {
   };
 
   return (
-    <nav className={`navbar ${scrolled ? 'navbar-scrolled' : ''} ${isSolid ? 'navbar-solid' : ''}`}>
+    <nav
+      className={`navbar ${scrolled ? 'navbar-scrolled' : ''} ${isSolid ? 'navbar-solid' : ''}`}
+      data-menu-open={menuOpen ? 'true' : undefined}
+    >
       <div className="navbar-inner">
         {/* Left: Logo (acts as Home button — scrolls to top when on home) */}
         <Link href="/" className="navbar-logo-link" onClick={handleLogoClick} prefetch>

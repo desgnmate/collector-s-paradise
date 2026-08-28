@@ -20,6 +20,7 @@ events.
 - **Events** — upcoming & past event listings with detail pages, ticket/venue info, and structured data for search engines.
 - **Vendor directory** — approved vendors pulled live from the database.
 - **Public application forms** — vendors, sponsors, and volunteers can apply; submissions are validated (Zod) and stored in Supabase.
+- **Support reports** — visitors can file tracked website/support tickets, while admins triage, annotate, and resolve them from the Reports tab.
 - **Admin panel** — review and approve / reject / waitlist applications, create and edit events, with optimistic client-side caching.
 - **Transactional email** — automated applicant notifications (Resend).
 - **SEO & security** — dynamic sitemap & robots, JSON-LD structured data, strict CSP, HSTS, and route protection.
@@ -88,7 +89,7 @@ what each controls.
 | `RESEND_API_KEY` | ✉️ optional | Enables transactional email. If unset, emails are skipped. |
 | `RESEND_FROM_EMAIL` | ✉️ optional | Bare sender address for outgoing email (for example, `hello@collectorsparadise.au`; the app adds the display name) |
 | `RESEND_WEBHOOK_SECRET` | ✉️ optional | Verifies Resend delivery events at `/api/webhooks/resend` |
-| `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application notifications |
+| `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application and support-report notifications |
 | `NEXT_PUBLIC_APP_URL` | ✉️ optional | Public site URL (used in email links) |
 | `SUPABASE_SERVICE_ROLE_KEY` | 🔐 server only | Required by protected admin actions and legacy image routes; never expose to the client |
 
@@ -109,7 +110,7 @@ collectors-paradise-web/
 ├── app/                 # Next.js App Router
 │   ├── (public pages)   #   /, /about, /events, /vendors, /sponsorship, ...
 │   ├── admin-login/     #   Admin login
-│   ├── admin/           #   Protected admin panel (vendors/sponsors/volunteers/events)
+│   ├── admin/           #   Protected admin panel (applications/events/reports)
 │   ├── actions/         #   Server Actions (vendors, sponsors, volunteers, events, auth, dashboard)
 │   ├── globals.css      #   Design tokens + global styles
 │   ├── layout.tsx       #   Root layout, fonts, metadata, JSON-LD
@@ -145,9 +146,15 @@ collectors-paradise-web/
 | `/sponsors/apply` | Sponsor application form |
 | `/volunteers` | Volunteer info |
 | `/volunteers/apply` | Volunteer application form |
+| `/reports` | Public support ticket and website issue form |
 | `/privacy`, `/terms` | Legal pages |
 | `/admin-login` | Admin login (redirects to `/admin` on success) |
 | `/admin/**` | Protected admin panel |
+
+Before enabling reports in a new environment, run
+`supabase/migrations/add_support_reports.sql` in its Supabase SQL Editor. Report
+submissions require `SUPABASE_SERVICE_ROLE_KEY`; admin notifications use
+`ADMIN_EMAIL` and the existing Resend configuration.
 
 ---
 

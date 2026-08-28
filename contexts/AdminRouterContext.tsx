@@ -3,7 +3,7 @@
 import { createContext, useContext, useCallback, ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
-export type AdminRoute = '/admin' | '/admin/events' | '/admin/vendors' | '/admin/volunteers' | '/admin/sponsors' | '/admin/about';
+export type AdminRoute = '/admin' | '/admin/events' | '/admin/vendors' | '/admin/volunteers' | '/admin/sponsors' | '/admin/reports' | '/admin/about';
 
 interface AdminRouterContext {
   currentRoute: AdminRoute;
@@ -17,6 +17,7 @@ const validRoutes: AdminRoute[] = [
   '/admin/vendors',
   '/admin/volunteers',
   '/admin/sponsors',
+  '/admin/reports',
   '/admin/about',
 ];
 

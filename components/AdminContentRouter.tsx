@@ -7,6 +7,7 @@ import VolunteersContent from '@/app/admin/volunteers/AdminVolunteersClient';
 import SponsorsContent from '@/app/admin/sponsors/AdminSponsorsClient';
 import EventsContent from '@/components/EventsContent';
 import AboutContent from '@/components/AboutContent';
+import ReportsContent from '@/app/admin/reports/AdminReportsClient';
 
 const adminViews: Array<{ route: AdminRoute; content: React.ReactNode }> = [
   { route: '/admin', content: <DashboardContent /> },
@@ -14,6 +15,7 @@ const adminViews: Array<{ route: AdminRoute; content: React.ReactNode }> = [
   { route: '/admin/volunteers', content: <VolunteersContent /> },
   { route: '/admin/sponsors', content: <SponsorsContent /> },
   { route: '/admin/events', content: <EventsContent /> },
+  { route: '/admin/reports', content: <ReportsContent /> },
   { route: '/admin/about', content: <AboutContent /> },
 ];
 
