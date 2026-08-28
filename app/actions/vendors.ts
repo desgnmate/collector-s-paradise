@@ -9,6 +9,7 @@ import {
   sendNewApplicationEmail,
   sendRejectionEmail,
   sendVendorInvitationEmail,
+  sendWaitlistEmail,
   type VendorInvitationEmailInput,
 } from '@/lib/email';
 import { getEventMarketDate } from '@/lib/event-date';
@@ -215,6 +216,7 @@ type ActionState = {
   invitation_status?: VendorInvitationStatus;
   invitation_sent_at?: string | null;
   invitation_error?: string | null;
+  email_error?: string;
 };
 
 /** Verify the current user is an admin — returns error message or null if OK */
@@ -1005,6 +1007,7 @@ export async function updateVendorEventApplication(
   if (currentApplicationError) return { message: `Failed to load application: ${currentApplicationError}` };
   if (!currentApplication) return { message: 'Vendor event application not found.' };
 
+  const updatedAt = new Date().toISOString();
   const { data: application, error } = await supabase
     .from('vendor_event_applications')
     .update({
@@ -1016,7 +1019,7 @@ export async function updateVendorEventApplication(
       rejection_reason: validated.data.status === 'rejected'
         ? validated.data.rejection_reason || null
         : null,
-      updated_at: new Date().toISOString(),
+      updated_at: updatedAt,
     })
     .eq('id', applicationId)
     .select('id')
@@ -1038,23 +1041,72 @@ export async function updateVendorEventApplication(
     return {
       ...invitationResult,
       success: true,
+      email_error: invitationResult.invitation_status === 'failed'
+        ? invitationResult.invitation_error || 'Vendor invitation email failed.'
+        : undefined,
     };
   }
 
   const vendor = oneRelation(currentApplication.vendors);
   const event = oneRelation(currentApplication.events);
-  if (
-    vendor &&
-    validated.data.status === 'rejected' &&
-    currentApplication.application_status !== 'rejected'
-  ) {
-    sendRejectionEmail(vendor.email, vendor.business_name, vendor.contact_name, validated.data.rejection_reason || undefined, event?.title)
-      .catch((emailError) => console.error('Failed to send rejection email:', emailError));
+  const statusChanged = currentApplication.application_status !== validated.data.status;
+  if (statusChanged && ['rejected', 'waitlisted'].includes(validated.data.status) && !vendor) {
+    revalidatePath('/vendors');
+    updateTag('vendors');
+    return {
+      success: true,
+      email_error: 'Vendor contact details are missing.',
+      message: `Application marked ${validated.data.status}, but the notification email could not be sent because vendor contact details are missing.`,
+    };
+  }
+
+  if (vendor && statusChanged && validated.data.status === 'rejected') {
+    const emailResult = await sendRejectionEmail(
+      vendor.email,
+      vendor.business_name,
+      vendor.contact_name,
+      validated.data.rejection_reason || undefined,
+      event?.title,
+      `vendor-rejected-${applicationId}-${updatedAt}`,
+    );
+    if (!emailResult.success) {
+      revalidatePath('/vendors');
+      updateTag('vendors');
+      return {
+        success: true,
+        email_error: emailResult.error,
+        message: `Application rejected, but the rejection email failed: ${emailResult.error}`,
+      };
+    }
+  }
+
+  if (vendor && statusChanged && validated.data.status === 'waitlisted') {
+    const emailResult = await sendWaitlistEmail(
+      vendor.email,
+      vendor.business_name,
+      vendor.contact_name,
+      event?.title,
+      `vendor-waitlisted-${applicationId}-${updatedAt}`,
+    );
+    if (!emailResult.success) {
+      revalidatePath('/vendors');
+      updateTag('vendors');
+      return {
+        success: true,
+        email_error: emailResult.error,
+        message: `Application waitlisted, but the waitlist email failed: ${emailResult.error}`,
+      };
+    }
   }
 
   revalidatePath('/vendors');
   updateTag('vendors');
-  return { success: true, message: `Application marked ${validated.data.status}.` };
+  const emailMessage = statusChanged && validated.data.status === 'rejected'
+    ? ' Rejection email sent.'
+    : statusChanged && validated.data.status === 'waitlisted'
+      ? ' Waitlist email sent.'
+      : '';
+  return { success: true, message: `Application marked ${validated.data.status}.${emailMessage}` };
 }
 
 export async function resendVendorInvitation(

@@ -335,7 +335,7 @@ export default function AdminVendorsClient() {
     const updatedAt = new Date().toISOString();
     setActiveApplication(null);
     setNotice({
-      type: result.invitation_status === 'failed' ? 'error' : 'success',
+      type: result.email_error || result.invitation_status === 'failed' ? 'error' : 'success',
       message: result.message,
     });
     setVendors((current) => current.map((vendor) => ({

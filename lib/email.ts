@@ -17,6 +17,15 @@ function escapeHtml(value: string | number | null | undefined) {
     .replaceAll("'", '&#039;');
 }
 
+function plainText(value: string | number | null | undefined) {
+  return String(value ?? '')
+    .replaceAll('\r', ' ')
+    .replaceAll('\n', ' ')
+    .replaceAll('<', '')
+    .replaceAll('>', '')
+    .trim();
+}
+
 function formatAustralianDate(value: string | null | undefined) {
   if (!value) return null;
   const date = new Date(`${value.slice(0, 10)}T00:00:00`);
@@ -72,6 +81,8 @@ export type VendorInvitationEmailInput = {
 export type VendorInvitationEmailResult =
   | { success: true; id: string }
   | { success: false; error: string };
+
+export type ApplicationStatusEmailResult = VendorInvitationEmailResult;
 
 // Email: New Vendor Application Submitted
 export async function sendNewApplicationEmail(
@@ -238,29 +249,81 @@ export async function sendVendorInvitationEmail(
   }
 }
 
-// Compatibility email used by the existing sponsor and volunteer approval flows.
-export async function sendApprovalEmail(
-  recipientEmail: string,
-  organisationName: string,
-  contactName: string,
-) {
+type ApplicationStatusEmailInput = {
+  recipientEmail: string;
+  organisationName: string;
+  contactName: string;
+  status: 'approved' | 'rejected' | 'waitlisted';
+  reason?: string;
+  eventName?: string;
+  idempotencyKey?: string;
+};
+
+async function sendApplicationStatusEmail(
+  input: ApplicationStatusEmailInput,
+): Promise<ApplicationStatusEmailResult> {
   const resend = getResend();
   if (!resend) return { success: false, error: 'Resend not configured' };
+
+  const context = input.eventName
+    ? `<strong style="color:#242522">${escapeHtml(input.organisationName)}</strong> at <strong style="color:#242522">${escapeHtml(input.eventName)}</strong>`
+    : `<strong style="color:#242522">${escapeHtml(input.organisationName)}</strong>`;
+  const plainContext = input.eventName
+    ? `${plainText(input.organisationName)} at ${plainText(input.eventName)}`
+    : plainText(input.organisationName);
+  const statusContent = {
+    approved: {
+      subject: 'Application approved — Collector\'s Paradise',
+      eyebrow: 'Application approved',
+      eyebrowColor: '#8a6608',
+      heading: 'Your application is approved',
+      message: `Great news—your application for ${context} has been approved. Our team will contact you with the next steps.`,
+      plainMessage: `Great news—your application for ${plainContext} has been approved. Our team will contact you with the next steps.`,
+    },
+    rejected: {
+      subject: 'Application Status Update — Collector\'s Paradise',
+      eyebrow: 'Application update',
+      eyebrowColor: '#b42318',
+      heading: 'An update on your application',
+      message: `Thank you for your interest in Collector's Paradise. Your application for ${context} was not approved at this time.`,
+      plainMessage: `Thank you for your interest in Collector's Paradise. Your application for ${plainContext} was not approved at this time.`,
+    },
+    waitlisted: {
+      subject: 'Application waitlisted — Collector\'s Paradise',
+      eyebrow: 'Application update',
+      eyebrowColor: '#6d4db3',
+      heading: 'Your application is on the waitlist',
+      message: `Your application for ${context} has been placed on our waitlist. We will contact you if a place becomes available.`,
+      plainMessage: `Your application for ${plainContext} has been placed on our waitlist. We will contact you if a place becomes available.`,
+    },
+  }[input.status];
+  const reasonBlock = input.status === 'rejected' && input.reason
+    ? '<div style="margin:20px 0;padding:16px;border-left:3px solid #b42318;border-radius:0 8px 8px 0;background:#fef0ee">' +
+      '<p style="margin:0;color:#565650;font-size:14px;line-height:1.6"><strong>Reason:</strong> ' + escapeHtml(input.reason) + '</p>' +
+      '</div>'
+    : '';
 
   try {
     const { data, error } = await resend.emails.send({
       from: "Collector's Paradise <" + FROM_EMAIL + ">",
-      to: recipientEmail,
-      subject: 'Application approved — Collector\'s Paradise',
+      to: input.recipientEmail,
+      subject: statusContent.subject,
       html:
         '<div style="margin:0;background:#efede6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">' +
         '<div style="max-width:600px;margin:0 auto;padding:32px;border:1px solid #d5d1c8;border-radius:20px;background:#fff">' +
-        '<p style="margin:0 0 10px;color:#8a6608;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">Application update</p>' +
-        '<h1 style="margin:0 0 20px;color:#242522;font-size:28px">Your application is approved</h1>' +
-        '<p style="margin:0 0 14px;color:#565650;font-size:15px;line-height:1.7">Hi ' + escapeHtml(contactName) + ',</p>' +
-        '<p style="margin:0;color:#565650;font-size:15px;line-height:1.7">Great news—your application for <strong style="color:#242522">' + escapeHtml(organisationName) + '</strong> has been approved. Our team will contact you with the next steps.</p>' +
+        '<p style="margin:0 0 10px;color:' + statusContent.eyebrowColor + ';font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">' + statusContent.eyebrow + '</p>' +
+        '<h1 style="margin:0 0 20px;color:#242522;font-size:28px">' + statusContent.heading + '</h1>' +
+        '<p style="margin:0 0 14px;color:#565650;font-size:15px;line-height:1.7">Hi ' + escapeHtml(input.contactName) + ',</p>' +
+        '<p style="margin:0;color:#565650;font-size:15px;line-height:1.7">' + statusContent.message + '</p>' +
+        reasonBlock +
         '</div></div>',
-    });
+      text: [
+        `Hi ${plainText(input.contactName)},`,
+        '',
+        statusContent.plainMessage,
+        input.status === 'rejected' && input.reason ? `Reason: ${plainText(input.reason)}` : '',
+      ].filter(Boolean).join('\n'),
+    }, input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : undefined);
     if (error || !data?.id) return { success: false, error: error?.message || 'Email send failed' };
     return { success: true, id: data.id };
   } catch (error) {
@@ -268,39 +331,53 @@ export async function sendApprovalEmail(
   }
 }
 
-// Email: Vendor Application Rejected
+export async function sendApprovalEmail(
+  recipientEmail: string,
+  organisationName: string,
+  contactName: string,
+  idempotencyKey?: string,
+): Promise<ApplicationStatusEmailResult> {
+  return sendApplicationStatusEmail({
+    recipientEmail,
+    organisationName,
+    contactName,
+    status: 'approved',
+    idempotencyKey,
+  });
+}
+
 export async function sendRejectionEmail(
-  vendorEmail: string,
-  businessName: string,
+  recipientEmail: string,
+  organisationName: string,
   contactName: string,
   reason?: string,
   eventName?: string,
-) {
-  const resend = getResend();
-  if (!resend) {
-    console.warn('Resend not configured. Skipping rejection email.');
-    return { success: false, error: 'Resend not configured' };
-  }
-  try {
-    await resend.emails.send({
-      from: "Collector's Paradise <" + FROM_EMAIL + ">",
-      to: vendorEmail,
-      subject: 'Application Status Update — Collector\'s Paradise',
-      html:
-        '<div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">' +
-        '<div style="background: #0f0f0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 32px;">' +
-        '<h1 style="color: #f87171; margin: 0 0 8px 0; font-size: 24px;">Application Update</h1>' +
-        '<p style="color: rgba(255,255,255,0.8); margin: 0 0 24px 0;">Hi ' + contactName + ',</p>' +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 16px 0;">Thank you for your interest in becoming a vendor at Collector\'s Paradise. Your application for <strong>' + businessName + '</strong>' + (eventName ? ' at <strong>' + eventName + '</strong>' : '') + ' was not approved at this time.</p>' +
-        (reason ? '<div style="background: rgba(239,68,68,0.1); border-left: 3px solid #f87171; padding: 16px; margin: 20px 0; border-radius: 0 8px 8px 0;"><p style="color: rgba(255,255,255,0.7); margin: 0;"><strong>Reason:</strong> ' + reason + '</p></div>' : '') +
-        '<p style="color: rgba(255,255,255,0.7); margin: 0 0 24px 0;">We encourage you to apply again in the future. You\'re always welcome to reach out if you have questions.</p>' +
-        '<p style="color: rgba(255,255,255,0.5); font-size: 14px; margin: 0;">Thank you for understanding.</p>' +
-        '</div></div>',
-    });
+  idempotencyKey?: string,
+): Promise<ApplicationStatusEmailResult> {
+  return sendApplicationStatusEmail({
+    recipientEmail,
+    organisationName,
+    contactName,
+    status: 'rejected',
+    reason,
+    eventName,
+    idempotencyKey,
+  });
+}
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending rejection email:', error);
-    return { success: false, error };
-  }
+export async function sendWaitlistEmail(
+  recipientEmail: string,
+  organisationName: string,
+  contactName: string,
+  eventName?: string,
+  idempotencyKey?: string,
+): Promise<ApplicationStatusEmailResult> {
+  return sendApplicationStatusEmail({
+    recipientEmail,
+    organisationName,
+    contactName,
+    status: 'waitlisted',
+    eventName,
+    idempotencyKey,
+  });
 }

@@ -86,7 +86,7 @@ what each controls.
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon (public) key |
 | `RESEND_API_KEY` | ✉️ optional | Enables transactional email. If unset, emails are skipped. |
-| `RESEND_FROM_EMAIL` | ✉️ optional | "From" address for outgoing email |
+| `RESEND_FROM_EMAIL` | ✉️ optional | Bare sender address for outgoing email (for example, `hello@collectorsparadise.au`; the app adds the display name) |
 | `RESEND_WEBHOOK_SECRET` | ✉️ optional | Verifies Resend delivery events at `/api/webhooks/resend` |
 | `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application notifications |
 | `NEXT_PUBLIC_APP_URL` | ✉️ optional | Public site URL (used in email links) |

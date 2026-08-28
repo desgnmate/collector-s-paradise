@@ -90,6 +90,7 @@ export default function AdminSponsorsClient() {
               }
             : sponsor));
         }
+        if (result.email_error) alert(result.message);
       } else {
         alert(result?.message || 'Action failed');
       }

@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
-import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
+import { sendApprovalEmail, sendRejectionEmail, sendWaitlistEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -79,6 +79,7 @@ type ActionState = {
   errors?: Record<string, string[]>;
   success?: boolean;
   fields?: Record<string, unknown>;
+  email_error?: string;
 };
 
 // ============================================
@@ -270,11 +271,14 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
 
+  const updatedAt = new Date().toISOString();
+
   const { data: sponsor, error } = await supabase
     .from('sponsors')
-    .update({ application_status: 'approved' })
+    .update({ application_status: 'approved', rejection_reason: null, updated_at: updatedAt })
     .select('contact_email, company_name, contact_name')
     .eq('id', sponsorId)
+    .neq('application_status', 'approved')
     .maybeSingle();
 
   if (error) {
@@ -282,13 +286,23 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
     return { message: `Failed to approve sponsor: ${error.message}` };
   }
 
-  // Send approval email (non-blocking)
-  if (sponsor) {
-    sendApprovalEmail(sponsor.contact_email, sponsor.company_name, sponsor.contact_name)
-      .catch((err) => console.error('Failed to send approval email:', err));
+  if (!sponsor) return { success: true, message: 'Sponsor is already approved.' };
+
+  const emailResult = await sendApprovalEmail(
+    sponsor.contact_email,
+    sponsor.company_name,
+    sponsor.contact_name,
+    `sponsor-approved-${sponsorId}-${updatedAt}`,
+  );
+  if (!emailResult.success) {
+    return {
+      success: true,
+      email_error: emailResult.error,
+      message: `Sponsor approved, but the approval email failed: ${emailResult.error}`,
+    };
   }
 
-  return { success: true, message: 'Sponsor approved successfully!' };
+  return { success: true, message: 'Sponsor approved and approval email sent.' };
 }
 
 /** Reject a sponsor application */
@@ -296,15 +310,17 @@ export async function rejectSponsor(sponsorId: string, reason?: string): Promise
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
 
-  const updateData: Record<string, string> = { application_status: 'rejected' };
-  if (reason) {
-    updateData.rejection_reason = reason;
-  }
+  const updatedAt = new Date().toISOString();
 
   const { data: sponsor, error } = await supabase
     .from('sponsors')
-    .update(updateData)
+    .update({
+      application_status: 'rejected',
+      rejection_reason: reason || null,
+      updated_at: updatedAt,
+    })
     .eq('id', sponsorId)
+    .neq('application_status', 'rejected')
     .select('contact_email, company_name, contact_name')
     .maybeSingle();
 
@@ -313,13 +329,25 @@ export async function rejectSponsor(sponsorId: string, reason?: string): Promise
     return { message: `Failed to reject sponsor: ${error.message}` };
   }
 
-  // Send rejection email (non-blocking)
-  if (sponsor) {
-    sendRejectionEmail(sponsor.contact_email, sponsor.company_name, sponsor.contact_name, reason || undefined)
-      .catch((err) => console.error('Failed to send rejection email:', err));
+  if (!sponsor) return { success: true, message: 'Sponsor is already rejected.' };
+
+  const emailResult = await sendRejectionEmail(
+    sponsor.contact_email,
+    sponsor.company_name,
+    sponsor.contact_name,
+    reason || undefined,
+    undefined,
+    `sponsor-rejected-${sponsorId}-${updatedAt}`,
+  );
+  if (!emailResult.success) {
+    return {
+      success: true,
+      email_error: emailResult.error,
+      message: `Sponsor rejected, but the rejection email failed: ${emailResult.error}`,
+    };
   }
 
-  return { success: true, message: 'Sponsor application rejected.' };
+  return { success: true, message: 'Sponsor rejected and rejection email sent.' };
 }
 
 /** Waitlist a sponsor application */
@@ -327,17 +355,38 @@ export async function waitlistSponsor(sponsorId: string): Promise<ActionState> {
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
 
-  const { error } = await supabase
+  const updatedAt = new Date().toISOString();
+  const { data: sponsor, error } = await supabase
     .from('sponsors')
-    .update({ application_status: 'waitlisted' })
-    .eq('id', sponsorId);
+    .update({ application_status: 'waitlisted', rejection_reason: null, updated_at: updatedAt })
+    .eq('id', sponsorId)
+    .neq('application_status', 'waitlisted')
+    .select('contact_email, company_name, contact_name')
+    .maybeSingle();
 
   if (error) {
     console.error('Error waitlisting sponsor:', JSON.stringify(error, null, 2));
     return { message: `Failed to waitlist sponsor: ${error.message}` };
   }
 
-  return { success: true, message: 'Sponsor waitlisted successfully!' };
+  if (!sponsor) return { success: true, message: 'Sponsor is already waitlisted.' };
+
+  const emailResult = await sendWaitlistEmail(
+    sponsor.contact_email,
+    sponsor.company_name,
+    sponsor.contact_name,
+    undefined,
+    `sponsor-waitlisted-${sponsorId}-${updatedAt}`,
+  );
+  if (!emailResult.success) {
+    return {
+      success: true,
+      email_error: emailResult.error,
+      message: `Sponsor waitlisted, but the waitlist email failed: ${emailResult.error}`,
+    };
+  }
+
+  return { success: true, message: 'Sponsor waitlisted and waitlist email sent.' };
 }
 
 /** Set sponsor to negotiating status */

@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
-import { sendApprovalEmail, sendRejectionEmail } from '@/lib/email';
+import { sendApprovalEmail, sendRejectionEmail, sendWaitlistEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -55,6 +55,7 @@ type ActionState = {
   errors?: Record<string, string[]>;
   success?: boolean;
   fields?: Record<string, unknown>;
+  email_error?: string;
 };
 
 // ============================================
@@ -216,11 +217,14 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
 
+  const updatedAt = new Date().toISOString();
+
   const { data: volunteer, error } = await supabase
     .from('volunteers')
-    .update({ application_status: 'approved' })
+    .update({ application_status: 'approved', rejection_reason: null, updated_at: updatedAt })
     .select('email, full_name')
     .eq('id', volunteerId)
+    .neq('application_status', 'approved')
     .maybeSingle();
 
   if (error) {
@@ -228,13 +232,23 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
     return { message: `Failed to approve volunteer: ${error.message}` };
   }
 
-  // Send approval email (non-blocking)
-  if (volunteer) {
-    sendApprovalEmail(volunteer.email, volunteer.full_name, volunteer.full_name)
-      .catch((err) => console.error('Failed to send approval email:', err));
+  if (!volunteer) return { success: true, message: 'Volunteer is already approved.' };
+
+  const emailResult = await sendApprovalEmail(
+    volunteer.email,
+    volunteer.full_name,
+    volunteer.full_name,
+    `volunteer-approved-${volunteerId}-${updatedAt}`,
+  );
+  if (!emailResult.success) {
+    return {
+      success: true,
+      email_error: emailResult.error,
+      message: `Volunteer approved, but the approval email failed: ${emailResult.error}`,
+    };
   }
 
-  return { success: true, message: 'Volunteer approved successfully!' };
+  return { success: true, message: 'Volunteer approved and approval email sent.' };
 }
 
 /** Reject a volunteer application */
@@ -242,15 +256,17 @@ export async function rejectVolunteer(volunteerId: string, reason?: string): Pro
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
 
-  const updateData: Record<string, string> = { application_status: 'rejected' };
-  if (reason) {
-    updateData.rejection_reason = reason;
-  }
+  const updatedAt = new Date().toISOString();
 
   const { data: volunteer, error } = await supabase
     .from('volunteers')
-    .update(updateData)
+    .update({
+      application_status: 'rejected',
+      rejection_reason: reason || null,
+      updated_at: updatedAt,
+    })
     .eq('id', volunteerId)
+    .neq('application_status', 'rejected')
     .select('email, full_name')
     .maybeSingle();
 
@@ -259,13 +275,25 @@ export async function rejectVolunteer(volunteerId: string, reason?: string): Pro
     return { message: `Failed to reject volunteer: ${error.message}` };
   }
 
-  // Send rejection email (non-blocking)
-  if (volunteer) {
-    sendRejectionEmail(volunteer.email, volunteer.full_name, volunteer.full_name, reason || undefined)
-      .catch((err) => console.error('Failed to send rejection email:', err));
+  if (!volunteer) return { success: true, message: 'Volunteer is already rejected.' };
+
+  const emailResult = await sendRejectionEmail(
+    volunteer.email,
+    volunteer.full_name,
+    volunteer.full_name,
+    reason || undefined,
+    undefined,
+    `volunteer-rejected-${volunteerId}-${updatedAt}`,
+  );
+  if (!emailResult.success) {
+    return {
+      success: true,
+      email_error: emailResult.error,
+      message: `Volunteer rejected, but the rejection email failed: ${emailResult.error}`,
+    };
   }
 
-  return { success: true, message: 'Volunteer application rejected.' };
+  return { success: true, message: 'Volunteer rejected and rejection email sent.' };
 }
 
 /** Waitlist a volunteer application */
@@ -273,17 +301,38 @@ export async function waitlistVolunteer(volunteerId: string): Promise<ActionStat
   const supabase = await requireAdminClient();
   if (!supabase) return { message: 'Admin access required.' };
 
-  const { error } = await supabase
+  const updatedAt = new Date().toISOString();
+  const { data: volunteer, error } = await supabase
     .from('volunteers')
-    .update({ application_status: 'waitlisted' })
-    .eq('id', volunteerId);
+    .update({ application_status: 'waitlisted', rejection_reason: null, updated_at: updatedAt })
+    .eq('id', volunteerId)
+    .neq('application_status', 'waitlisted')
+    .select('email, full_name')
+    .maybeSingle();
 
   if (error) {
     console.error('Error waitlisting volunteer:', JSON.stringify(error, null, 2));
     return { message: `Failed to waitlist volunteer: ${error.message}` };
   }
 
-  return { success: true, message: 'Volunteer waitlisted successfully!' };
+  if (!volunteer) return { success: true, message: 'Volunteer is already waitlisted.' };
+
+  const emailResult = await sendWaitlistEmail(
+    volunteer.email,
+    volunteer.full_name,
+    volunteer.full_name,
+    undefined,
+    `volunteer-waitlisted-${volunteerId}-${updatedAt}`,
+  );
+  if (!emailResult.success) {
+    return {
+      success: true,
+      email_error: emailResult.error,
+      message: `Volunteer waitlisted, but the waitlist email failed: ${emailResult.error}`,
+    };
+  }
+
+  return { success: true, message: 'Volunteer waitlisted and waitlist email sent.' };
 }
 
 /** Delete a volunteer (admin only) */
