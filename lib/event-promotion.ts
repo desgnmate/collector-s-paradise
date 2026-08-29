@@ -6,8 +6,8 @@ export type PromotedEvent = {
   dateMonth: string;
   startTime: string;
   venue: string | null;
-  coverImageUrl: string | null;
   href: string;
+  ticketHref: string;
   targetTimeMs: number;
 };
 

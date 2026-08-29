@@ -2,10 +2,11 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { ArrowRight, CalendarDays, MapPin, Store, Ticket, X } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ArrowRight, CalendarDays, MapPin, Ticket, X } from 'lucide-react';
 import type { PromotedEvent } from '@/lib/event-promotion';
-import popupImage from '@/Hero pop up image.png';
+import vipTicket from '@/Canberra VIP ticket.png';
+import gaTicket from '@/Canberra GA ticket.png';
 
 const DISMISS_FOR_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -57,9 +58,19 @@ export default function EventPromotionExperience({
   event: PromotedEvent;
 }) {
   const [showPopup, setShowPopup] = useState(false);
-  const dismissalKey = `cp-event-promo-dismissed:${event.id}`;
+  const [isHeroVisible, setIsHeroVisible] = useState(true);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const dismissalKey = `cp-ticket-invite-dismissed:v1:${event.id}`;
+  const hasMatchingTicketArtwork = /canberra/i.test(event.title);
+
+  const dismissPopup = useCallback(() => {
+    window.localStorage.setItem(dismissalKey, String(Date.now()));
+    setShowPopup(false);
+  }, [dismissalKey]);
 
   useEffect(() => {
+    if (!hasMatchingTicketArtwork) return;
+
     const dismissedAt = Number(window.localStorage.getItem(dismissalKey) || 0);
     if (Date.now() - dismissedAt < DISMISS_FOR_MS) return;
 
@@ -68,12 +79,59 @@ export default function EventPromotionExperience({
     }, 3500);
 
     return () => window.clearTimeout(timer);
-  }, [dismissalKey]);
+  }, [dismissalKey, hasMatchingTicketArtwork]);
 
-  const dismissPopup = () => {
-    window.localStorage.setItem(dismissalKey, String(Date.now()));
-    setShowPopup(false);
-  };
+  useEffect(() => {
+    const hero = document.getElementById('hero');
+    if (!hero) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsHeroVisible(entry.isIntersecting),
+      { threshold: 0.12 },
+    );
+    observer.observe(hero);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!showPopup || !isHeroVisible) return;
+
+    const previousFocus = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key === 'Escape') {
+        dismissPopup();
+        return;
+      }
+
+      if (keyboardEvent.key !== 'Tab') return;
+      const focusable = Array.from(
+        document.querySelectorAll<HTMLElement>('.event-promo-popup a, .event-promo-popup button:not([disabled])'),
+      );
+      const first = focusable[0];
+      const last = focusable.at(-1);
+      if (!first || !last) return;
+
+      if (keyboardEvent.shiftKey && document.activeElement === first) {
+        keyboardEvent.preventDefault();
+        last.focus();
+      } else if (!keyboardEvent.shiftKey && document.activeElement === last) {
+        keyboardEvent.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus();
+    };
+  }, [dismissPopup, isHeroVisible, showPopup]);
 
   return (
     <>
@@ -100,32 +158,78 @@ export default function EventPromotionExperience({
         </div>
       </aside>
 
-      {showPopup ? (
-        <aside className="event-promo-popup" aria-label={`Vendor application promotion for ${event.title}`} aria-live="polite">
-          <button className="event-promo-close" type="button" onClick={dismissPopup} aria-label="Dismiss vendor application promotion">
-            <X aria-hidden="true" />
-          </button>
-          <Link className="event-promo-image" href="/vendors/apply" aria-label={`Apply to trade at ${event.title}`}>
-            <Image
-              src={popupImage}
-              alt="Collector's Paradise vendor application artwork"
-              fill
-              sizes="(max-width: 520px) 104px, 142px"
-            />
-          </Link>
-          <div className="event-promo-copy">
-            <span className="event-promo-kicker"><Store aria-hidden="true" /> Vendor applications</span>
-            <h2>Trade at {event.title}</h2>
+      {hasMatchingTicketArtwork && showPopup && isHeroVisible ? (
+        <div
+          className="event-promo-backdrop"
+          onMouseDown={(mouseEvent) => {
+            if (mouseEvent.target === mouseEvent.currentTarget) dismissPopup();
+          }}
+        >
+          <aside
+            className="event-promo-popup"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="event-promo-title"
+            aria-describedby="event-promo-description"
+            aria-live="polite"
+          >
+            <button
+              ref={closeButtonRef}
+              className="event-promo-close"
+              type="button"
+              onClick={dismissPopup}
+              aria-label="Close ticket invitation"
+            >
+              <X aria-hidden="true" />
+            </button>
+            <div className="event-promo-copy">
+              <span className="event-promo-kicker"><Ticket aria-hidden="true" /> Canberra tickets are live</span>
+              <h2 id="event-promo-title">Join us at {event.title}</h2>
+              <p id="event-promo-description" className="event-promo-description">
+                Secure your tickets today and join us for an unforgettable day at Collector&apos;s Paradise.
+              </p>
+            </div>
+            <div className="event-promo-ticket-stage" aria-hidden="true">
+              <Image
+                className="event-promo-ticket event-promo-ticket--vip"
+                src={vipTicket}
+                alt=""
+                sizes="(max-width: 560px) 88vw, 500px"
+              />
+              <Image
+                className="event-promo-ticket event-promo-ticket--ga"
+                src={gaTicket}
+                alt=""
+                sizes="(max-width: 560px) 88vw, 500px"
+              />
+            </div>
             <div className="event-promo-details">
               <span><CalendarDays aria-hidden="true" />{event.eventDate} at {event.startTime}</span>
               {event.venue ? <span><MapPin aria-hidden="true" />{event.venue}</span> : null}
             </div>
-          </div>
-          <Link className="event-promo-stub" href="/vendors/apply" aria-label={`Apply as a vendor for ${event.title}`}>
-            <span>Apply</span>
-            <ArrowRight aria-hidden="true" />
-          </Link>
-        </aside>
+            {/^(https?:)?\/\//.test(event.ticketHref) ? (
+              <a
+                className="event-promo-action"
+                href={event.ticketHref}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={`Buy tickets for ${event.title}`}
+              >
+                <span>Buy tickets</span>
+                <ArrowRight aria-hidden="true" />
+              </a>
+            ) : (
+              <Link
+                className="event-promo-action"
+                href={event.ticketHref}
+                aria-label={`Buy tickets for ${event.title}`}
+              >
+                <span>Buy tickets</span>
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            )}
+          </aside>
+        </div>
       ) : null}
     </>
   );

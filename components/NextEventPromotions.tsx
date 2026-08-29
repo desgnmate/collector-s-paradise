@@ -30,8 +30,8 @@ export default async function NextEventPromotions() {
     }).format(new Date(`${nextEvent.event_date}T00:00:00Z`)).toUpperCase(),
     startTime: formatPromotionTime(nextEvent.start_time),
     venue: nextEvent.venue,
-    coverImageUrl: nextEvent.cover_image_url,
     href: `/events/${nextEvent.id}`,
+    ticketHref: nextEvent.booking_link || `/events/${nextEvent.id}`,
     targetTimeMs: getEventStartTimeMs(nextEvent.event_date, nextEvent.start_time),
   };
 
