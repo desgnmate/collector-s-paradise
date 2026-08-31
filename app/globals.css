@@ -17633,8 +17633,18 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
 .vendor-management-edit-form textarea:focus { border-color: var(--admin-yellow); outline: 2px solid var(--admin-yellow-soft); }
 .vendor-management-edit-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .vendor-management-edit-form .full { grid-column: 1 / -1; }
-.vendor-management-modal-actions { justify-content: space-between; }
-.vendor-management-modal-actions > div { display: flex; gap: 0.5rem; }
+.vendor-management-modal-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.vendor-management-modal-actions > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.vendor-management-modal-actions > .modal-footer-danger { flex: 0 0 auto; }
 
 .vendor-management-profile-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
 .vendor-management-profile-facts span { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.75rem; background: var(--admin-bg); color: var(--admin-text-primary); font-size: 0.78rem; }
@@ -17653,7 +17663,7 @@ html[data-admin-theme="dark"] .event-form-group input[type="time"] { color-schem
   .vendor-management-toolbar .vendor-management-search,
   .vendor-management-directory-header .vendor-management-search { width: 100%; }
   .vendor-management-review-grid { grid-template-columns: 1fr; }
-  .vendor-management-modal-actions { align-items: stretch; flex-direction: column-reverse; }
+  .vendor-management-modal-actions { align-items: stretch; flex-direction: column-reverse; gap: 0.75rem; }
   .vendor-management-modal-actions > div { justify-content: flex-end; }
 }
 
@@ -18544,6 +18554,7 @@ html[data-admin-theme="dark"] .modal-footer-primary { background: var(--admin-ye
 }
 .vendor-invitation-warning,
 .vendor-invitation-error,
+.vendor-invitation-readiness,
 .vendor-invitation-preview-note {
   margin: 0;
   padding: 10px 11px;
@@ -18553,7 +18564,32 @@ html[data-admin-theme="dark"] .modal-footer-primary { background: var(--admin-ye
 }
 .vendor-invitation-warning { background: var(--admin-yellow-soft); color: #72520a; }
 .vendor-invitation-error { background: var(--admin-red-soft); color: var(--admin-red); }
+.vendor-invitation-readiness { background: var(--admin-red-soft); color: var(--admin-red); }
+.vendor-invitation-readiness strong { display: block; }
+.vendor-invitation-readiness ul { margin: 6px 0 0; padding-left: 18px; }
 .vendor-invitation-preview-note { background: var(--admin-surface-hover); color: var(--admin-text-secondary); }
+.vendor-application-receipt-error {
+  display: block;
+  margin-top: 6px;
+  color: var(--admin-red);
+  font-size: 0.62rem;
+  line-height: 1.4;
+}
+.vendor-application-receipt-action {
+  display: block;
+  margin-top: 7px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--admin-text-primary);
+  font: inherit;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.vendor-application-receipt-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 620px) {
   .event-form-section-heading { align-items: flex-start; flex-direction: column; }

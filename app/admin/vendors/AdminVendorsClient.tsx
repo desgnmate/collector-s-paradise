@@ -7,6 +7,7 @@ import {
   assignVendorsToEvents,
   deleteVendor,
   removeVendorEventApplication,
+  resendVendorApplicationReceipt,
   resendVendorInvitation,
   syncAllVendorsToSheet,
   updateVendor,
@@ -18,6 +19,7 @@ import {
   type VendorUpdateData,
 } from '@/app/actions/vendors';
 import type { Event as ManagedEvent } from '@/app/actions/events';
+import { getVendorInvitationReadinessIssues } from '@/lib/vendor-invitation';
 
 type View = 'events' | 'unassigned' | 'vendors';
 type StatusFilter = 'all' | VendorApplicationStatus;
@@ -210,6 +212,12 @@ export default function AdminVendorsClient() {
     nextStatus === 'approved' &&
     activeApplication.application_status !== 'approved',
   );
+  const invitationReadinessIssues = activeApplication && nextStatus === 'approved'
+    ? getVendorInvitationReadinessIssues(
+        activeEvent,
+        hasValidApprovedFee ? Number(approvedVendorFee) : null,
+      )
+    : [];
   const normalizedSearch = search.trim().toLowerCase();
   const visibleApplications = (selectedEvent?.applications || []).filter((application) => {
     const matchesStatus = statusFilter === 'all' || application.application_status === statusFilter;
@@ -376,6 +384,40 @@ export default function AdminVendorsClient() {
       invitation_sent_at: result.invitation_sent_at ?? current.invitation_sent_at,
       invitation_error: result.invitation_error ?? current.invitation_error,
     } : null);
+    void refreshData(['vendors']);
+  };
+
+  const resendApplicationReceipt = async () => {
+    if (!activeApplication) return;
+    setProcessing(true);
+    const result = await resendVendorApplicationReceipt(activeApplication.vendor.id);
+    setProcessing(false);
+    setNotice({ type: result.success ? 'success' : 'error', message: result.message });
+
+    const receiptStatus = result.receipt_status || activeApplication.vendor.application_receipt_status;
+    const receiptSentAt = result.receipt_sent_at !== undefined
+      ? result.receipt_sent_at
+      : activeApplication.vendor.application_receipt_sent_at;
+    const receiptError = result.receipt_error !== undefined
+      ? result.receipt_error
+      : activeApplication.vendor.application_receipt_error;
+    setActiveApplication((current) => current ? {
+      ...current,
+      vendor: {
+        ...current.vendor,
+        application_receipt_status: receiptStatus,
+        application_receipt_sent_at: receiptSentAt,
+        application_receipt_error: receiptError,
+      },
+    } : null);
+    setVendors((current) => current.map((vendor) => vendor.id === activeApplication.vendor.id
+      ? {
+          ...vendor,
+          application_receipt_status: receiptStatus,
+          application_receipt_sent_at: receiptSentAt,
+          application_receipt_error: receiptError,
+        }
+      : vendor));
     void refreshData(['vendors']);
   };
 
@@ -739,6 +781,25 @@ export default function AdminVendorsClient() {
                   <div><dt>Tables</dt><dd>{activeApplication.tables_requested || 'Not specified'}</dd></div>
                   <div><dt>Power</dt><dd>{activeApplication.power_requirements || 'Not specified'}</dd></div>
                   <div><dt>Applied</dt><dd>{new Date(activeApplication.applied_at).toLocaleDateString('en-AU')}</dd></div>
+                  <div>
+                    <dt>Application email</dt>
+                    <dd>
+                      <span className={`vendor-invitation-status is-${activeApplication.vendor.application_receipt_status}`}>
+                        {invitationStatusLabels[activeApplication.vendor.application_receipt_status]}
+                      </span>
+                      {activeApplication.vendor.application_receipt_error && (
+                        <small className="vendor-application-receipt-error">{activeApplication.vendor.application_receipt_error}</small>
+                      )}
+                      <button
+                        type="button"
+                        className="vendor-application-receipt-action"
+                        onClick={resendApplicationReceipt}
+                        disabled={processing || activeApplication.vendor.application_receipt_status === 'sending'}
+                      >
+                        {processing ? 'Sending…' : 'Resend receipt'}
+                      </button>
+                    </dd>
+                  </div>
                 </dl>
               </div>
               <div className="vendor-management-decision-form">
@@ -784,6 +845,16 @@ export default function AdminVendorsClient() {
                     {!hasValidApprovedFee && (
                       <p className="vendor-invitation-warning">Enter the final vendor fee before approval.</p>
                     )}
+                    {invitationReadinessIssues.length > 0 && (
+                      <div className="vendor-invitation-readiness" role="alert">
+                        <strong>
+                          Complete this event&apos;s invitation setup before {approvalWillSend ? 'approval' : 'sending another invitation'}:
+                        </strong>
+                        <ul>
+                          {invitationReadinessIssues.map((issue) => <li key={issue}>{issue}</li>)}
+                        </ul>
+                      </div>
+                    )}
                     {activeApplication.invitation_error && (
                       <p className="vendor-invitation-error">Last email issue: {activeApplication.invitation_error}</p>
                     )}
@@ -801,7 +872,7 @@ export default function AdminVendorsClient() {
               <div>
                 <button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setActiveApplication(null)} disabled={processing}>Cancel</button>
                 {activeApplication.application_status === 'approved' && (
-                  <button type="button" className="modal-footer-btn modal-footer-secondary" onClick={resendInvitation} disabled={processing || !hasValidApprovedFee}>
+                  <button type="button" className="modal-footer-btn modal-footer-secondary" onClick={resendInvitation} disabled={processing || !hasValidApprovedFee || invitationReadinessIssues.length > 0}>
                     {processing ? 'Sending...' : activeApplication.invitation_status === 'not_sent' ? 'Send invitation' : 'Resend invitation'}
                   </button>
                 )}
@@ -809,7 +880,7 @@ export default function AdminVendorsClient() {
                   type="button"
                   className="modal-footer-btn modal-footer-primary"
                   onClick={saveApplication}
-                  disabled={processing || (nextStatus === 'approved' && !hasValidApprovedFee)}
+                  disabled={processing || (nextStatus === 'approved' && !hasValidApprovedFee) || (approvalWillSend && invitationReadinessIssues.length > 0)}
                 >
                   {processing ? 'Saving...' : approvalWillSend ? 'Approve & send invitation' : 'Save decision'}
                 </button>

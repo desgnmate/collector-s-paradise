@@ -26,6 +26,12 @@ in the Supabase SQL editor. It removes public access to private vendor,
 sponsor, volunteer, and legacy event-image fields while preserving public
 directory/form behavior. Apply it only after reviewing the deployed schema.
 
+Before deploying the approved-only vendor directory and receipt tracking code,
+apply `supabase/migrations/20260901010000_fix_vendor_visibility_and_email_tracking.sql`.
+The migration must land first because the admin vendor query expects the new
+application-receipt columns. It also immediately prevents pending and
+waitlisted applications from appearing in the public vendor directory.
+
 Vercel creates production deployments from the production branch and preview
 deployments from other branches and pull requests.
 
@@ -39,10 +45,23 @@ not expose it with a `NEXT_PUBLIC_` prefix.
 and the legacy event/vendor image route. The app intentionally fails closed if
 that server-only key is missing.
 
-For transactional email, configure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, and
-`NEXT_PUBLIC_APP_URL`. To track final delivery outcomes, also configure
-`RESEND_WEBHOOK_SECRET` and add a Resend webhook for
-`https://<your-production-domain>/api/webhooks/resend`.
+For transactional email, configure `RESEND_API_KEY`, `RESEND_FROM_EMAIL`,
+`ADMIN_EMAIL`, and `NEXT_PUBLIC_APP_URL`. In production,
+`RESEND_WEBHOOK_SECRET` is also required. Add a Resend webhook for
+`https://<your-production-domain>/api/webhooks/resend` and subscribe to
+`email.delivered`, `email.bounced`, `email.complained`, `email.failed`, and
+`email.suppressed`.
+
+The website contact address and every `vendor_contact_email` must be a real,
+receive-capable mailbox. Outbound Resend domain verification does not create an
+inbox. Configure the mail provider's MX records for `collectorsparadise.au`,
+then verify inbound and reply delivery from at least two external providers
+(for example Gmail and Outlook) before approving vendors.
+
+For every event that accepts vendors, configure a vendor contact email and
+confirmation deadline. Paid invitations also require a payment or confirmation
+link. The admin approval action intentionally refuses to send until these
+required details are present.
 
 ## Runtime behavior
 

@@ -36,8 +36,10 @@ globalThis.fetch = async (url, init) => {
 };
 
 const {
+  sendNewApplicationEmail,
   sendApprovalEmail,
   sendRejectionEmail,
+  sendVendorInvitationEmail,
   sendWaitlistEmail,
   sendReportNotificationEmail,
 } = await import('../lib/email.ts');
@@ -95,7 +97,7 @@ test('application status helpers send safe, idempotent messages and surface prov
     assert.deepEqual(reportNotification, { success: true, id: 'email-4' });
     assert.equal(requests.length, 4);
     assert.deepEqual(
-      requests.map((request) => request.body.subject),
+      requests.slice(0, 4).map((request) => request.body.subject),
       [
         "Application approved — Collector's Paradise",
         "Application Status Update — Collector's Paradise",
@@ -119,6 +121,56 @@ test('application status helpers send safe, idempotent messages and surface prov
     assert.doesNotMatch(requests[3].body.text, /<script>|<img/);
     assert.match(requests[3].body.text, /\/admin\/reports/);
 
+    const receipt = await sendNewApplicationEmail({
+      vendorId: '25d78a71-e205-46ba-a449-d42b301dbebf',
+      vendorEmail: 'vendor@example.test',
+      businessName: '<script>Test Cards</script>',
+      contactName: '<b>Vendor</b>',
+      eventNames: ['VMAX <October>', 'Holiday Special'],
+      reference: 'CP-V-25D78A71',
+    }, 'vendor-receipt-key');
+
+    assert.deepEqual(receipt, {
+      admin: { success: true, id: 'email-5' },
+      vendor: { success: true, id: 'email-6' },
+    });
+    assert.equal(requests[4].headers['idempotency-key'], 'vendor-receipt-key-admin');
+    assert.equal(requests[5].headers['idempotency-key'], 'vendor-receipt-key-vendor');
+    assert.match(requests[5].body.html, /pending review/);
+    assert.match(requests[5].body.html, /CP-V-25D78A71/);
+    assert.match(requests[5].body.html, /VMAX &lt;October&gt;/);
+    assert.doesNotMatch(requests[5].body.html, /<script>Test Cards<\/script>|<b>Vendor<\/b>/);
+
+    const invitation = await sendVendorInvitationEmail({
+      applicationId: '7ae22eb3-860c-407d-80cc-dcc41912a57a',
+      eventId: '76a00867-57d9-43d0-9858-70e614e4a610',
+      vendorEmail: 'vendor@example.test',
+      businessName: 'Test Cards',
+      contactName: 'Alex Vendor',
+      eventName: 'VMAX',
+      eventDate: '2026-10-03',
+      startTime: '09:00',
+      endTime: '17:00',
+      venue: 'Test Venue',
+      venueAddress: '1 Test Street',
+      boothAssignment: 'B12',
+      tablesRequested: '1',
+      powerRequirements: 'none',
+      approvedVendorFee: 150,
+      tablePrice: 150,
+      powerFee: 0,
+      responseDeadline: '2026-09-10',
+      loadInTime: '07:30',
+      paymentLink: 'https://payments.example.test/vendor',
+      contactEmail: 'vendors@example.test',
+      instructions: 'Bring photo identification.',
+    }, 'vendor-invitation-key');
+
+    assert.deepEqual(invitation, { success: true, id: 'email-7' });
+    assert.equal(requests[6].headers['idempotency-key'], 'vendor-invitation-key');
+    assert.match(requests[6].body.html, /Confirm your place/);
+    assert.match(requests[6].body.html, /payments\.example\.test\/vendor/);
+
     providerError = true;
     const failure = await sendRejectionEmail(
       'applicant@example.test',
@@ -126,6 +178,19 @@ test('application status helpers send safe, idempotent messages and surface prov
       'Alex Applicant',
     );
     assert.deepEqual(failure, { success: false, error: 'Rejected by provider' });
+
+    const receiptFailure = await sendNewApplicationEmail({
+      vendorId: '25d78a71-e205-46ba-a449-d42b301dbebf',
+      vendorEmail: 'vendor@example.test',
+      businessName: 'Test Cards',
+      contactName: 'Vendor',
+      eventNames: ['VMAX'],
+      reference: 'CP-V-25D78A71',
+    }, 'vendor-receipt-failure-key');
+    assert.deepEqual(receiptFailure, {
+      admin: { success: false, error: 'Rejected by provider' },
+      vendor: { success: false, error: 'Rejected by provider' },
+    });
   } finally {
     globalThis.fetch = originalFetch;
   }

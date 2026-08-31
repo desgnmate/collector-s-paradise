@@ -86,10 +86,10 @@ what each controls.
 |----------|----------|---------|
 | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | Supabase project URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✅ | Supabase anon (public) key |
-| `RESEND_API_KEY` | ✉️ optional | Enables transactional email. If unset, emails are skipped. |
-| `RESEND_FROM_EMAIL` | ✉️ optional | Bare sender address for outgoing email (for example, `hello@collectorsparadise.au`; the app adds the display name) |
-| `RESEND_WEBHOOK_SECRET` | ✉️ optional | Verifies Resend delivery events at `/api/webhooks/resend` |
-| `ADMIN_EMAIL` | ✉️ optional | Inbox that receives new-application and support-report notifications |
+| `RESEND_API_KEY` | ✉️ production | Enables transactional email. If unset, applications are saved but email delivery fails visibly. |
+| `RESEND_FROM_EMAIL` | ✉️ production | Bare sender address for outgoing email (for example, `hello@collectorsparadise.au`; the app adds the display name) |
+| `RESEND_WEBHOOK_SECRET` | ✉️ production | Verifies Resend delivery events at `/api/webhooks/resend` |
+| `ADMIN_EMAIL` | ✉️ production | Receive-capable inbox for new-application and support-report notifications |
 | `NEXT_PUBLIC_APP_URL` | ✉️ optional | Public site URL (used in email links) |
 | `SUPABASE_SERVICE_ROLE_KEY` | 🔐 server only | Required by protected admin actions and legacy image routes; never expose to the client |
 
@@ -98,8 +98,11 @@ what each controls.
 
 Vendor invitation delivery tracking is enabled when a Resend webhook points to
 `https://<your-domain>/api/webhooks/resend` and subscribes to delivery, bounce,
-complaint, and suppression events. Sending and retry tracking still work when
-the webhook is not configured.
+failure, complaint, and suppression events. Apply
+`supabase/migrations/20260901010000_fix_vendor_visibility_and_email_tracking.sql`
+before deploying the matching application code. MX records and a real mailbox
+must be configured separately for addresses that receive website enquiries or
+email replies.
 
 ---
 

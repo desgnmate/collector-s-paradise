@@ -1,5 +1,5 @@
 -- Public vendor directory with safe fields only.
--- Supports unassigned vendor profiles and event applicant rosters without
+-- Supports legacy approved profiles and approved event rosters without
 -- exposing email, phone, notes, rejection reasons, or other private fields.
 
 CREATE OR REPLACE FUNCTION public.get_public_vendor_directory(
@@ -29,30 +29,44 @@ AS $$
     SELECT vendor.*
     FROM public.vendors AS vendor
     WHERE
-      vendor.application_status <> 'rejected'
-      AND (
-        (
-          p_event_id IS NOT NULL
-          AND EXISTS (
+      (
+        p_event_id IS NOT NULL
+        AND EXISTS (
+          SELECT 1
+          FROM public.vendor_event_applications AS application
+          WHERE application.vendor_id = vendor.id
+            AND application.event_id = p_event_id
+            AND application.application_status = 'approved'
+        )
+      )
+      OR (
+        p_event_id IS NULL
+        AND p_unassigned_only
+        AND vendor.application_status = 'approved'
+        AND NOT EXISTS (
+          SELECT 1
+          FROM public.vendor_event_applications AS application
+          WHERE application.vendor_id = vendor.id
+        )
+      )
+      OR (
+        p_event_id IS NULL
+        AND NOT p_unassigned_only
+        AND (
+          EXISTS (
             SELECT 1
             FROM public.vendor_event_applications AS application
             WHERE application.vendor_id = vendor.id
-              AND application.event_id = p_event_id
-              AND application.application_status <> 'rejected'
+              AND application.application_status = 'approved'
           )
-        )
-        OR (
-          p_event_id IS NULL
-          AND p_unassigned_only
-          AND NOT EXISTS (
-            SELECT 1
-            FROM public.vendor_event_applications AS application
-            WHERE application.vendor_id = vendor.id
+          OR (
+            vendor.application_status = 'approved'
+            AND NOT EXISTS (
+              SELECT 1
+              FROM public.vendor_event_applications AS application
+              WHERE application.vendor_id = vendor.id
+            )
           )
-        )
-        OR (
-          p_event_id IS NULL
-          AND NOT p_unassigned_only
         )
       )
   ),
@@ -80,7 +94,7 @@ AS $$
     FROM public.vendor_event_applications AS application
     WHERE application.vendor_id = vendor.id
       AND application.event_id = p_event_id
-      AND application.application_status <> 'rejected'
+      AND application.application_status = 'approved'
     LIMIT 1
   ) AS selected_application ON p_event_id IS NOT NULL
   LEFT JOIN LATERAL (
@@ -100,7 +114,7 @@ AS $$
     FROM public.vendor_event_applications AS application
     JOIN public.events AS event ON event.id = application.event_id
     WHERE application.vendor_id = vendor.id
-      AND application.application_status <> 'rejected'
+      AND application.application_status = 'approved'
       AND (p_event_id IS NULL OR application.event_id = p_event_id)
   ) AS applications ON TRUE;
 $$;
@@ -109,4 +123,4 @@ REVOKE ALL ON FUNCTION public.get_public_vendor_directory(UUID, BOOLEAN, INTEGER
 GRANT EXECUTE ON FUNCTION public.get_public_vendor_directory(UUID, BOOLEAN, INTEGER, INTEGER) TO anon, authenticated;
 
 COMMENT ON FUNCTION public.get_public_vendor_directory(UUID, BOOLEAN, INTEGER, INTEGER) IS
-  'Returns public-safe vendor profile fields for unassigned and event applicant directories.';
+  'Returns public-safe vendor profile fields for approved legacy profiles and approved event applications only.';

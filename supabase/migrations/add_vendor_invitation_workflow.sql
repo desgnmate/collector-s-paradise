@@ -43,6 +43,14 @@ ALTER TABLE public.vendor_event_applications
   ADD COLUMN IF NOT EXISTS invitation_error TEXT,
   ADD COLUMN IF NOT EXISTS invitation_version INTEGER NOT NULL DEFAULT 1;
 
+ALTER TABLE public.vendors
+  ADD COLUMN IF NOT EXISTS application_receipt_status TEXT NOT NULL DEFAULT 'not_sent',
+  ADD COLUMN IF NOT EXISTS application_receipt_sent_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS application_receipt_last_attempt_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS application_receipt_attempt_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS application_receipt_resend_id TEXT,
+  ADD COLUMN IF NOT EXISTS application_receipt_error TEXT;
+
 DO $$
 BEGIN
   IF NOT EXISTS (
@@ -79,6 +87,31 @@ BEGIN
       ADD CONSTRAINT vendor_event_applications_invitation_attempt_count_check
       CHECK (invitation_attempt_count >= 0);
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendors_application_receipt_status_check'
+      AND conrelid = 'public.vendors'::regclass
+  ) THEN
+    ALTER TABLE public.vendors
+      ADD CONSTRAINT vendors_application_receipt_status_check
+      CHECK (
+        application_receipt_status IN (
+          'not_sent', 'sending', 'sent', 'failed',
+          'delivered', 'bounced', 'complained', 'suppressed'
+        )
+      );
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendors_application_receipt_attempt_count_check'
+      AND conrelid = 'public.vendors'::regclass
+  ) THEN
+    ALTER TABLE public.vendors
+      ADD CONSTRAINT vendors_application_receipt_attempt_count_check
+      CHECK (application_receipt_attempt_count >= 0);
+  END IF;
 END $$;
 
 CREATE INDEX IF NOT EXISTS idx_vendor_event_applications_invitation_status
@@ -89,6 +122,13 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_vendor_event_applications_invitation_resen
   ON public.vendor_event_applications(invitation_resend_id)
   WHERE invitation_resend_id IS NOT NULL;
 
+CREATE INDEX IF NOT EXISTS idx_vendors_application_receipt_status
+  ON public.vendors(application_receipt_status);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_vendors_application_receipt_resend_id
+  ON public.vendors(application_receipt_resend_id)
+  WHERE application_receipt_resend_id IS NOT NULL;
+
 COMMENT ON COLUMN public.events.vendor_table_price IS
   'Base AUD price per vendor table for approval invitation calculations.';
 COMMENT ON COLUMN public.events.vendor_power_fee IS
@@ -97,3 +137,5 @@ COMMENT ON COLUMN public.vendor_event_applications.approved_vendor_fee IS
   'Final AUD fee confirmed by an admin and included in the invitation.';
 COMMENT ON COLUMN public.vendor_event_applications.invitation_status IS
   'Latest Resend lifecycle state for the event-specific vendor invitation.';
+COMMENT ON COLUMN public.vendors.application_receipt_status IS
+  'Latest Resend lifecycle state for the vendor-facing application receipt.';

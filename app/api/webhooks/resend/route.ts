@@ -14,7 +14,8 @@ const TRACKED_EVENTS = new Set([
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.RESEND_WEBHOOK_SECRET;
-  if (!webhookSecret) {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!webhookSecret || !resendApiKey) {
     return Response.json({ error: 'Webhook is not configured.' }, { status: 503 });
   }
 
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
 
   let event: ReturnType<Resend['webhooks']['verify']>;
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+    const resend = new Resend(resendApiKey);
     event = resend.webhooks.verify({
       payload,
       headers: { id, timestamp, signature },
@@ -43,18 +44,18 @@ export async function POST(request: Request) {
   }
 
   const status = event.type.replace('email.', '');
-  let invitationError: string | null = null;
-  if (event.type === 'email.failed') invitationError = event.data.failed.reason;
-  if (event.type === 'email.bounced') invitationError = event.data.bounce.message;
-  if (event.type === 'email.complained') invitationError = 'Recipient marked the email as spam.';
-  if (event.type === 'email.suppressed') invitationError = event.data.suppressed.message;
+  let deliveryError: string | null = null;
+  if (event.type === 'email.failed') deliveryError = event.data.failed.reason;
+  if (event.type === 'email.bounced') deliveryError = event.data.bounce.message;
+  if (event.type === 'email.complained') deliveryError = 'Recipient marked the email as spam.';
+  if (event.type === 'email.suppressed') deliveryError = event.data.suppressed.message;
 
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from('vendor_event_applications')
     .update({
       invitation_status: status,
-      invitation_error: invitationError,
+      invitation_error: deliveryError,
       updated_at: new Date().toISOString(),
     })
     .eq('invitation_resend_id', event.data.email_id)
@@ -66,5 +67,22 @@ export async function POST(request: Request) {
     return Response.json({ error: 'Could not record delivery status.' }, { status: 500 });
   }
 
-  return Response.json({ received: true, matched: Boolean(data) });
+  if (data) return Response.json({ received: true, matched: true, kind: 'invitation' });
+
+  const { data: receipt, error: receiptError } = await supabase
+    .from('vendors')
+    .update({
+      application_receipt_status: status,
+      application_receipt_error: deliveryError,
+    })
+    .eq('application_receipt_resend_id', event.data.email_id)
+    .select('id')
+    .maybeSingle();
+
+  if (receiptError) {
+    console.error('Failed to record application receipt webhook status:', JSON.stringify(receiptError, null, 2));
+    return Response.json({ error: 'Could not record delivery status.' }, { status: 500 });
+  }
+
+  return Response.json({ received: true, matched: Boolean(receipt), kind: receipt ? 'application_receipt' : null });
 }

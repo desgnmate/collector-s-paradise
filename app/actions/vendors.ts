@@ -13,12 +13,13 @@ import {
   type VendorInvitationEmailInput,
 } from '@/lib/email';
 import { getEventMarketDate } from '@/lib/event-date';
+import { getVendorInvitationReadinessIssues } from '@/lib/vendor-invitation';
 
 // ============================================
 // Types
 // ============================================
 export type VendorApplicationStatus = 'pending' | 'approved' | 'rejected' | 'waitlisted';
-export type VendorInvitationStatus =
+export type VendorEmailDeliveryStatus =
   | 'not_sent'
   | 'sending'
   | 'sent'
@@ -27,6 +28,7 @@ export type VendorInvitationStatus =
   | 'bounced'
   | 'complained'
   | 'suppressed';
+export type VendorInvitationStatus = VendorEmailDeliveryStatus;
 
 export type VendorEventApplication = {
   id: string;
@@ -66,6 +68,12 @@ export type Vendor = {
   power_requirements: string | null;
   additional_notes: string | null;
   application_status: VendorApplicationStatus;
+  application_receipt_status: VendorEmailDeliveryStatus;
+  application_receipt_sent_at: string | null;
+  application_receipt_last_attempt_at: string | null;
+  application_receipt_attempt_count: number;
+  application_receipt_resend_id: string | null;
+  application_receipt_error: string | null;
   booth_assignment: string | null;
   event_id: string | null;
   event_name?: string | null;
@@ -85,7 +93,7 @@ export type VendorManagementEvent = {
 };
 
 // Column selection for admin queries - only fetch what's needed
-const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, booth_assignment, event_id, rejection_reason, applied_at';
+const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, application_receipt_status, application_receipt_sent_at, application_receipt_last_attempt_at, application_receipt_attempt_count, application_receipt_resend_id, application_receipt_error, booth_assignment, event_id, rejection_reason, applied_at';
 
 const createPublicVendorsClient = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -216,6 +224,9 @@ type ActionState = {
   invitation_status?: VendorInvitationStatus;
   invitation_sent_at?: string | null;
   invitation_error?: string | null;
+  receipt_status?: VendorEmailDeliveryStatus;
+  receipt_sent_at?: string | null;
+  receipt_error?: string | null;
   email_error?: string;
 };
 
@@ -376,6 +387,97 @@ export async function syncAllVendorsToSheet() {
   return { success: true, message: `${synced} vendor event applications synced to spreadsheet.` };
 }
 
+function getVendorApplicationReference(vendorId: string) {
+  return `CP-V-${vendorId.slice(0, 8).toUpperCase()}`;
+}
+
+async function getApplicationReceiptIdempotencyKey(vendorId: string, eventIds: string[], attempt: number) {
+  const payload = `${vendorId}:${[...eventIds].sort().join(',')}:${attempt}`;
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
+  const suffix = Array.from(new Uint8Array(digest).slice(0, 8))
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+  return `vendor-application-receipt-${vendorId}-${suffix}`;
+}
+
+async function sendAndTrackNewApplicationEmail(input: {
+  vendorId: string;
+  vendorEmail: string;
+  businessName: string;
+  contactName: string;
+  eventNames: string[];
+  eventIds: string[];
+}) {
+  const reference = getVendorApplicationReference(input.vendorId);
+  const attemptedAt = new Date().toISOString();
+  let trackingClient: SupabaseClient | null = null;
+  let nextAttempt = 1;
+
+  try {
+    trackingClient = createSupabaseAdminClient();
+    const { data: vendor, error: loadError } = await trackingClient
+      .from('vendors')
+      .select('application_receipt_attempt_count')
+      .eq('id', input.vendorId)
+      .single();
+
+    if (loadError) {
+      console.error('Could not load application receipt tracking:', JSON.stringify(loadError, null, 2));
+      trackingClient = null;
+    } else {
+      nextAttempt = Number(vendor.application_receipt_attempt_count || 0) + 1;
+      const { error: claimError } = await trackingClient
+        .from('vendors')
+        .update({
+          application_receipt_status: 'sending',
+          application_receipt_last_attempt_at: attemptedAt,
+          application_receipt_attempt_count: nextAttempt,
+          application_receipt_resend_id: null,
+          application_receipt_error: null,
+        })
+        .eq('id', input.vendorId)
+        .eq('application_receipt_attempt_count', nextAttempt - 1);
+
+      if (claimError) {
+        console.error('Could not start application receipt tracking:', JSON.stringify(claimError, null, 2));
+        trackingClient = null;
+      }
+    }
+  } catch (error) {
+    console.error('Application receipt tracking is unavailable:', error);
+    trackingClient = null;
+  }
+
+  const emailResult = await sendNewApplicationEmail({
+    vendorId: input.vendorId,
+    vendorEmail: input.vendorEmail,
+    businessName: input.businessName,
+    contactName: input.contactName,
+    eventNames: input.eventNames,
+    reference,
+  }, await getApplicationReceiptIdempotencyKey(input.vendorId, input.eventIds, nextAttempt));
+
+  if (trackingClient) {
+    const sentAt = new Date().toISOString();
+    const { error: trackingError } = await trackingClient
+      .from('vendors')
+      .update({
+        application_receipt_status: emailResult.vendor.success ? 'sent' : 'failed',
+        application_receipt_sent_at: emailResult.vendor.success ? sentAt : null,
+        application_receipt_resend_id: emailResult.vendor.success ? emailResult.vendor.id : null,
+        application_receipt_error: emailResult.vendor.success ? null : emailResult.vendor.error.slice(0, 1000),
+      })
+      .eq('id', input.vendorId)
+      .eq('application_receipt_attempt_count', nextAttempt);
+
+    if (trackingError) {
+      console.error('Could not finish application receipt tracking:', JSON.stringify(trackingError, null, 2));
+    }
+  }
+
+  return { ...emailResult.vendor, reference };
+}
+
 /** Submit a vendor application (publicly accessible) */
 export async function submitVendorApplication(
   prevState: ActionState,
@@ -501,12 +603,16 @@ export async function submitVendorApplication(
   }
 
   const eventNames = new Map((selectedEvents || []).map((event) => [event.id, event.title]));
+  let receiptResult: Awaited<ReturnType<typeof sendAndTrackNewApplicationEmail>> | null = null;
   if (insertedEventIds.length > 0) {
-    sendNewApplicationEmail(
-      validatedFields.data.email,
-      validatedFields.data.business_name,
-      validatedFields.data.contact_name,
-    ).catch((err) => console.error('Failed to send application emails:', err));
+    receiptResult = await sendAndTrackNewApplicationEmail({
+      vendorId: savedVendorId,
+      vendorEmail: validatedFields.data.email,
+      businessName: validatedFields.data.business_name,
+      contactName: validatedFields.data.contact_name,
+      eventNames: insertedEventIds.map((eventId) => eventNames.get(eventId) || 'Selected event'),
+      eventIds: insertedEventIds,
+    });
   }
 
   for (const eventId of insertedEventIds) {
@@ -534,9 +640,21 @@ export async function submitVendorApplication(
   }
 
   if (savedApplication?.already_applied) {
-    return { message: 'Your application for the selected event is already on file.', success: true };
+    return {
+      message: `Your application for the selected event is already on file. Reference: ${getVendorApplicationReference(savedVendorId)}.`,
+      success: true,
+    };
   }
-  return { message: 'Application submitted securely. We will review each selected event and contact you by email.', success: true };
+  if (receiptResult && !receiptResult.success) {
+    return {
+      message: `Application saved, but we could not send the receipt email. Keep this reference and contact support: ${receiptResult.reference}.`,
+      success: true,
+    };
+  }
+  return {
+    message: `Application submitted securely. It is pending review, and a receipt was emailed to you. Reference: ${receiptResult?.reference || getVendorApplicationReference(savedVendorId)}.`,
+    success: true,
+  };
   } catch (error) {
     console.error('Vendor application error:', error);
     return {
@@ -544,6 +662,66 @@ export async function submitVendorApplication(
       success: false,
     };
   }
+}
+
+export async function resendVendorApplicationReceipt(vendorId: string): Promise<ActionState> {
+  const id = z.string().uuid().safeParse(vendorId);
+  if (!id.success) return { message: 'Invalid vendor identifier.' };
+
+  const supabase = await requireAdminClient();
+  if (!supabase) return { message: 'Admin access required.' };
+
+  const [{ data: vendor, error: vendorError }, { data: applications, error: applicationsError }] = await Promise.all([
+    supabase
+      .from('vendors')
+      .select('id, email, business_name, contact_name')
+      .eq('id', vendorId)
+      .maybeSingle(),
+    supabase
+      .from('vendor_event_applications')
+      .select('event_id, events(title)')
+      .eq('vendor_id', vendorId)
+      .order('applied_at', { ascending: false }),
+  ]);
+
+  if (vendorError || !vendor) return { message: 'Vendor profile not found.' };
+  if (applicationsError) return { message: `Could not load vendor events: ${applicationsError.message}` };
+
+  const eventIds: string[] = [];
+  const eventNames: string[] = [];
+  for (const application of applications || []) {
+    eventIds.push(application.event_id);
+    const eventValue = application.events as unknown as { title: string } | { title: string }[] | null;
+    const event = Array.isArray(eventValue) ? eventValue[0] : eventValue;
+    eventNames.push(event?.title || 'Selected event');
+  }
+
+  if (eventIds.length === 0) return { message: 'This vendor has no event applications to include in a receipt.' };
+
+  const result = await sendAndTrackNewApplicationEmail({
+    vendorId: vendor.id,
+    vendorEmail: vendor.email,
+    businessName: vendor.business_name,
+    contactName: vendor.contact_name,
+    eventNames,
+    eventIds,
+  });
+
+  if (!result.success) {
+    return {
+      message: `Application receipt failed: ${result.error}`,
+      receipt_status: 'failed',
+      receipt_error: result.error,
+    };
+  }
+
+  return {
+    success: true,
+    message: 'Application receipt resent successfully.',
+    receipt_status: 'sent',
+    receipt_sent_at: new Date().toISOString(),
+    receipt_error: null,
+  };
 }
 
 /** Get one public-safe page of unassigned vendors or event applicants. */
@@ -637,7 +815,7 @@ async function fetchApprovedVendors(
 
 const getCachedApprovedVendors = unstable_cache(
   fetchApprovedVendors,
-  ['public-vendor-directory-v2'],
+  ['public-vendor-directory-v3-approved-only'],
   { revalidate: 900, tags: ['vendors'] },
 );
 
@@ -852,6 +1030,14 @@ async function sendInvitationForApplication(
   if (approvedFee === null || !Number.isFinite(approvedFee)) {
     return { message: 'Confirm the final vendor fee before sending the invitation.' };
   }
+  const readinessIssues = getVendorInvitationReadinessIssues(event, approvedFee);
+  if (readinessIssues.length > 0) {
+    return {
+      message: `Complete the event's vendor invitation setup before sending: ${readinessIssues.join(' ')}`,
+      invitation_status: record.invitation_status,
+      invitation_error: readinessIssues.join(' '),
+    };
+  }
 
   const sendingAttemptAge = record.invitation_last_attempt_at
     ? Date.now() - new Date(record.invitation_last_attempt_at).getTime()
@@ -1006,6 +1192,24 @@ export async function updateVendorEventApplication(
   );
   if (currentApplicationError) return { message: `Failed to load application: ${currentApplicationError}` };
   if (!currentApplication) return { message: 'Vendor event application not found.' };
+
+  if (
+    validated.data.status === 'approved' &&
+    currentApplication.application_status !== 'approved'
+  ) {
+    const approvedFee = validated.data.approved_vendor_fee === null
+      ? null
+      : Number(validated.data.approved_vendor_fee);
+    const readinessIssues = getVendorInvitationReadinessIssues(
+      oneRelation(currentApplication.events),
+      approvedFee,
+    );
+    if (readinessIssues.length > 0) {
+      return {
+        message: `Complete the event's vendor invitation setup before approval: ${readinessIssues.join(' ')}`,
+      };
+    }
+  }
 
   const updatedAt = new Date().toISOString();
   const { data: application, error } = await supabase

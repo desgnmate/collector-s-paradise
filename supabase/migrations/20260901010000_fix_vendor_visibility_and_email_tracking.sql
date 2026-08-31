@@ -1,6 +1,53 @@
--- Public vendor directory with safe fields only.
--- Supports legacy approved profiles and approved event rosters without
--- exposing email, phone, notes, rejection reasons, or other private fields.
+-- Keep pending and waitlisted vendor applications private, and persist the
+-- latest vendor-facing application receipt delivery state.
+
+BEGIN;
+
+ALTER TABLE public.vendors
+  ADD COLUMN IF NOT EXISTS application_receipt_status TEXT NOT NULL DEFAULT 'not_sent',
+  ADD COLUMN IF NOT EXISTS application_receipt_sent_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS application_receipt_last_attempt_at TIMESTAMPTZ,
+  ADD COLUMN IF NOT EXISTS application_receipt_attempt_count INTEGER NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS application_receipt_resend_id TEXT,
+  ADD COLUMN IF NOT EXISTS application_receipt_error TEXT;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendors_application_receipt_status_check'
+      AND conrelid = 'public.vendors'::regclass
+  ) THEN
+    ALTER TABLE public.vendors
+      ADD CONSTRAINT vendors_application_receipt_status_check
+      CHECK (
+        application_receipt_status IN (
+          'not_sent', 'sending', 'sent', 'failed',
+          'delivered', 'bounced', 'complained', 'suppressed'
+        )
+      );
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'vendors_application_receipt_attempt_count_check'
+      AND conrelid = 'public.vendors'::regclass
+  ) THEN
+    ALTER TABLE public.vendors
+      ADD CONSTRAINT vendors_application_receipt_attempt_count_check
+      CHECK (application_receipt_attempt_count >= 0);
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_vendors_application_receipt_status
+  ON public.vendors(application_receipt_status);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_vendors_application_receipt_resend_id
+  ON public.vendors(application_receipt_resend_id)
+  WHERE application_receipt_resend_id IS NOT NULL;
+
+COMMENT ON COLUMN public.vendors.application_receipt_status IS
+  'Latest Resend lifecycle state for the vendor-facing application receipt.';
 
 CREATE OR REPLACE FUNCTION public.get_public_vendor_directory(
   p_event_id UUID DEFAULT NULL,
@@ -124,3 +171,7 @@ GRANT EXECUTE ON FUNCTION public.get_public_vendor_directory(UUID, BOOLEAN, INTE
 
 COMMENT ON FUNCTION public.get_public_vendor_directory(UUID, BOOLEAN, INTEGER, INTEGER) IS
   'Returns public-safe vendor profile fields for approved legacy profiles and approved event applications only.';
+
+NOTIFY pgrst, 'reload schema';
+
+COMMIT;

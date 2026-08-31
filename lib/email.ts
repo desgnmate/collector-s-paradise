@@ -84,6 +84,20 @@ export type VendorInvitationEmailResult =
 
 export type ApplicationStatusEmailResult = VendorInvitationEmailResult;
 
+export type NewApplicationEmailInput = {
+  vendorId: string;
+  vendorEmail: string;
+  businessName: string;
+  contactName: string;
+  eventNames: string[];
+  reference: string;
+};
+
+export type NewApplicationEmailResult = {
+  vendor: VendorInvitationEmailResult;
+  admin: VendorInvitationEmailResult;
+};
+
 const REPORT_CATEGORY_LABELS: Record<SupportReport['category'], string> = {
   website_bug: 'Website bug or error',
   ticket_booking: 'Ticket or booking issue',
@@ -174,40 +188,70 @@ export async function sendReportNotificationEmail(
 
 // Email: New Vendor Application Submitted
 export async function sendNewApplicationEmail(
-  vendorEmail: string,
-  businessName: string,
-  contactName: string
-) {
+  input: NewApplicationEmailInput,
+  idempotencyKey: string,
+): Promise<NewApplicationEmailResult> {
   const resend = getResend();
   if (!resend) {
     console.warn('Resend not configured. Skipping email notifications.');
-    return { success: false, error: 'Resend not configured' };
+    const result = { success: false, error: 'Resend not configured' } as const;
+    return { vendor: result, admin: result };
   }
-  try {
-    // Notify admin
-    await resend.emails.send({
+
+  const eventListHtml = input.eventNames.length > 0
+    ? '<ul style="margin:10px 0 0;padding-left:20px;color:inherit">' +
+      input.eventNames.map((eventName) => '<li style="margin:4px 0">' + escapeHtml(eventName) + '</li>').join('') +
+      '</ul>'
+    : '';
+  const eventListText = input.eventNames.length > 0
+    ? `Events:\n${input.eventNames.map((eventName) => `- ${plainText(eventName)}`).join('\n')}`
+    : '';
+
+  const sendAdmin = async (): Promise<VendorInvitationEmailResult> => {
+    try {
+      const { data, error } = await resend.emails.send({
       from: "Collector's Paradise <" + FROM_EMAIL + ">",
       to: ADMIN_EMAIL,
-      subject: 'New Vendor Application: ' + businessName,
+      subject: 'New Vendor Application: ' + plainText(input.businessName),
+      tags: [{ name: 'vendor_id', value: input.vendorId }],
       html:
         '<div style="font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">' +
         '<div style="background: #0f0f0f; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 32px;">' +
         '<h1 style="color: #F4C542; margin: 0 0 8px 0; font-size: 24px;">New Vendor Application</h1>' +
         '<p style="color: rgba(255,255,255,0.6); margin: 0 0 24px 0;">A new vendor has applied to join Collector\'s Paradise.</p>' +
         '<div style="background: rgba(255,255,255,0.05); border-radius: 8px; padding: 20px; margin-bottom: 24px;">' +
-        '<p style="margin: 0 0 12px 0; color: #ffffff;"><strong>Business:</strong> ' + businessName + '</p>' +
-        '<p style="margin: 0 0 12px 0; color: #ffffff;"><strong>Contact:</strong> ' + contactName + '</p>' +
-        '<p style="margin: 0; color: #ffffff;"><strong>Email:</strong> ' + vendorEmail + '</p>' +
+        '<p style="margin: 0 0 12px 0; color: #ffffff;"><strong>Business:</strong> ' + escapeHtml(input.businessName) + '</p>' +
+        '<p style="margin: 0 0 12px 0; color: #ffffff;"><strong>Contact:</strong> ' + escapeHtml(input.contactName) + '</p>' +
+        '<p style="margin: 0 0 12px 0; color: #ffffff;"><strong>Email:</strong> ' + escapeHtml(input.vendorEmail) + '</p>' +
+        '<p style="margin: 0; color: #ffffff;"><strong>Reference:</strong> ' + escapeHtml(input.reference) + '</p>' +
+        eventListHtml +
         '</div>' +
         '<p style="color: rgba(255,255,255,0.5); font-size: 14px; margin: 0;">Review and manage applications in your admin dashboard.</p>' +
         '</div></div>',
-    });
+      text: [
+        'New vendor application',
+        `Business: ${plainText(input.businessName)}`,
+        `Contact: ${plainText(input.contactName)}`,
+        `Email: ${plainText(input.vendorEmail)}`,
+        `Reference: ${plainText(input.reference)}`,
+        eventListText,
+      ].filter(Boolean).join('\n'),
+      }, { idempotencyKey: `${idempotencyKey}-admin` });
 
-    // Notify vendor
-    await resend.emails.send({
+      if (error || !data?.id) return { success: false, error: error?.message || 'Email send failed' };
+      return { success: true, id: data.id };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown email error' };
+    }
+  };
+
+  const sendVendor = async (): Promise<VendorInvitationEmailResult> => {
+    try {
+      const { data, error } = await resend.emails.send({
       from: "Collector's Paradise <" + FROM_EMAIL + ">",
-      to: vendorEmail,
+      to: input.vendorEmail,
       subject: 'Application Received — Collector\'s Paradise',
+      tags: [{ name: 'vendor_id', value: input.vendorId }],
       html:
         '<table border="0" width="100%" cellpadding="0" cellspacing="0" role="presentation" align="center">' +
         '<tbody><tr><td style="background-color:#ffffff">' +
@@ -216,19 +260,37 @@ export async function sendNewApplicationEmail(
         '<br/>' +
         '<img alt="" height="200" src="https://resend-attachments.s3.amazonaws.com/9a7b543b-93f0-4cce-8f42-44953ddf8572" style="display:block;outline:none;border:none;text-decoration:none;max-width:100%;height:auto" width="600"/>' +
         '<br/>' +
-        '<p style="margin:0;padding:0">Hi ' + contactName + ',</p>' +
-        '<p style="margin:0;padding:0">Thank you for applying to become a vendor at Collector&#x27;s Paradise!<br/>Your application for ' + businessName + ' has been successfully submitted.</p>' +
+        '<p style="margin:0;padding:0">Hi ' + escapeHtml(input.contactName) + ',</p>' +
+        '<p style="margin:0;padding:0">Thank you for applying to become a vendor at Collector&#x27;s Paradise!<br/>Your application for ' + escapeHtml(input.businessName) + ' has been received and is pending review.</p>' +
+        eventListHtml +
+        '<p style="margin:16px 0 0;padding:0"><strong>Application reference:</strong> ' + escapeHtml(input.reference) + '</p>' +
+        '<p style="margin:10px 0 0;padding:0;color:#555">Your business will not appear in the approved vendor directory unless an event application is approved. Approval and payment information are sent separately.</p>' +
         '<br/>' +
         '<p style="margin:0;padding:0;font-size:12px;color:#888">Collector\'s Paradise — Australia\'s home of trading card events.</p>' +
         '</td></tr></tbody></table>' +
         '</td></tr></tbody></table>',
-    });
+      text: [
+        `Hi ${plainText(input.contactName)},`,
+        '',
+        `Your application for ${plainText(input.businessName)} has been received and is pending review.`,
+        eventListText,
+        `Application reference: ${plainText(input.reference)}`,
+        '',
+        'Your business will not appear in the approved vendor directory unless an event application is approved. Approval and payment information are sent separately.',
+      ].filter(Boolean).join('\n'),
+      }, { idempotencyKey: `${idempotencyKey}-vendor` });
 
-    return { success: true };
-  } catch (error) {
-    console.error('Error sending new application emails:', error);
-    return { success: false, error };
-  }
+      if (error || !data?.id) return { success: false, error: error?.message || 'Email send failed' };
+      return { success: true, id: data.id };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Unknown email error' };
+    }
+  };
+
+  const [admin, vendor] = await Promise.all([sendAdmin(), sendVendor()]);
+  if (!admin.success) console.error('Error sending new application admin email:', admin.error);
+  if (!vendor.success) console.error('Error sending new application vendor email:', vendor.error);
+  return { admin, vendor };
 }
 
 // Email: event-specific vendor approval and invitation

@@ -136,6 +136,12 @@ CREATE TABLE public.vendors (
   description TEXT,
   categories TEXT[] DEFAULT '{}',
   application_status TEXT DEFAULT 'pending' CHECK (application_status IN ('pending', 'approved', 'rejected', 'waitlisted')),
+  application_receipt_status TEXT NOT NULL DEFAULT 'not_sent' CHECK (application_receipt_status IN ('not_sent', 'sending', 'sent', 'failed', 'delivered', 'bounced', 'complained', 'suppressed')),
+  application_receipt_sent_at TIMESTAMPTZ,
+  application_receipt_last_attempt_at TIMESTAMPTZ,
+  application_receipt_attempt_count INTEGER NOT NULL DEFAULT 0 CHECK (application_receipt_attempt_count >= 0),
+  application_receipt_resend_id TEXT UNIQUE,
+  application_receipt_error TEXT,
   booth_assignment TEXT,
   event_id UUID REFERENCES public.events(id) ON DELETE SET NULL,
   applied_at TIMESTAMPTZ DEFAULT NOW()
