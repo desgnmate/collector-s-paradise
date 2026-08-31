@@ -7,8 +7,9 @@ import { usePathname } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import { signOut } from '@/app/actions/auth';
 import logo from '@/public/images/logo.png';
-import { CONTACT_EMAIL } from '@/lib/site';
 import overlayStyles from './NavbarOverlay.module.css';
+
+const NAVIGATION_EMAIL = 'collectorsinparadise@gmail.com';
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -371,7 +372,7 @@ export default function Navbar() {
                 </Link>
 
                 <div className={overlayStyles.contact}>
-                  <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>
+                  <a href={`mailto:${NAVIGATION_EMAIL}`}>{NAVIGATION_EMAIL}</a>
                   <p>Based in Melbourne, serving event communities across Australia</p>
                 </div>
               </div>

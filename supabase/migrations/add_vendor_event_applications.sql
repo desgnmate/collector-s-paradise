@@ -126,25 +126,27 @@ DECLARE
   email_vendor_id UUID;
   resolved_vendor_id UUID;
   resolved_logo_url TEXT;
+  normalized_business_name TEXT;
+  normalized_email TEXT;
   inserted_event_ids UUID[] := ARRAY[]::UUID[];
   created_vendor BOOLEAN := FALSE;
   uploaded_logo_used BOOLEAN := FALSE;
 BEGIN
   IF
-    length(trim(p_business_name)) < 1 OR
-    length(trim(p_contact_name)) < 1 OR
-    p_email !~* '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' OR
-    length(trim(p_location_state)) < 1 OR
-    length(trim(p_description)) < 10 OR
-    cardinality(p_categories) < 1 OR
-    length(trim(p_social_links)) < 1 OR
-    length(trim(p_tables_requested)) < 1 OR
-    length(trim(p_logo_url)) < 1
+    COALESCE(length(btrim(p_business_name)), 0) < 1 OR
+    COALESCE(length(btrim(p_contact_name)), 0) < 1 OR
+    COALESCE(p_email, '') !~* '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$' OR
+    COALESCE(length(btrim(p_location_state)), 0) < 1 OR
+    COALESCE(length(btrim(p_description)), 0) < 10 OR
+    COALESCE(cardinality(p_categories), 0) < 1 OR
+    COALESCE(length(btrim(p_social_links)), 0) < 1 OR
+    COALESCE(length(btrim(p_tables_requested)), 0) < 1 OR
+    COALESCE(length(btrim(p_logo_url)), 0) < 1
   THEN
     RAISE EXCEPTION 'Invalid vendor application.' USING ERRCODE = '22023';
   END IF;
 
-  IF cardinality(p_event_ids) < 1 THEN
+  IF COALESCE(cardinality(p_event_ids), 0) < 1 THEN
     RAISE EXCEPTION 'Select at least one event.' USING ERRCODE = '22023';
   END IF;
 
@@ -165,34 +167,36 @@ BEGIN
     RAISE EXCEPTION 'One or more selected events are unavailable.' USING ERRCODE = '22023';
   END IF;
 
-  SELECT id INTO business_vendor_id
+  normalized_business_name := lower(
+    regexp_replace(btrim(p_business_name), '[[:space:]]+', ' ', 'g')
+  );
+  normalized_email := lower(btrim(p_email));
+
+  -- Serialize submissions for the same canonical identity. This closes the
+  -- race where two differently-cased requests could both create profiles.
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended('vendor-business:' || normalized_business_name, 0)
+  );
+  PERFORM pg_advisory_xact_lock(
+    hashtextextended('vendor-email:' || normalized_email, 0)
+  );
+
+  -- Prefer a row where both identity fields match. Looking up each field
+  -- independently can select different legacy rows and reject a valid repeat
+  -- application even when an exact profile exists.
+  SELECT id INTO resolved_vendor_id
   FROM public.vendors
-  WHERE lower(business_name) = lower(trim(p_business_name))
-  ORDER BY applied_at ASC NULLS LAST
+  WHERE lower(regexp_replace(btrim(business_name), '[[:space:]]+', ' ', 'g')) = normalized_business_name
+    AND lower(btrim(email)) = normalized_email
+  ORDER BY applied_at ASC NULLS LAST, id ASC
   LIMIT 1;
 
-  SELECT id INTO email_vendor_id
-  FROM public.vendors
-  WHERE lower(email) = lower(trim(p_email))
-  ORDER BY applied_at ASC NULLS LAST
-  LIMIT 1;
-
-  IF business_vendor_id IS NOT NULL OR email_vendor_id IS NOT NULL THEN
-    IF
-      business_vendor_id IS NULL OR
-      email_vendor_id IS NULL OR
-      business_vendor_id <> email_vendor_id
-    THEN
-      RAISE EXCEPTION 'Business name and email conflict with an existing vendor profile.'
-        USING ERRCODE = '23505';
-    END IF;
-
-    resolved_vendor_id := business_vendor_id;
+  IF resolved_vendor_id IS NOT NULL THEN
     SELECT logo_url INTO resolved_logo_url
     FROM public.vendors
     WHERE id = resolved_vendor_id;
 
-    IF resolved_logo_url IS NULL OR length(trim(resolved_logo_url)) = 0 THEN
+    IF resolved_logo_url IS NULL OR length(btrim(resolved_logo_url)) = 0 THEN
       UPDATE public.vendors
       SET logo_url = p_logo_url
       WHERE id = resolved_vendor_id;
@@ -200,6 +204,23 @@ BEGIN
       uploaded_logo_used := TRUE;
     END IF;
   ELSE
+    SELECT id INTO business_vendor_id
+    FROM public.vendors
+    WHERE lower(regexp_replace(btrim(business_name), '[[:space:]]+', ' ', 'g')) = normalized_business_name
+    ORDER BY applied_at ASC NULLS LAST, id ASC
+    LIMIT 1;
+
+    SELECT id INTO email_vendor_id
+    FROM public.vendors
+    WHERE lower(btrim(email)) = normalized_email
+    ORDER BY applied_at ASC NULLS LAST, id ASC
+    LIMIT 1;
+
+    IF business_vendor_id IS NOT NULL OR email_vendor_id IS NOT NULL THEN
+      RAISE EXCEPTION 'Business name and email conflict with an existing vendor profile.'
+        USING ERRCODE = '23505';
+    END IF;
+
     resolved_vendor_id := p_vendor_id;
     resolved_logo_url := p_logo_url;
     created_vendor := TRUE;
@@ -223,18 +244,18 @@ BEGIN
       event_id
     ) VALUES (
       resolved_vendor_id,
-      trim(p_business_name),
-      trim(p_contact_name),
-      lower(trim(p_email)),
-      NULLIF(trim(p_phone), ''),
-      trim(p_location_state),
-      trim(p_description),
+      regexp_replace(btrim(p_business_name), '[[:space:]]+', ' ', 'g'),
+      btrim(p_contact_name),
+      normalized_email,
+      NULLIF(btrim(p_phone), ''),
+      btrim(p_location_state),
+      btrim(p_description),
       p_categories,
       p_logo_url,
-      NULLIF(trim(p_social_links), ''),
-      trim(p_tables_requested),
-      NULLIF(trim(p_power_requirements), ''),
-      NULLIF(trim(p_additional_notes), ''),
+      NULLIF(btrim(p_social_links), ''),
+      btrim(p_tables_requested),
+      NULLIF(btrim(p_power_requirements), ''),
+      NULLIF(btrim(p_additional_notes), ''),
       'pending',
       NULL
     );
@@ -252,8 +273,8 @@ BEGIN
       resolved_vendor_id,
       selected_event_id,
       'pending',
-      trim(p_tables_requested),
-      NULLIF(trim(p_power_requirements), '')
+      btrim(p_tables_requested),
+      NULLIF(btrim(p_power_requirements), '')
     FROM unnest(p_event_ids) AS selected_event_id
     ON CONFLICT (vendor_id, event_id) DO NOTHING
     RETURNING event_id
@@ -280,6 +301,11 @@ REVOKE ALL ON FUNCTION public.submit_vendor_with_events(
 GRANT EXECUTE ON FUNCTION public.submit_vendor_with_events(
   UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT[], TEXT, TEXT, TEXT, TEXT, TEXT, UUID[]
 ) TO anon, authenticated;
+
+-- All public submissions now go through the atomic function above. Removing
+-- the legacy direct-insert policy prevents callers from bypassing identity
+-- matching, advisory locking, and vendor/event deduplication.
+DROP POLICY IF EXISTS "Anyone can apply as vendor" ON public.vendors;
 
 COMMENT ON TABLE public.vendor_event_applications IS
   'Independent vendor decisions and event requirements for each selected event.';

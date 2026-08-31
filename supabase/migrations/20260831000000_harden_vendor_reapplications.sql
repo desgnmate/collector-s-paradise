@@ -1,5 +1,6 @@
--- Allow one vendor profile to apply to multiple events without duplicating
--- the vendor record. Safe to run after add_vendor_event_applications.sql.
+-- Harden returning-vendor identity resolution for multi-event applications.
+-- This migration is intentionally timestamped so Supabase CLI deployments do
+-- not depend on the older manually-applied SQL filenames in this repository.
 
 BEGIN;
 

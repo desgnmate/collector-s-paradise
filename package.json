@@ -7,10 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "npm run test:email && npm run test:reports && npm run test:event-promotion",
+    "test": "npm run test:email && npm run test:reports && npm run test:event-promotion && npm run test:vendor-reapplications",
     "test:email": "node --experimental-strip-types --test tests/email-status.test.mjs",
     "test:reports": "node --experimental-strip-types --test tests/reports.test.mjs",
     "test:event-promotion": "node --experimental-strip-types --test tests/event-promotion.test.mjs",
+    "test:vendor-reapplications": "node --test tests/vendor-reapplications.test.mjs",
     "test:sheet": "node tests/google-sheet-migration.test.js"
   },
   "dependencies": {
