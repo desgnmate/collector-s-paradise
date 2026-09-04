@@ -18605,6 +18605,12 @@ html[data-admin-theme="dark"] .modal-footer-primary { background: var(--admin-ye
 }
 
 /* Dashboard cards: remove comic-book shadows and mixed heavy outlines. */
+.admin-stats-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
 .admin-stat-card,
 .admin-dashboard-section,
 .admin-dashboard-section--events .event-card,
@@ -18612,17 +18618,52 @@ html[data-admin-theme="dark"] .modal-footer-primary { background: var(--admin-ye
   border: 1px solid var(--admin-border);
   box-shadow: none;
 }
-.admin-stat-card { min-height: 130px; padding: 18px; border-radius: 13px; }
+.admin-stat-card {
+  min-height: 76px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: 11px;
+}
 .admin-stat-card:hover,
 .admin-dashboard-section--events .event-card:hover,
 .admin-action-card:hover { border-color: var(--admin-border-strong); box-shadow: var(--admin-shadow); transform: translateY(-1px); }
 .admin-stat-card::before { display: none; }
-.admin-stat-icon { border: 0; border-radius: 10px; }
-.admin-stat-label { font-size: 0.68rem; letter-spacing: 0.06em; }
+.admin-stat-icon {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 9px;
+}
+.admin-stat-icon svg { width: 18px; height: 18px; }
+.admin-stat-content { min-width: 0; gap: 2px; }
+.admin-stat-value { font-size: 1.55rem; }
+.admin-stat-label {
+  overflow: hidden;
+  font-size: 0.62rem;
+  letter-spacing: 0.045em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .admin-dashboard-section { border-radius: 14px; }
 .admin-dashboard-section--actions { background: var(--admin-surface-hover); }
 .admin-action-card { min-height: 54px; border-radius: 10px; box-shadow: none; }
 .admin-action-card:hover { background: var(--admin-surface-raised); color: var(--admin-text-primary); }
+
+@media (max-width: 1180px) {
+  .admin-stats-grid {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(150px, 1fr);
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .admin-stat-card { scroll-snap-align: start; }
+}
 
 @media (max-width: 900px) {
   .admin-content { margin-left: 256px; }
