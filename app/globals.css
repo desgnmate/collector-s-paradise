@@ -2354,6 +2354,16 @@ button.login-dropdown-item:hover .login-item-desc {
 .navbar-profile-btn:hover {
   transform: translateY(-2px);
 }
+.returning-vendor-form fieldset {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.returning-vendor-form [aria-label="Application results"] {
+  overflow-wrap: anywhere;
+}
+
 .hero {
   position: relative;
   width: 100vw;
@@ -14546,9 +14556,23 @@ body:has(.navbar[data-menu-open="true"]) .next-event-banner {
   }
 
   .homepage:has(.next-event-banner) .navbar { padding-top: .85rem; }
+  .homepage .hero {
+    /* Center the whole copy/CTA group between the header and card artwork.
+       The old content padding pushed the text down inside a centered box. */
+    min-height: max(85svh, 34rem);
+    padding-top: var(--homepage-nav-height);
+    padding-bottom: clamp(8rem, 22svh, 12rem);
+    justify-content: center;
+  }
+
+  .homepage:has(.next-event-banner) .hero {
+    padding-top: calc(var(--next-event-bar-height) + var(--homepage-nav-height));
+  }
+
+  .homepage .hero .hero-content,
   .homepage:has(.next-event-banner) .hero .hero-content {
-    margin-top: clamp(-1.25rem, -2vh, -.35rem);
-    padding-top: clamp(5rem, 11vh, 6rem);
+    margin: 0 auto;
+    padding-top: 0;
   }
 
   .next-event-banner-inner {
@@ -19723,6 +19747,33 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
   .badges-header .section-subtitle {
     font-size: clamp(0.95rem, 1.4vw, 1.08rem);
     line-height: 1.55;
+  }
+}
+
+/* Mobile calendar: keep the heading centered and leave the compact timeframe
+   switch as the only control visible above the event cards. The view toggle
+   remains available on larger screens and stays mounted for future use. */
+@media (max-width: 767px) {
+  .highlights-calendar-shell .highlights-header {
+    width: calc(100% + 2rem);
+    text-align: center;
+  }
+
+  .highlights-calendar-shell .highlights-header-copy {
+    width: 100%;
+    align-items: center;
+    text-align: center;
+  }
+
+  .highlights-calendar-shell .highlights-header .section-title {
+    width: 100%;
+    margin-inline: auto;
+    text-align: center;
+  }
+
+  .highlights-calendar-shell .view-toggle-container,
+  .events-calendar-shell .view-toggle-container {
+    display: none !important;
   }
 }
 

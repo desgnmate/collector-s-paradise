@@ -201,39 +201,52 @@
 
   .links {
     grid-template-columns: 1fr;
-    row-gap: 1.35rem;
+    row-gap: clamp(1.2rem, 3.5vh, 1.75rem);
   }
 
   .groupLabel {
     margin-bottom: 0.4rem;
     font-size: 0.7rem;
+    text-align: center;
   }
 
   .groupLinks {
-    row-gap: 0;
+    justify-items: center;
+    row-gap: 0.15rem;
   }
 
   .link {
     min-height: 48px;
+    justify-content: center;
+    margin-left: 0;
+    padding-inline: 0;
     font-size: clamp(1.25rem, 6vw, 1.7rem);
+    text-align: center;
   }
+
+  .link:hover,
+  .link:focus-visible { transform: translateY(-2px); }
+
+  .link:active { transform: translateY(1px); }
 
   .footer {
     align-items: stretch;
     grid-template-columns: 1fr;
     gap: 1rem;
-    margin-top: 1.5rem;
+    margin-top: clamp(1.25rem, 4vh, 2rem);
   }
 
   .cta {
     min-height: 48px;
-    justify-self: stretch;
-    width: 100%;
+    justify-self: center;
+    width: min(100%, 280px);
   }
 
   .contact {
+    max-width: 30rem;
+    margin-inline: auto;
     padding-bottom: 0.5rem;
-    text-align: left;
+    text-align: center;
   }
 
   .contact p {

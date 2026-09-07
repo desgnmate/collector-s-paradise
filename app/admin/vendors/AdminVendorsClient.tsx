@@ -780,14 +780,15 @@ export default function AdminVendorsClient() {
                   <div><dt>Categories</dt><dd>{activeApplication.vendor.categories.join(', ') || 'Not provided'}</dd></div>
                   <div><dt>Tables</dt><dd>{activeApplication.tables_requested || 'Not specified'}</dd></div>
                   <div><dt>Power</dt><dd>{activeApplication.power_requirements || 'Not specified'}</dd></div>
+                  <div><dt>Event notes</dt><dd>{activeApplication.additional_notes || 'No event-specific notes.'}</dd></div>
                   <div><dt>Applied</dt><dd>{new Date(activeApplication.applied_at).toLocaleDateString('en-AU')}</dd></div>
                   <div>
                     <dt>Application email</dt>
                     <dd>
-                      <span className={`vendor-invitation-status is-${activeApplication.vendor.application_receipt_status}`}>
-                        {invitationStatusLabels[activeApplication.vendor.application_receipt_status]}
+                      <span className={`vendor-invitation-status is-${activeApplication.receipt_status === 'pending' ? 'not_sent' : activeApplication.receipt_status || activeApplication.vendor.application_receipt_status}`}>
+                        {activeApplication.receipt_status ? `Receipt ${activeApplication.receipt_status}` : invitationStatusLabels[activeApplication.vendor.application_receipt_status]}
                       </span>
-                      {activeApplication.vendor.application_receipt_error && (
+                      {!activeApplication.receipt_status && activeApplication.vendor.application_receipt_error && (
                         <small className="vendor-application-receipt-error">{activeApplication.vendor.application_receipt_error}</small>
                       )}
                       <button

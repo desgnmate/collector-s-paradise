@@ -11,7 +11,8 @@
     "test:email": "node --experimental-strip-types --test tests/email-status.test.mjs",
     "test:reports": "node --experimental-strip-types --test tests/reports.test.mjs",
     "test:event-promotion": "node --experimental-strip-types --test tests/event-promotion.test.mjs",
-    "test:vendor-reapplications": "node --test tests/vendor-reapplications.test.mjs",
+    "test:vendor-reapplications": "node --experimental-strip-types --test tests/vendor-reapplications.test.mjs tests/verified-vendor-reapplications.test.mjs",
+    "test:vendor-browser": "playwright test --config tests/returning-vendor.playwright.config.ts",
     "test:vendor-email-workflow": "node --experimental-strip-types --test tests/public-vendor-directory.test.mjs tests/vendor-invitation-readiness.test.mjs",
     "test:sheet": "node tests/google-sheet-migration.test.js"
   },
@@ -29,6 +30,8 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
+    "@playwright/test": "^1.63.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

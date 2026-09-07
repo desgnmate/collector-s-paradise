@@ -37,6 +37,8 @@ export type VendorEventApplication = {
   application_status: VendorApplicationStatus;
   tables_requested: string | null;
   power_requirements: string | null;
+  additional_notes?: string | null;
+  receipt_status?: string | null;
   booth_assignment: string | null;
   rejection_reason: string | null;
   approved_vendor_fee: number | null;
@@ -120,7 +122,7 @@ async function attachEventApplications(
 
   const { data: applications, error } = await supabase
     .from('vendor_event_applications')
-    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, applied_at, updated_at, events(title, event_date, venue)')
+    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, additional_notes, vendor_application_receipts(status), booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, applied_at, updated_at, events(title, event_date, venue)')
     .in('vendor_id', vendors.map((vendor) => vendor.id))
     .order('applied_at', { ascending: false });
 
@@ -137,6 +139,8 @@ async function attachEventApplications(
   for (const row of applications || []) {
     const eventValue = row.events as unknown as { title: string; event_date: string; venue: string | null } | { title: string; event_date: string; venue: string | null }[] | null;
     const event = Array.isArray(eventValue) ? eventValue[0] : eventValue;
+    const receiptValue = row.vendor_application_receipts as unknown as { status: string } | { status: string }[] | null;
+    const receipt = Array.isArray(receiptValue) ? receiptValue[0] : receiptValue;
     const application: VendorEventApplication = {
       id: row.id,
       vendor_id: row.vendor_id,
@@ -144,6 +148,8 @@ async function attachEventApplications(
       application_status: row.application_status,
       tables_requested: row.tables_requested,
       power_requirements: row.power_requirements,
+      additional_notes: row.additional_notes,
+      receipt_status: receipt?.status || null,
       booth_assignment: row.booth_assignment,
       rejection_reason: row.rejection_reason,
       approved_vendor_fee: row.approved_vendor_fee === null ? null : Number(row.approved_vendor_fee),
@@ -177,9 +183,9 @@ async function attachEventApplications(
 // Validation Schema
 // ============================================
 const vendorApplicationSchema = z.object({
-  business_name: z.string().min(1, 'Business name is required').max(200),
-  contact_name: z.string().min(1, 'Contact name is required').max(200),
-  email: z.string().email('Please enter a valid email address'),
+  business_name: z.string().trim().min(1, 'Business name is required').max(200),
+  contact_name: z.string().trim().min(1, 'Contact name is required').max(200),
+  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
   phone: z.string().optional(),
   location_state: z.string().min(1, 'Please select your state'),
   description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
@@ -579,7 +585,7 @@ export async function submitVendorApplication(
       return { message: 'You have already applied to one or more selected events. Choose a different event or contact support.', fields };
     }
     if (dbError.code === '23505') {
-      return { message: 'These business details conflict with an existing vendor profile. Use the same business name and email, or contact support.', fields };
+      return { message: 'A profile already uses these details. Choose “Use your existing vendor profile” above to verify your email and apply without a new logo. If your email has changed, contact support.', fields };
     }
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }

@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { submitVendorApplication } from '@/app/actions/vendors';
 
 export type VendorApplicationEvent = {
@@ -120,7 +121,10 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
   }
 
   return (
-    <form action={formAction} className="vendor-apply-form">
+    <form action={formAction} onReset={event => event.preventDefault()} className="vendor-apply-form">
+      <div className="vendor-form-alert">
+        <strong>Already applied before?</strong> <Link href="/vendors/returning">Use your existing vendor profile</Link> to apply for more events without re-entering your details or uploading a logo.
+      </div>
       {state.message && !state.success && (
         <div className="vendor-form-alert vendor-form-alert-error">
           {state.message}

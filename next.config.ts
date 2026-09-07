@@ -11,6 +11,8 @@ const supabaseHostname = (() => {
 })();
 
 const nextConfig: NextConfig = {
+  // Browser tests use their own cache so production event data cannot leak into fixtures.
+  distDir: process.env.NEXT_TEST_DIST_DIR || '.next',
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

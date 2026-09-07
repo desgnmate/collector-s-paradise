@@ -38,8 +38,8 @@ export async function proxy(request: NextRequest) {
   // Fast path: public pages don't need Supabase auth.
   // The previous version called getUser() on every request, which
   // added a network round-trip (and cold-start latency) to every
-  // navigation. Auth is only required for /admin and /admin-login.
-  const needsAuth = pathname === '/admin-login' || pathname.startsWith('/admin');
+  // navigation. The returning-vendor page also needs refreshed session cookies.
+  const needsAuth = pathname === '/admin-login' || pathname.startsWith('/admin') || pathname === '/vendors/returning';
 
   let supabaseResponse = NextResponse.next({
     request,
