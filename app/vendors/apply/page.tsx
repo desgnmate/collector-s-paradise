@@ -22,6 +22,12 @@ export const metadata: Metadata = {
     description:
       "Sell your trading cards and collectibles at Collector's Paradise events across Australia.",
     url: "https://www.collectorsparadise.au/vendors/apply",
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Apply to become a Collector's Paradise trading card vendor",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/vendors/apply',
@@ -38,7 +44,7 @@ export default async function VendorApplyPage() {
         <div className="container">
           <div className="vendor-apply-header">
             <span className="eyebrow-badge">VENDOR REGISTRATION</span>
-            <h1 className="section-title">JOIN AS A VENDOR</h1>
+            <h1 className="section-title">TRADING CARD VENDOR APPLICATION</h1>
             <p className="section-subtitle">
               Ready to showcase your collection? Apply to become a vendor at our events
               and connect with hundreds of passionate collectors.

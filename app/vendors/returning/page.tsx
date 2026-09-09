@@ -15,17 +15,25 @@ export default async function ReturningVendorPage({ searchParams }: { searchPara
   let email: string | undefined;
   let profiles: ReturningProfile[] = [];
   let loadError = false;
+  const reference = crypto.randomUUID();
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user?.email_confirmed_at) {
       email = user.email;
       const { data, error } = await supabase.rpc('my_vendor_profiles');
-      if (error?.code === '42501') email = undefined; // Password-only sessions must verify the mailbox.
+      if (error?.code === '42501') {
+        console.warn('vendor_profile_lookup', { reference, code: error.code, stage: 'mailbox_verification_required' });
+        email = undefined;
+      }
       else if (error) throw error;
       else profiles = returningProfilesSchema.parse(data);
     }
-  } catch { loadError = true; }
+  } catch (error) {
+    loadError = true;
+    const code = error && typeof error === 'object' && 'code' in error && typeof error.code === 'string' ? error.code : 'unexpected_response';
+    console.error('vendor_profile_lookup', { reference, stage: 'load', code });
+  }
   const events = email && !loadError ? await getVendorApplicationEvents() : [];
   return (
     <main>
@@ -44,8 +52,8 @@ export default async function ReturningVendorPage({ searchParams }: { searchPara
               <button type="submit" className="btn btn-yellow">Use another email</button>
             </form>}
             {loadError ? <div role="alert" className="vendor-form-alert">
-              We could not load your profiles. <Link href="/vendors/returning">Try again</Link> or <Link href="/reports">contact support</Link>. No applications have been changed.
-            </div> : !email ? <VendorSignInForm /> : profiles.length === 0 ? <div className="vendor-form-alert">
+              We could not load your profiles. <Link href="/vendors/returning">Try again</Link> or <Link href="/reports">contact support</Link>. No applications have been changed. Reference: {reference}
+            </div> : !email ? <VendorSignInForm codeEnabled={process.env.VENDOR_EMAIL_CODE_ENABLED === 'true'} /> : profiles.length === 0 ? <div className="vendor-form-alert">
               No vendor profile is linked to this verified email. Try the email used for your original application, <Link href="/reports">ask support to update it</Link>, or <Link href="/vendors/apply">register a new business</Link>.
             </div> : <ReturningVendorForm profiles={profiles} events={events} />}
             <p className="vendor-form-disclaimer">Changed your email or business details? <Link href="/reports">Contact support</Link> so we can update your existing profile without losing its history.</p>

@@ -9,6 +9,12 @@ export const metadata: Metadata = {
     title: "Terms & Conditions | Collector's Paradise",
     description: "Terms and Conditions governing your use of the Collector's Paradise website and services.",
     url: "https://www.collectorsparadise.au/terms",
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Collector's Paradise terms and conditions",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/terms',

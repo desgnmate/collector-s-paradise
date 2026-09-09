@@ -743,16 +743,23 @@ async function fetchApprovedVendors(
   const validatedEventId = eventId ? z.string().uuid().safeParse(eventId) : null;
   if (eventId && !validatedEventId?.success) return { vendors: [], totalCount: 0 };
 
-  const { data, error } = await supabase.rpc('get_public_vendor_directory', {
+  // Public pages should remain usable when Supabase has a transient network
+  // stall. Bound the RPC so a slow database cannot hold the whole page open.
+  const directoryRequest = supabase.rpc('get_public_vendor_directory', {
     p_event_id: eventId || null,
     p_unassigned_only: eventId ? false : unassignedOnly,
     p_offset: (safePage - 1) * safePerPage,
     p_limit: safePerPage,
   });
+  const timeout = new Promise<{ data: null; error: { code: string; message: string } }>((resolve) =>
+    setTimeout(() => resolve({ data: null, error: { code: 'PUBLIC_DIRECTORY_TIMEOUT', message: 'Vendor directory request timed out' } }), 8000),
+  );
+  const { data, error } = await Promise.race([directoryRequest, timeout]);
 
   if (error) {
     if (error.code !== 'PGRST202') {
-      console.error('Error fetching public vendor directory:', JSON.stringify(error, null, 2));
+      const log = error.code === 'PUBLIC_DIRECTORY_TIMEOUT' ? console.warn : console.error;
+      log('Error fetching public vendor directory:', JSON.stringify(error, null, 2));
       return { vendors: [], totalCount: 0 };
     }
 

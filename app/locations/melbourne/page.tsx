@@ -7,6 +7,7 @@ import ResourcePageNav from '@/components/ResourcePageNav';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
+import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import LocationEventCard, { NoLocationEvents } from '../LocationEventCard';
 import { getLocationEvents } from '../location-data';
 import styles from '../locations.module.css';
@@ -53,6 +54,10 @@ export default async function MelbourneLocationPage() {
   return (
     <main className={`${styles.page} ${styles.melbourne}`}>
       <Navbar />
+      <Breadcrumbs
+        className={styles.breadcrumbs}
+        items={[{ label: 'Home', href: '/' }, { label: 'Melbourne card shows' }]}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageSchema) }} />
 
       <EditorialPageHero
@@ -109,6 +114,7 @@ export default async function MelbourneLocationPage() {
             <p>Explore the Gold Coast and Canberra show guides.</p>
           </div>
           <div className={styles.heroActions}>
+            <Link href="/locations/epping" className={styles.outlineButton}>Epping</Link>
             <Link href="/locations/gold-coast" className={styles.darkButton}>Gold Coast</Link>
             <Link href="/locations/canberra" className={styles.outlineButton}>Canberra</Link>
           </div>

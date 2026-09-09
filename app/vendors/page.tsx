@@ -35,6 +35,12 @@ export const metadata: Metadata = {
     description:
       "Discover approved Australian trading card vendors — rare Pokémon, Yu-Gi-Oh!, One Piece, sports cards, and graded cards.",
     url: "https://www.collectorsparadise.au/vendors",
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Approved trading card vendors at Collector's Paradise",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/vendors',

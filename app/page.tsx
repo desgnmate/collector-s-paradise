@@ -24,6 +24,14 @@ export const metadata: Metadata = {
     title: "Australia's TCG & Trading Card Events | Collector's Paradise",
     description: homepageDescription,
     url: "https://www.collectorsparadise.au",
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: "Collector's Paradise - Australian Pokémon TCG and trading card events",
+      },
+    ],
   },
 };
 

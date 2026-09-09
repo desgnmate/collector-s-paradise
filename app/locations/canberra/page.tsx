@@ -7,6 +7,7 @@ import ResourcePageNav from '@/components/ResourcePageNav';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
+import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import LocationEventCard, { NoLocationEvents } from '../LocationEventCard';
 import { getLocationEvents } from '../location-data';
 import styles from '../locations.module.css';
@@ -50,10 +51,14 @@ export default async function CanberraLocationPage() {
   return (
     <main className={`${styles.page} ${styles.canberra}`}>
       <Navbar />
+      <Breadcrumbs
+        className={styles.breadcrumbs}
+        items={[{ label: 'Home', href: '/' }, { label: 'Canberra card shows' }]}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageSchema) }} />
 
       <EditorialPageHero
-        title="Cards in the capital"
+        title="Canberra card shows"
         description="A clear, practical briefing for Collector's Paradise shows in Canberra: what is scheduled, where to verify details, and how to prepare for a day of collecting."
       />
 

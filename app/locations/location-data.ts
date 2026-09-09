@@ -1,10 +1,11 @@
 import type { Event } from '@/app/actions/events';
 import { getEventMarketDate } from '@/lib/event-date';
 
-export type LocationKey = 'melbourne' | 'gold-coast' | 'canberra';
+export type LocationKey = 'melbourne' | 'epping' | 'gold-coast' | 'canberra';
 
 const locationTerms: Record<LocationKey, string[]> = {
   melbourne: ['melbourne', 'vic', 'victoria', 'oakleigh', 'epping'],
+  epping: ['epping'],
   'gold-coast': ['gold coast', 'nerang', 'ashmore', 'qld', 'queensland'],
   canberra: ['canberra', 'act', 'australian capital territory'],
 };

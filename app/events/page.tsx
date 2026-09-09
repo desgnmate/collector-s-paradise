@@ -2,7 +2,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EventsPageClient from '@/components/events/EventsPageClient';
 import { getEvents } from '@/app/actions/events';
-import { EventSchema } from '@/components/StructuredData';
+import { EventSchema, EventSeriesSchema } from '@/components/StructuredData';
 import type { Metadata } from 'next';
 import { getEventMarketDate } from '@/lib/event-date';
 import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
@@ -26,6 +26,12 @@ export const metadata: Metadata = {
     description:
       "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events across Australia. Buy tickets and meet vendors.",
     url: absoluteUrl('/events'),
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Collector's Paradise Australian trading card events",
+    }],
   },
   alternates: {
     canonical: absoluteUrl('/events'),
@@ -50,6 +56,7 @@ export default async function EventsPage() {
     <main>
       <Navbar />
       {/* Structured data for each event — invisible to users, consumed by search engines */}
+      <EventSeriesSchema />
       {/* Structured data for each upcoming event — consumed by search engines */}
       {upcomingEvents.map(event => {
           const address = parseAustralianEventAddress(event.venue_address);

@@ -31,7 +31,10 @@ const EventsPageClient = ({ upcomingEvents, pastEvents }: EventsPageClientProps)
         {!isCalendarDateSelected && (
           <div className="events-page-header">
             <span className="eyebrow-badge">EVENTS &amp; EXPERIENCES</span>
-            <h1 className="section-title">COLLECTOR&apos;S CALENDAR</h1>
+            <h1 className="section-title events-page-title">
+              <span>UPCOMING TRADING CARD</span>{' '}
+              <span>EVENTS IN AUSTRALIA</span>
+            </h1>
             <p className="section-subtitle">
               Find your next collector meet-up, plan the day and relive the events that brought the community together.
             </p>

@@ -9,6 +9,12 @@ export const metadata: Metadata = {
     title: "Privacy Policy | Collector's Paradise",
     description: "How Collector's Paradise collects, uses, and protects your personal information.",
     url: "https://www.collectorsparadise.au/privacy",
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Collector's Paradise privacy policy",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/privacy',

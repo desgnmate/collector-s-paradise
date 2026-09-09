@@ -7,6 +7,7 @@ import ResourcePageNav from '@/components/ResourcePageNav';
 import { getEvents } from '@/app/actions/events';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
+import Breadcrumbs from '@/components/seo/Breadcrumbs';
 import LocationEventCard, { NoLocationEvents } from '../LocationEventCard';
 import { getLocationEvents } from '../location-data';
 import styles from '../locations.module.css';
@@ -50,10 +51,14 @@ export default async function GoldCoastLocationPage() {
   return (
     <main className={`${styles.page} ${styles.gold}`}>
       <Navbar />
+      <Breadcrumbs
+        className={styles.breadcrumbs}
+        items={[{ label: 'Home', href: '/' }, { label: 'Gold Coast card shows' }]}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(pageSchema) }} />
 
       <EditorialPageHero
-        title="Gold Coast collector days"
+        title="Gold Coast card shows"
         description="Big hobby energy, one room, and plenty to discover. Find upcoming Gold Coast-area events, then open the show page for the final venue, entry, and booking information."
       />
 

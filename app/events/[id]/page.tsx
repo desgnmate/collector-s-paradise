@@ -11,6 +11,7 @@ import type { Metadata } from 'next';
 import { getEventMarketDate } from '@/lib/event-date';
 import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
 import { absoluteUrl } from '@/lib/site';
+import Breadcrumbs from '@/components/seo/Breadcrumbs';
 export const revalidate = 3600;
 
 const EVENT_COVER_FALLBACK = '/images/event-experience.jpg';
@@ -52,6 +53,22 @@ function getEventCoverImage(event: EventCoverInput) {
   return locationCover?.src ?? event.cover_image_url ?? EVENT_COVER_FALLBACK;
 }
 
+function buildEventMetaDescription(
+  event: Pick<EventCoverInput, 'title' | 'venue'> & { description?: string | null },
+  dateStr: string,
+  locationLabel: string,
+) {
+  const lead = `${event.title} is a trading card event in ${locationLabel}${event.venue ? ` at ${event.venue}` : ''} on ${dateStr}.`;
+  const details = event.description?.trim();
+  const action = 'Check event details for tickets, vendors, trading and visitor information.';
+  const description = [lead, details, action].filter(Boolean).join(' ');
+
+  // Keep snippets focused while preserving complete words for search previews.
+  if (description.length <= 160) return description;
+  const shortened = description.slice(0, 157).replace(/\s+\S*$/, '');
+  return `${shortened}…`;
+}
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -72,6 +89,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const { locality, region } = parseAustralianEventAddress(event.venue_address);
   const locationLabel = locality || 'Australia';
+  const eventDescription = buildEventMetaDescription(event, dateStr, locationLabel);
   const eventCoverImage = getEventCoverImage(event);
   const eventImage = eventCoverImage.startsWith('/')
     ? absoluteUrl(eventCoverImage)
@@ -80,9 +98,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${event.title} — ${dateStr} | ${locationLabel} Trading Card Event`,
-    description:
-      event.description ||
-      `Join ${event.title} on ${dateStr} at ${event.venue || 'our venue'}. Buy tickets, meet vendors, trade Pokémon TCG, Yu-Gi-Oh!, One Piece and more.`,
+    description: eventDescription,
     keywords: [
       event.title,
       `${event.title} ${locality || 'Australia'}`,
@@ -92,9 +108,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ],
     openGraph: {
       title: `${event.title} | ${locationLabel} Trading Card Event`,
-      description:
-        event.description ||
-        `${event.title} — ${dateStr} at ${event.venue || 'our venue'}. Buy tickets now.`,
+      description: eventDescription,
       url: absoluteUrl(`/events/${id}`),
       type: 'website',
       locale: 'en_AU',
@@ -110,7 +124,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     twitter: {
       card: 'summary_large_image',
       title: `${event.title} — ${dateStr}`,
-      description: event.description || `Trading card event in ${locationLabel} on ${dateStr}.`,
+      description: eventDescription,
       ...(eventImage ? {
         images: [eventImage],
       } : {}),
@@ -196,6 +210,10 @@ export default async function EventDetailPage({ params }: Props) {
 
       <section className="edp-main">
         <div className="container">
+          <Breadcrumbs
+            className="edp-breadcrumbs"
+            items={[{ label: 'Home', href: '/' }, { label: 'Events', href: '/events' }, { label: event.title }]}
+          />
           <Link href="/events" className="edp-back-link-light" prefetch>
             <span aria-hidden="true">←</span>
             All events

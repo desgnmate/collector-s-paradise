@@ -2,14 +2,15 @@
 
 import { useActionState, useState } from 'react';
 import Link from 'next/link';
-import { requestVendorSignIn, submitReturningVendor } from '@/app/actions/returning-vendors';
+import { requestVendorSignIn, submitReturningVendor, verifyVendorEmailCode } from '@/app/actions/returning-vendors';
 import { applicationStatusText, type ReturningProfile } from '@/lib/returning-vendors';
 import type { VendorApplicationEvent } from '@/components/VendorApplicationForm';
 
-export function VendorSignInForm() {
+export function VendorSignInForm({ codeEnabled = false }: { codeEnabled?: boolean }) {
   const [state, action, pending] = useActionState(requestVendorSignIn, { message: '' });
+  const [codeState, codeAction, verifying] = useActionState(verifyVendorEmailCode, { message: '' });
   const [email, setEmail] = useState('');
-  return <form action={action} onReset={event => event.preventDefault()} className="vendor-apply-form returning-vendor-form">
+  return <><form action={action} onReset={event => event.preventDefault()} className="vendor-apply-form returning-vendor-form">
     <h2>Find your existing profile</h2>
     <p>Enter the email used on your original application. We will send a secure sign-in link; no password is needed.</p>
     <div className="vendor-form-group">
@@ -19,7 +20,21 @@ export function VendorSignInForm() {
     <p role="status" aria-live="polite">{state.message}</p>
     <button className="btn btn-yellow" disabled={pending}>{pending ? 'Sending…' : 'Email me a sign-in link'}</button>
     <Link href="/vendors/apply">First time applying? Register a new business</Link>
-  </form>;
+  </form>
+  {codeEnabled && <form action={codeAction} onReset={event => event.preventDefault()} className="vendor-apply-form returning-vendor-form">
+    <h2>Have an email code?</h2>
+    <p>Enter it here to continue, even if you read the email on another device.</p>
+    <div className="vendor-form-group">
+      <label htmlFor="code-email">Email used to request the code</label>
+      <input id="code-email" name="email" type="email" required autoComplete="email" value={email} onChange={event => setEmail(event.target.value)} />
+    </div>
+    <div className="vendor-form-group">
+      <label htmlFor="vendor-email-code">Email verification code</label>
+      <input id="vendor-email-code" name="token" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,8}" minLength={6} maxLength={8} required />
+    </div>
+    <p role="status" aria-live="polite">{codeState.message}</p>
+    <button className="btn btn-yellow" disabled={verifying}>{verifying ? 'Verifying…' : 'Verify email code'}</button>
+  </form>}</>;
 }
 
 export default function ReturningVendorForm({ profiles, events }: { profiles: ReturningProfile[]; events: VendorApplicationEvent[] }) {

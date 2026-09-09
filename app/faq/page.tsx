@@ -21,6 +21,12 @@ export const metadata: Metadata = {
     description:
       "Everything you need to know about Collector's Paradise trading card events — tickets, vendors, venues, and community.",
     url: 'https://www.collectorsparadise.au/faq',
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Collector's Paradise frequently asked questions",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/faq',
@@ -39,7 +45,7 @@ export default function FAQPage() {
           <div className="container">
             <div className="vendors-page-header">
               <span className="eyebrow-badge">HELP CENTRE</span>
-              <h1 className="section-title">Frequently Asked Questions</h1>
+              <h1 className="section-title">Collector&apos;s Paradise FAQ</h1>
               <p className="section-subtitle">
                 Everything you need to know about Collector&apos;s Paradise events, tickets, and the community.
               </p>

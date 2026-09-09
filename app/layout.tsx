@@ -2,10 +2,7 @@ import type { Metadata } from "next";
 import { Montserrat, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import ClientRuntime from "@/components/ClientRuntime";
-import {
-  OrganizationSchema,
-  EventSeriesSchema,
-} from "@/components/StructuredData";
+import { OrganizationSchema } from "@/components/StructuredData";
 import { SITE_URL } from "@/lib/site";
 
 const montserrat = Montserrat({
@@ -133,7 +130,6 @@ export default function RootLayout({
       </head>
       <body>
         <OrganizationSchema />
-        <EventSeriesSchema />
         <ClientRuntime>
           {children}
         </ClientRuntime>

@@ -35,129 +35,115 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const ogImage = `${baseUrl}/og-image.jpg`;
   const logoImage = `${baseUrl}/images/logo.png`;
 
-  // Static pages — use a fixed date to avoid false freshness signals.
-  const staticLastMod = new Date('2025-06-14');
-  const newContentLastMod = new Date('2026-08-10');
+  // Static pages do not have a reliable content publication timestamp. Omit
+  // lastModified rather than publishing stale or synthetic freshness signals.
   const staticPages: MetadataRoute.Sitemap = [
     {
       url: baseUrl,
-      lastModified: staticLastMod,
       changeFrequency: 'weekly',
       priority: 1,
       images: [ogImage],
     },
     {
       url: `${baseUrl}/about`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.8,
       images: [logoImage],
     },
     {
       url: `${baseUrl}/events`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.9,
       images: [ogImage],
     },
     {
       url: `${baseUrl}/faq`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/reports`,
-      lastModified: newContentLastMod,
       changeFrequency: 'yearly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/vendors`,
-      lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: 0.7,
     },
     {
       url: `${baseUrl}/vendors/apply`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${baseUrl}/sponsorship`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.6,
     },
     {
       url: `${baseUrl}/sponsors/apply`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/volunteers`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/volunteers/apply`,
-      lastModified: staticLastMod,
       changeFrequency: 'monthly',
       priority: 0.5,
     },
     {
       url: `${baseUrl}/privacy`,
-      lastModified: staticLastMod,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/terms`,
-      lastModified: staticLastMod,
       changeFrequency: 'yearly',
       priority: 0.3,
     },
     {
       url: `${baseUrl}/locations/melbourne`,
-      lastModified: newContentLastMod,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      images: [`${baseUrl}/images/buy-sell-trade.jpeg`],
+    },
+    {
+      url: `${baseUrl}/locations/epping`,
       changeFrequency: 'weekly',
       priority: 0.8,
       images: [`${baseUrl}/images/buy-sell-trade.jpeg`],
     },
     {
       url: `${baseUrl}/locations/gold-coast`,
-      lastModified: newContentLastMod,
       changeFrequency: 'weekly',
       priority: 0.8,
       images: [`${baseUrl}/images/event-experience.jpg`],
     },
     {
       url: `${baseUrl}/locations/canberra`,
-      lastModified: newContentLastMod,
       changeFrequency: 'weekly',
       priority: 0.8,
       images: [`${baseUrl}/images/3rd-section-new.jpg`],
     },
     {
       url: `${baseUrl}/guides/first-trading-card-show`,
-      lastModified: newContentLastMod,
       changeFrequency: 'monthly',
       priority: 0.75,
       images: [`${baseUrl}/images/meet-fans.png`],
     },
     {
       url: `${baseUrl}/vendors/booth-information`,
-      lastModified: newContentLastMod,
       changeFrequency: 'weekly',
       priority: 0.7,
       images: [`${baseUrl}/images/team-vendors-1.png`],
     },
     {
       url: `${baseUrl}/accessibility`,
-      lastModified: newContentLastMod,
       changeFrequency: 'yearly',
       priority: 0.5,
     },

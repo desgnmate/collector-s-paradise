@@ -149,6 +149,12 @@ async function loadSponsors(supabase: SupabaseAdminClient): Promise<Sponsor[]> {
     .select(ADMIN_SPONSOR_COLUMNS)
     .order('applied_at', { ascending: false });
 
+  // Some production projects do not have the optional sponsors table yet.
+  // Keep the rest of the admin dashboard usable until that migration is run.
+  if (error?.code === 'PGRST205' || /table ['"]?public\.sponsors['"]? .*schema cache/i.test(error?.message || '')) {
+    console.warn('Sponsors table is not available; showing an empty sponsor list.');
+    return [];
+  }
   if (error) throw error;
   return (data || []) as Sponsor[];
 }

@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { redirect } from 'next/navigation';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { sendNewApplicationEmail } from '@/lib/email';
 import { SITE_URL } from '@/lib/site';
@@ -42,6 +43,30 @@ export async function requestVendorSignIn(_previous: { message: string }, formDa
 export async function signOutReturningVendor() {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut({ scope: 'local' });
+}
+
+export async function verifyVendorEmailCode(_previous: { message: string }, formData: FormData) {
+  // Enable only after the authentication email template and database proof
+  // checks have been verified together in the target environment.
+  if (process.env.VENDOR_EMAIL_CODE_ENABLED !== 'true') return { message: 'Please use the sign-in link in your email.' };
+  const input = z.object({
+    email: z.string().trim().toLowerCase().email().max(254),
+    token: z.string().trim().regex(/^\d{6,8}$/),
+  }).safeParse({ email: formData.get('email'), token: formData.get('token') });
+  if (!input.success) return { message: 'Enter your email address and the 6–8 digit code from your email.' };
+  const reference = crypto.randomUUID();
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.verifyOtp({ ...input.data, type: 'email' });
+    if (error) {
+      console.error('vendor_code_verification', { reference, code: error.code, status: error.status });
+      return { message: `The code is invalid or expired. Use the latest email or request a new one. Reference: ${reference}` };
+    }
+  } catch {
+    console.error('vendor_code_verification', { reference, code: 'connection_failure' });
+    return { message: `Verification could not be completed. Please try again. Reference: ${reference}` };
+  }
+  redirect('/vendors/returning');
 }
 
 const receiptSchema = z.object({

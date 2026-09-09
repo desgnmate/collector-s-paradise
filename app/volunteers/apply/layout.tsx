@@ -15,6 +15,12 @@ export const metadata: Metadata = {
     description:
       'Join our volunteer team at Collector\'s Paradise trading card events. Help with setup, registration, floor guides, and breakdown.',
     url: 'https://www.collectorsparadise.au/volunteers/apply',
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Volunteer at Collector's Paradise trading card events",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/volunteers/apply',

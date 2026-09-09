@@ -20,6 +20,12 @@ export const metadata: Metadata = {
     description:
       "Meet the team behind Collector's Paradise trading card events and the collector community we are building across Australia.",
     url: "https://www.collectorsparadise.au/about",
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: "Collector's Paradise Australian trading card community",
+    }],
   },
   alternates: {
     canonical: 'https://www.collectorsparadise.au/about',

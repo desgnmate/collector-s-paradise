@@ -57,6 +57,7 @@ export default function Footer() {
               <span>Find a show</span>
               <div className="footer-resource-links">
                 <Link href="/locations/melbourne">Melbourne</Link>
+                <Link href="/locations/epping">Epping</Link>
                 <Link href="/locations/gold-coast">Gold Coast</Link>
                 <Link href="/locations/canberra">Canberra</Link>
               </div>
