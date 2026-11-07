@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy',
+  title: "Privacy Policy | Collector's Paradise",
   description: 'Read our Privacy Policy to understand how Collector\'s Paradise collects, uses, and protects your personal information.',
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Privacy Policy | Collector's Paradise",
     description: "How Collector's Paradise collects, uses, and protects your personal information.",
     url: "https://www.collectorsparadise.au/privacy",

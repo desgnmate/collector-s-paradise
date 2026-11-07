@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import { Suspense } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
@@ -21,6 +22,7 @@ export const metadata: Metadata = {
     canonical: "https://www.collectorsparadise.au",
   },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Australia's TCG & Trading Card Events | Collector's Paradise",
     description: homepageDescription,
     url: "https://www.collectorsparadise.au",

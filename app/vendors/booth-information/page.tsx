@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
     "Learn how Collector's Paradise vendor applications work, what to prepare, which shows are accepting applications, and which booth details are confirmed per event.",
   alternates: { canonical: absoluteUrl('/vendors/booth-information') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Vendor Booth Information | Collector's Paradise",
     description: 'Prepare a clear vendor application for upcoming Australian trading card and collectibles events.',
     url: absoluteUrl('/vendors/booth-information'),

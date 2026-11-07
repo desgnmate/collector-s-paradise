@@ -8,7 +8,7 @@ import { returningProfilesSchema, type ReturningProfile } from '@/lib/returning-
 import { signOutReturningVendor } from '@/app/actions/returning-vendors';
 
 export const dynamic = 'force-dynamic';
-export const metadata = { title: 'Apply with an existing vendor profile', robots: { index: false, follow: false } };
+export const metadata = { title: "Apply with an existing vendor profile | Collector's Paradise", robots: { index: false, follow: false } };
 
 export default async function ReturningVendorPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const params = await searchParams;

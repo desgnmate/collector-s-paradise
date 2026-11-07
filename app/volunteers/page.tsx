@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     'community events Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Volunteer With Us | Collector's Paradise",
     description:
       "Help run Collector's Paradise trading card events. Roles include setup, registration, floor guiding, and breakdown.",

@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientRuntime from "@/components/ClientRuntime";
 import { OrganizationSchema } from "@/components/StructuredData";
 import { SITE_URL } from "@/lib/site";
+import { DEFAULT_OG_IMAGE, OPEN_GRAPH_DEFAULTS } from "@/lib/seo/metadata";
 
 const montserrat = Montserrat({
   subsets: ["latin"],
@@ -76,42 +77,30 @@ export const metadata: Metadata = {
   category: "Events",
   classification: "Trading Card & Collectibles Events",
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Australia's TCG & Trading Card Events | Collector's Paradise",
-    type: "website",
-    siteName: "Collector's Paradise",
-    locale: "en_AU",
     url: SITE_URL,
     countryName: "Australia",
     description: siteDescription,
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: "Collector's Paradise - Australian Pokémon TCG and trading card events",
-      },
-    ],
+    images: [DEFAULT_OG_IMAGE],
   },
+  // Only the card type is set here. Pages inherit twitter:title/description/
+  // image from their own Open Graph values; an explicit title here would make
+  // every page share the homepage's Twitter/X card.
   twitter: {
     card: "summary_large_image",
-    title: "Australia's TCG & Trading Card Events | Collector's Paradise",
-    description: siteDescription,
-    images: ['/og-image.jpg'],
   },
+  // Indexable by default. Index/follow are deliberately not set site-wide so
+  // they never conflict with the `noindex` Next.js adds to 404 responses or
+  // that individual pages opt into.
   robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
+    "max-video-preview": -1,
+    "max-image-preview": "large",
+    "max-snippet": -1,
   },
-  alternates: {
-    canonical: SITE_URL,
-  },
+  // No site-wide canonical: an inherited canonical would point every page that
+  // forgets to set its own (404s, noindex pages) at the homepage. Each
+  // indexable page declares its own canonical URL.
   verification: {
     google: "googleee7ef25e2b145100",
   },
@@ -124,10 +113,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en-AU" dir="ltr" className={`${montserrat.variable} ${inter.variable} ${poppins.variable}`}>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-      </head>
       <body>
         <OrganizationSchema />
         <ClientRuntime>

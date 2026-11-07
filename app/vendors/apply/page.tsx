@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
@@ -18,6 +19,7 @@ export const metadata: Metadata = {
     'trading card booth rental Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Apply as Vendor | Collector's Paradise",
     description:
       "Sell your trading cards and collectibles at Collector's Paradise events across Australia.",

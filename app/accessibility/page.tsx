@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
 import EditorialPageHero from '@/components/EditorialPageHero';
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     "Read Collector's Paradise accessibility approach, plan venue-specific access questions, and report a website or event information barrier.",
   alternates: { canonical: absoluteUrl('/accessibility') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Accessibility | Collector's Paradise",
     description: 'Plan access questions for an event or tell us about an online information barrier.',
     url: absoluteUrl('/accessibility'),

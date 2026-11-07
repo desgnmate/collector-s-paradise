@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     "Find Collector's Paradise trading card and collectibles shows across Melbourne. See upcoming dates, venues, visitor guidance, and ticket links.",
   alternates: { canonical: absoluteUrl('/locations/melbourne') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Melbourne Trading Card Shows | Collector's Paradise",
     description: 'Plan your next Pokémon TCG, sports card, and collectibles show in Melbourne.',
     url: absoluteUrl('/locations/melbourne'),

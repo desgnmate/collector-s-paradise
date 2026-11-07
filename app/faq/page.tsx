@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { FAQ_DATA, FAQSchema } from '@/components/StructuredData';
@@ -17,6 +18,7 @@ export const metadata: Metadata = {
     'Australian card show FAQ',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "FAQ | Collector's Paradise",
     description:
       "Everything you need to know about Collector's Paradise trading card events — tickets, vendors, venues, and community.",

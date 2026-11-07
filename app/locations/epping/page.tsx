@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     "Find upcoming Collector's Paradise trading card shows in Epping and Melbourne's north. Check event dates, venues, visitor details, and tickets.",
   alternates: { canonical: absoluteUrl('/locations/epping') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Epping Card Shows | Collector's Paradise",
     description: "Plan your next Pokémon TCG, sports card, and collectibles show in Epping.",
     url: absoluteUrl('/locations/epping'),

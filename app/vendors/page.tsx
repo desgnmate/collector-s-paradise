@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Image from 'next/image';
@@ -31,6 +32,7 @@ export const metadata: Metadata = {
     'graded cards Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Approved Trading Card Vendors | Collector's Paradise",
     description:
       "Discover approved Australian trading card vendors — rare Pokémon, Yu-Gi-Oh!, One Piece, sports cards, and graded cards.",

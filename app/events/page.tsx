@@ -4,6 +4,7 @@ import EventsPageClient from '@/components/events/EventsPageClient';
 import { getEvents } from '@/app/actions/events';
 import { EventSchema, EventSeriesSchema } from '@/components/StructuredData';
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import { getEventMarketDate } from '@/lib/event-date';
 import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
 import { absoluteUrl } from '@/lib/site';
@@ -22,6 +23,7 @@ export const metadata: Metadata = {
     'past Pokemon events Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Australian Trading Card Events | Collector's Paradise",
     description:
       "Upcoming and past Pokémon TCG, Yu-Gi-Oh!, One Piece, and sports card events across Australia. Buy tickets and meet vendors.",

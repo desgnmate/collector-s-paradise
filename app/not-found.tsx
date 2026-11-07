@@ -1,5 +1,18 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
+import { DEFAULT_OG_IMAGE, OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
+export const metadata: Metadata = {
+  title: "Page Not Found | Collector's Paradise",
+  description: "This page could not be found. Browse upcoming Collector's Paradise trading card events across Australia.",
+  robots: { index: false, follow: true },
+  openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
+    title: "Page Not Found | Collector's Paradise",
+    images: [DEFAULT_OG_IMAGE],
+  },
+};
+
 export default function NotFound() {
   return (
     <main>

@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export const metadata: Metadata = {
-  title: 'Terms & Conditions',
+  title: "Terms & Conditions | Collector's Paradise",
   description: 'Read the Terms and Conditions governing your use of the Collector\'s Paradise website and services.',
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Terms & Conditions | Collector's Paradise",
     description: "Terms and Conditions governing your use of the Collector's Paradise website and services.",
     url: "https://www.collectorsparadise.au/terms",

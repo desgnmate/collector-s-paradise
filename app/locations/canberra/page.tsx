@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     "Plan a Collector's Paradise trading card and collectibles show in Canberra. Find upcoming ACT dates, confirmed venues, visitor guidance, and tickets.",
   alternates: { canonical: absoluteUrl('/locations/canberra') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Canberra Trading Card Shows | Collector's Paradise",
     description: 'Your briefing for upcoming Pokémon TCG, sports card, and collectibles events in Canberra.',
     url: absoluteUrl('/locations/canberra'),

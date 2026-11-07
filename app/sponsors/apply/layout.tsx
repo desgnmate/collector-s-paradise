@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = {
   title: "Apply for Sponsorship | Collector's Paradise",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     'card show sponsorship Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Apply for Sponsorship | Collector's Paradise",
     description:
       'Partner with Collector\'s Paradise trading card events. Platinum, Gold, Silver, and custom packages available.',

@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import Link from 'next/link';
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
     'youth market sponsorship Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Event Sponsorship | Collector's Paradise",
     description:
       "Reach Australian collectors at Collector's Paradise trading card events with tailored sponsorship packages.",

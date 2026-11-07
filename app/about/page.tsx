@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AboutHero from '@/components/about/AboutHero';
@@ -16,6 +17,7 @@ export const metadata: Metadata = {
     'collector events Victoria',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "About Collector's Paradise | Australian Trading Card Events",
     description:
       "Meet the team behind Collector's Paradise trading card events and the collector community we are building across Australia.",

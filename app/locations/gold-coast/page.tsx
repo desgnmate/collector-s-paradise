@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -20,6 +21,7 @@ export const metadata: Metadata = {
     "Find Collector's Paradise trading card and collectibles shows on the Gold Coast. Check upcoming Nerang and Gold Coast dates, venues, and tickets.",
   alternates: { canonical: absoluteUrl('/locations/gold-coast') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Gold Coast Trading Card Shows | Collector's Paradise",
     description: 'Upcoming Pokémon TCG, sports card, and collectibles events on the Gold Coast.',
     url: absoluteUrl('/locations/gold-coast'),

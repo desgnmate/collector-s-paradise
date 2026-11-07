@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
     'Going to your first trading card show? Learn what to bring, how buying and trading works, show etiquette, access planning, and what to do on the day.',
   alternates: { canonical: absoluteUrl('/guides/first-trading-card-show') },
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Your First Trading Card Show: A Practical Guide",
     description: 'A clear first-timer guide to browsing, buying, selling, and trading at an Australian card show.',
     url: absoluteUrl('/guides/first-trading-card-show'),

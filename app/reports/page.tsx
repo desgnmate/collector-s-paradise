@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { DEFAULT_OG_IMAGE, OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import ReportIssueForm from './ReportIssueForm';
 import styles from './reports.module.css';
@@ -7,6 +8,13 @@ export const metadata: Metadata = {
   title: "Report an Issue | Collector's Paradise",
   description: "File a support ticket for a website, booking, vendor, accessibility, payment, or event-information issue.",
   alternates: { canonical: '/reports' },
+  openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
+    title: "Report an Issue | Collector's Paradise",
+    description: "File a support ticket for a website, booking, vendor, accessibility, payment, or event-information issue.",
+    url: '/reports',
+    images: [DEFAULT_OG_IMAGE],
+  },
 };
 
 export default async function ReportsPage({

@@ -8,6 +8,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import { getEventMarketDate } from '@/lib/event-date';
 import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
 import { absoluteUrl } from '@/lib/site';
@@ -78,7 +79,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const event = await getEventById(id);
 
   if (!event) {
-    return { title: "Event Not Found | Collector's Paradise" };
+    return {
+      title: "Event Not Found | Collector's Paradise",
+      robots: { index: false, follow: true },
+    };
   }
 
   const dateStr = new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU', {
@@ -107,11 +111,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       `${event.venue} event`,
     ],
     openGraph: {
+      ...OPEN_GRAPH_DEFAULTS,
       title: `${event.title} | ${locationLabel} Trading Card Event`,
       description: eventDescription,
       url: absoluteUrl(`/events/${id}`),
-      type: 'website',
-      locale: 'en_AU',
       ...(eventImage ? {
         images: [{
           url: eventImage,

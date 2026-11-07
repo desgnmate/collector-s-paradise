@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next';
+import { absoluteUrl } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
       userAgent: '*',
       allow: ['/', '/api/events/'],
-      disallow: ['/admin/', '/admin-login', '/login', '/signup', '/api/'],
+      disallow: ['/admin/', '/admin-login', '/api/', '/vendors/auth/'],
     },
-    sitemap: 'https://www.collectorsparadise.au/sitemap.xml',
+    sitemap: absoluteUrl('/sitemap.xml'),
   };
 }

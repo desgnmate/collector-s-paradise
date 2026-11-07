@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 
 export const metadata: Metadata = {
   title: "Apply as Volunteer | Collector's Paradise",
@@ -11,6 +12,7 @@ export const metadata: Metadata = {
     'community event volunteer Australia',
   ],
   openGraph: {
+    ...OPEN_GRAPH_DEFAULTS,
     title: "Apply as Volunteer | Collector's Paradise",
     description:
       'Join our volunteer team at Collector\'s Paradise trading card events. Help with setup, registration, floor guides, and breakdown.',
