@@ -16,6 +16,7 @@ import {
 } from '@/lib/email';
 import { getEventMarketDate } from '@/lib/event-date';
 import { getVendorInvitationReadinessIssues } from '@/lib/vendor-invitation';
+import { loadAdminVendorRows, vendorLogoRoute } from '@/lib/admin/vendor-rows';
 
 // ============================================
 // Types
@@ -101,9 +102,6 @@ export type VendorManagementEvent = {
   applications: Array<VendorEventApplication & { vendor: Vendor }>;
 };
 
-// Column selection for admin queries - only fetch what's needed
-const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, application_receipt_status, application_receipt_sent_at, application_receipt_last_attempt_at, application_receipt_attempt_count, application_receipt_resend_id, application_receipt_error, booth_assignment, event_id, rejection_reason, applied_at';
-
 const createPublicVendorsClient = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -118,7 +116,7 @@ const createPublicVendorsClient = () => createClient(
 
 function normalizePublicLogoUrl(logoUrl: string | null | undefined, vendorId: string): string | null {
   if (!logoUrl) return null;
-  return logoUrl.startsWith('data:') ? `/api/vendors/${vendorId}/logo` : logoUrl;
+  return logoUrl.startsWith('data:') ? vendorLogoRoute(vendorId) : logoUrl;
 }
 
 async function attachEventApplications(
@@ -350,17 +348,12 @@ export async function syncAllVendorsToSheet() {
   'use server';
   const supabase = await requireAdminClient();
   if (!supabase) return { success: false, message: 'Admin access required.' };
-  const { data: vendors, error } = await supabase
-    .from('vendors')
-    .select(ADMIN_VENDOR_COLUMNS)
-    .order('applied_at', { ascending: false });
+  const { data: vendors, error } = await loadAdminVendorRows(supabase);
 
   if (error || !vendors) return { success: false, message: 'Failed to fetch vendors.' };
 
-  const vendorsWithApplications = await attachEventApplications(
-    supabase,
-    vendors as Omit<Vendor, 'event_applications'>[],
-  );
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.collectorsparadise.au').replace(/\/$/, '');
+  const vendorsWithApplications = await attachEventApplications(supabase, vendors);
   let synced = 0;
 
   for (const vendor of vendorsWithApplications) {
@@ -395,7 +388,8 @@ export async function syncAllVendorsToSheet() {
         power_requirements: application.power_requirements || '',
         social_links: vendor.social_links || '',
         description: vendor.description || '',
-        logo_url: vendor.logo_url || '',
+        // Inline logos arrive as the logo route; the sheet needs a full link.
+        logo_url: vendor.logo_url?.startsWith('/') ? `${appUrl}${vendor.logo_url}` : vendor.logo_url || '',
         additional_notes: vendor.additional_notes || '',
         booth_assignment: application.booth_assignment || '',
         application_status: application.application_status,
@@ -917,16 +911,13 @@ export async function getAllVendors(): Promise<Vendor[]> {
   const supabase = await requireAdminClient();
   if (!supabase) throw new Error('Admin access required.');
 
-  const { data, error } = await supabase
-    .from('vendors')
-    .select(ADMIN_VENDOR_COLUMNS)
-    .order('applied_at', { ascending: false });
+  const { data, error } = await loadAdminVendorRows(supabase);
 
   if (error) {
     console.error('Error fetching all vendors:', JSON.stringify(error, null, 2));
     return [];
   }
-  return attachEventApplications(supabase, data as Omit<Vendor, 'event_applications'>[]);
+  return attachEventApplications(supabase, data);
 }
 
 const eventApplicationUpdateSchema = z.object({

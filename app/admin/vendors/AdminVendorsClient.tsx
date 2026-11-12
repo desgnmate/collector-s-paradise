@@ -626,8 +626,11 @@ export default function AdminVendorsClient() {
     return <div className="admin-content-panel vendor-management-loading"><div className="admin-spinner" /><span>Loading vendor management...</span></div>;
   }
 
-  if (errors.vendors || errors.events) {
-    return <div className="admin-content-panel"><div className="admin-alert admin-alert-error">{errors.vendors || errors.events}</div></div>;
+  // A failed background sync keeps the last loaded roster on screen; only an
+  // empty first load has nothing better to show than the error.
+  const syncError = errors.vendors || errors.events;
+  if (syncError && vendors.length === 0 && events.length === 0) {
+    return <div className="admin-content-panel"><div className="admin-alert admin-alert-error">{syncError}</div></div>;
   }
 
   return (
@@ -652,6 +655,12 @@ export default function AdminVendorsClient() {
         </button>
       </header>
 
+      {syncError && (
+        <div className="admin-alert admin-alert-error" role="alert">
+          {syncError} Showing the last loaded data.{' '}
+          <button type="button" className="vendor-management-secondary-button" onClick={() => void refreshData(['vendors', 'events'])}>Retry</button>
+        </div>
+      )}
       {notice && <div className={`admin-alert admin-alert-${notice.type}`}>{notice.message}</div>}
 
       <div className="vendor-management-view-switch" role="tablist" aria-label="Vendor management views">

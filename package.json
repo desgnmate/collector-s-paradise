@@ -13,7 +13,7 @@
     "test:event-promotion": "node --experimental-strip-types --test tests/event-promotion.test.mjs",
     "test:vendor-reapplications": "node --experimental-strip-types --test tests/vendor-reapplications.test.mjs tests/verified-vendor-reapplications.test.mjs tests/vendor-directory-registration.test.mjs tests/vendor-application-closure.test.mjs",
     "test:vendor-browser": "playwright test --config tests/returning-vendor.playwright.config.ts",
-    "test:vendor-email-workflow": "node --experimental-strip-types --test tests/public-vendor-directory.test.mjs tests/vendor-invitation-readiness.test.mjs",
+    "test:vendor-email-workflow": "node --experimental-strip-types --test tests/public-vendor-directory.test.mjs tests/vendor-invitation-readiness.test.mjs tests/admin-vendor-rows.test.mjs",
     "test:sheet": "node tests/google-sheet-migration.test.js"
   },
   "dependencies": {
