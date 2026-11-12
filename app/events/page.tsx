@@ -2,11 +2,10 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import EventsPageClient from '@/components/events/EventsPageClient';
 import { getEvents } from '@/app/actions/events';
-import { EventSchema, EventSeriesSchema } from '@/components/StructuredData';
+import { serializeJsonLd } from '@/lib/seo/jsonld';
 import type { Metadata } from 'next';
 import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import { getEventMarketDate } from '@/lib/event-date';
-import { getEventSchemaDates, parseAustralianEventAddress } from '@/lib/event-location';
 import { absoluteUrl } from '@/lib/site';
 export const revalidate = 3600; // Cache for 1 hour to improve navigation speed
 
@@ -57,35 +56,22 @@ export default async function EventsPage() {
   return (
     <main>
       <Navbar />
-      {/* Structured data for each event — invisible to users, consumed by search engines */}
-      <EventSeriesSchema />
-      {/* Structured data for each upcoming event — consumed by search engines */}
-      {upcomingEvents.map(event => {
-          const address = parseAustralianEventAddress(event.venue_address);
-          const eventUrl = absoluteUrl(`/events/${event.id}`);
-          const schemaDates = getEventSchemaDates(event.event_date, event.start_time, event.end_time);
-          return (
-            <EventSchema
-              key={event.id}
-              name={event.title}
-              description={event.description || ''}
-              startDate={schemaDates.startDate}
-              endDate={schemaDates.endDate}
-              venue={event.venue || 'Event Venue'}
-              venueAddress={address.streetAddress}
-              addressLocality={address.locality}
-              addressRegion={address.region}
-              postalCode={address.postcode}
-              ticketPrice={event.ticket_price ?? undefined}
-              ticketUrl={event.booking_link || undefined}
-              offerValidFrom={event.created_at}
-              eventUrl={eventUrl}
-              imageUrl={event.cover_image_url || undefined}
-              status={event.status}
-              isSoldOut={event.capacity > 0 && event.tickets_sold >= event.capacity}
-            />
-          );
-        })}
+      {/* Full Event markup belongs on the linked, single-event pages. */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd({
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Upcoming trading card events in Australia',
+        url: absoluteUrl('/events'),
+        mainEntity: {
+          '@type': 'ItemList',
+          itemListElement: upcomingEvents.map((event, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: event.title,
+            url: absoluteUrl(`/events/${event.id}`),
+          })),
+        },
+      }) }} />
       <EventsPageClient upcomingEvents={upcomingEvents} pastEvents={pastEvents} />
       <Footer />
     </main>

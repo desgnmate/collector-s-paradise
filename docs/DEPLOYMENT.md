@@ -32,6 +32,15 @@ The migration must land first because the admin vendor query expects the new
 application-receipt columns. It also immediately prevents pending and
 waitlisted applications from appearing in the public vendor directory.
 
+Before deploying the "close vendor applications" feature, apply
+`supabase/migrations/20261112000000_vendor_application_closure.sql`. The
+migration must land first because the admin vendor and event queries expect the
+new closure columns; the public application form keeps working either way. It
+changes no existing data and closes no event. Closing happens only when an
+admin presses "Spots filled — close applications" on an event roster in Vendor
+Management: the event leaves the application form, pending applicants are
+marked not accepted, and each is emailed through Resend's batch endpoint.
+
 Vercel creates production deployments from the production branch and preview
 deployments from other branches and pull requests.
 

@@ -69,6 +69,24 @@ export async function POST(request: Request) {
 
   if (data) return Response.json({ received: true, matched: true, kind: 'invitation' });
 
+  const { data: closureNotice, error: closureNoticeError } = await supabase
+    .from('vendor_event_applications')
+    .update({
+      closure_notice_status: status,
+      closure_notice_error: deliveryError,
+    })
+    .eq('closure_notice_resend_id', event.data.email_id)
+    .select('id')
+    .maybeSingle();
+
+  // 42703: the closure migration is not applied yet, so no notice can match.
+  if (closureNoticeError && closureNoticeError.code !== '42703') {
+    console.error('Failed to record closure notice webhook status:', JSON.stringify(closureNoticeError, null, 2));
+    return Response.json({ error: 'Could not record delivery status.' }, { status: 500 });
+  }
+
+  if (closureNotice) return Response.json({ received: true, matched: true, kind: 'closure_notice' });
+
   const { data: receipt, error: receiptError } = await supabase
     .from('vendors')
     .update({

@@ -8,10 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test": "npm run test:email && npm run test:reports && npm run test:event-promotion && npm run test:vendor-reapplications && npm run test:vendor-email-workflow",
-    "test:email": "node --experimental-strip-types --test tests/email-status.test.mjs",
+    "test:email": "node --experimental-strip-types --test tests/email-status.test.mjs tests/vendor-closure-email.test.mjs",
     "test:reports": "node --experimental-strip-types --test tests/reports.test.mjs",
     "test:event-promotion": "node --experimental-strip-types --test tests/event-promotion.test.mjs",
-    "test:vendor-reapplications": "node --experimental-strip-types --test tests/vendor-reapplications.test.mjs tests/verified-vendor-reapplications.test.mjs",
+    "test:vendor-reapplications": "node --experimental-strip-types --test tests/vendor-reapplications.test.mjs tests/verified-vendor-reapplications.test.mjs tests/vendor-directory-registration.test.mjs tests/vendor-application-closure.test.mjs",
     "test:vendor-browser": "playwright test --config tests/returning-vendor.playwright.config.ts",
     "test:vendor-email-workflow": "node --experimental-strip-types --test tests/public-vendor-directory.test.mjs tests/vendor-invitation-readiness.test.mjs",
     "test:sheet": "node tests/google-sheet-migration.test.js"

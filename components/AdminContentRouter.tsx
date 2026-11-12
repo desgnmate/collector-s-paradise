@@ -2,7 +2,7 @@
 
 import { useAdminRouter, type AdminRoute } from '@/contexts/AdminRouterContext';
 import DashboardContent from '@/components/DashboardContent';
-import VendorsContent from '@/app/admin/vendors/AdminVendorsClient';
+import VendorsContent from '@/components/VendorsContent';
 import VolunteersContent from '@/app/admin/volunteers/AdminVolunteersClient';
 import SponsorsContent from '@/app/admin/sponsors/AdminSponsorsClient';
 import EventsContent from '@/components/EventsContent';

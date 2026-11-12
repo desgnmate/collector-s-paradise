@@ -1,7 +1,8 @@
 'use client';
 
 import AdminVendorsClient from '@/app/admin/vendors/AdminVendorsClient';
+import VendorRegistrationQueue from '@/components/VendorRegistrationQueue';
 
 export default function VendorsContent() {
-  return <AdminVendorsClient />;
+  return <><VendorRegistrationQueue /><AdminVendorsClient /></>;
 }

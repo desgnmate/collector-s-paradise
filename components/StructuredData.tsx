@@ -209,9 +209,12 @@ export function EventSchema({
   status = 'upcoming',
   isSoldOut = false,
 }: EventSchemaProps) {
-  const eventStatusMap: Partial<Record<NonNullable<EventSchemaProps['status']>, string>> = {
+  const eventStatusMap: Record<NonNullable<EventSchemaProps['status']>, string> = {
     upcoming: 'https://schema.org/EventScheduled',
     active: 'https://schema.org/EventScheduled',
+    // Scheduled describes whether the event was cancelled/rescheduled, not
+    // whether its date is in the past. Schema.org has no EventCompleted.
+    completed: 'https://schema.org/EventScheduled',
     cancelled: 'https://schema.org/EventCancelled',
   };
   // Build location: Place name always, address only when we have a real
@@ -237,7 +240,7 @@ export function EventSchema({
     '@context': 'https://schema.org',
     '@type': 'Event',
     name,
-    description,
+    description: description.trim() || `${name.trim()} is a trading card event at ${venue}.`,
     startDate,
     eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
     inLanguage: 'en-AU',
@@ -263,13 +266,15 @@ export function EventSchema({
     schema.image = imageUrl.startsWith('/') ? absoluteUrl(imageUrl) : imageUrl;
   }
 
-  if (ticketPrice !== undefined && ticketUrl && status !== 'completed' && status !== 'cancelled') {
+  if (ticketPrice !== undefined && Number.isFinite(ticketPrice) && ticketPrice >= 0 && ticketUrl) {
     const offer: Record<string, unknown> = {
       '@type': 'Offer',
       url: ticketUrl,
       price: ticketPrice,
       priceCurrency: 'AUD',
-      availability: isSoldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
+      availability: status === 'completed' || status === 'cancelled'
+        ? 'https://schema.org/Discontinued'
+        : isSoldOut ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock',
     };
 
     if (offerValidFrom) {

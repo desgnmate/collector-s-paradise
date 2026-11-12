@@ -481,6 +481,109 @@ async function sendApplicationStatusEmail(
   }
 }
 
+export type ApplicationsClosedEmailInput = {
+  applicationId: string;
+  eventId: string;
+  recipientEmail: string;
+  businessName: string;
+  contactName: string;
+  eventName: string;
+  eventDate: string | null;
+  replyTo: string | null;
+};
+
+/** Resend accepts at most 100 emails per batch request. */
+export const APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE = 100;
+
+function buildApplicationsClosedEmail(input: ApplicationsClosedEmailInput) {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.collectorsparadise.au').replace(/\/$/, '');
+  const eventsUrl = `${appUrl}/events`;
+  const eventDate = formatAustralianDate(input.eventDate);
+  const eventLabel = eventDate
+    ? `${plainText(input.eventName)} (${eventDate})`
+    : plainText(input.eventName);
+
+  return {
+    from: "Collector's Paradise <" + FROM_EMAIL + ">",
+    to: input.recipientEmail,
+    replyTo: input.replyTo || ADMIN_EMAIL,
+    subject: `Vendor applications closed — ${plainText(input.eventName)}`,
+    tags: [
+      { name: 'application_id', value: input.applicationId },
+      { name: 'event_id', value: input.eventId },
+    ],
+    html:
+      '<div style="margin:0;background:#efede6;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">' +
+      '<div style="max-width:600px;margin:0 auto;padding:32px;border:1px solid #d5d1c8;border-radius:20px;background:#fff">' +
+      '<p style="margin:0 0 10px;color:#77736c;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase">Vendor application update</p>' +
+      '<h1 style="margin:0 0 20px;color:#242522;font-size:28px;line-height:1.2">Vendor spots are now filled</h1>' +
+      '<p style="margin:0 0 14px;color:#565650;font-size:15px;line-height:1.7">Hi ' + escapeHtml(input.contactName) + ',</p>' +
+      '<p style="margin:0 0 14px;color:#565650;font-size:15px;line-height:1.7">Thank you for applying to trade at <strong style="color:#242522">' + escapeHtml(eventLabel) + '</strong>. All vendor spots for this event have now been filled and applications are closed.</p>' +
+      '<p style="margin:0 0 14px;color:#565650;font-size:15px;line-height:1.7">Unfortunately we were not able to offer <strong style="color:#242522">' + escapeHtml(input.businessName) + '</strong> a place this time. We received more applications than we have room for, so this is not a reflection on your business.</p>' +
+      '<p style="margin:0;color:#565650;font-size:15px;line-height:1.7">We would love to see you apply for a future event.</p>' +
+      '<div style="margin:28px 0 8px;text-align:center"><a href="' + escapeHtml(eventsUrl) + '" style="display:inline-block;padding:14px 26px;border-radius:999px;background:#f3c447;color:#242522;font-size:14px;font-weight:800;text-decoration:none">See upcoming events</a></div>' +
+      '<p style="margin:24px 0 0;color:#77736c;font-size:13px;line-height:1.6">Questions? Reply to this email.</p>' +
+      '</div></div>',
+    text: [
+      `Hi ${plainText(input.contactName)},`,
+      '',
+      `Thank you for applying to trade at ${eventLabel}. All vendor spots for this event have now been filled and applications are closed.`,
+      '',
+      `Unfortunately we were not able to offer ${plainText(input.businessName)} a place this time. We received more applications than we have room for, so this is not a reflection on your business.`,
+      '',
+      `We would love to see you apply for a future event: ${eventsUrl}`,
+      '',
+      'Questions? Reply to this email.',
+    ].join('\n'),
+  };
+}
+
+/**
+ * Email: vendor spots filled — sent in one provider request to every applicant
+ * who was not accepted. Returns one result per input, in the same order.
+ */
+export async function sendApplicationsClosedEmails(
+  inputs: ApplicationsClosedEmailInput[],
+  idempotencyKey: string,
+): Promise<ApplicationStatusEmailResult[]> {
+  if (inputs.length === 0) return [];
+  const failAll = (error: string): ApplicationStatusEmailResult[] =>
+    inputs.map(() => ({ success: false, error }));
+
+  if (inputs.length > APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE) {
+    return failAll(`A batch can contain at most ${APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE} emails.`);
+  }
+  const resend = getResend();
+  if (!resend) return failAll('Resend not configured');
+
+  try {
+    // Permissive validation: one malformed address must not block everyone else.
+    const { data, error } = await resend.batch.send(
+      inputs.map(buildApplicationsClosedEmail),
+      { idempotencyKey, batchValidation: 'permissive' },
+    );
+    if (error || !data) return failAll(error?.message || 'Email send failed');
+
+    const rejected = new Map<number, string>();
+    for (const item of data.errors || []) rejected.set(item.index, item.message);
+    const accepted = data.data || [];
+    // Accepted IDs are returned in request order with rejected entries left out.
+    const idsAlign = accepted.length === inputs.length - rejected.size;
+    let acceptedIndex = 0;
+
+    return inputs.map((_, index) => {
+      const rejection = rejected.get(index);
+      if (rejection !== undefined) return { success: false, error: rejection || 'Rejected by email provider' };
+      const id = idsAlign ? accepted[acceptedIndex++]?.id : undefined;
+      // The provider accepted the batch, so never report a failure that would
+      // trigger a duplicate send; an unmatched ID only loses delivery tracking.
+      return { success: true, id: id || '' };
+    });
+  } catch (error) {
+    return failAll(error instanceof Error ? error.message : 'Unknown email error');
+  }
+}
+
 export async function sendApprovalEmail(
   recipientEmail: string,
   organisationName: string,

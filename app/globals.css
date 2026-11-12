@@ -18661,6 +18661,79 @@ html[data-admin-theme="dark"] .modal-footer-primary { background: var(--admin-ye
 }
 .vendor-application-receipt-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* Vendor application closure (spots filled) */
+.vendor-management-event-states { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.vendor-management-event-state.is-closed { background: var(--admin-red-soft); color: var(--admin-red); }
+.vendor-closure-panel {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--admin-border);
+  border-left: 3px solid var(--admin-yellow);
+  border-radius: var(--admin-radius-sm);
+  background: var(--admin-surface-hover);
+}
+.vendor-closure-panel.is-closed { border-left-color: var(--admin-red); }
+.vendor-closure-panel > div:first-child { min-width: 0; flex: 1; }
+.vendor-closure-panel strong { display: block; color: var(--admin-text-primary); font-size: 0.82rem; }
+.vendor-closure-panel p { margin: 0.25rem 0 0; color: var(--admin-text-secondary); font-size: 0.72rem; line-height: 1.5; }
+.vendor-closure-panel-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 0.5rem; }
+.vendor-closure-notice {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--admin-text-muted);
+  font-size: 0.6rem;
+  line-height: 1.35;
+}
+.vendor-closure-notice.is-failed,
+.vendor-closure-notice.is-bounced,
+.vendor-closure-notice.is-complained,
+.vendor-closure-notice.is-suppressed { color: var(--admin-red); font-weight: 700; }
+.vendor-closure-dialog { display: grid; gap: 0.9rem; }
+.vendor-closure-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; margin: 0; }
+.vendor-closure-summary > div {
+  padding: 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+}
+.vendor-closure-summary dt {
+  color: var(--admin-text-muted);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vendor-closure-summary dd {
+  margin: 0.2rem 0;
+  color: var(--admin-text-primary);
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.vendor-closure-summary small { display: block; color: var(--admin-text-secondary); font-size: 0.64rem; line-height: 1.4; }
+.vendor-closure-dialog .vendor-management-status-choice { margin-bottom: 0; }
+.vendor-closure-email-preview {
+  padding: 0.8rem 0.9rem;
+  border: 1px dashed var(--admin-border);
+  border-radius: var(--admin-radius-sm);
+}
+.vendor-closure-email-preview span {
+  color: var(--admin-text-muted);
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vendor-closure-email-preview strong { display: block; margin: 0.3rem 0; color: var(--admin-text-primary); font-size: 0.78rem; }
+.vendor-closure-email-preview p { margin: 0; color: var(--admin-text-secondary); font-size: 0.7rem; line-height: 1.55; }
+@media (max-width: 720px) {
+  .vendor-closure-panel { align-items: stretch; flex-direction: column; }
+  .vendor-closure-panel-actions { justify-content: flex-start; }
+  .vendor-closure-summary { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 620px) {
   .event-form-section-heading { align-items: flex-start; flex-direction: column; }
   .event-form-section-heading p { text-align: left; }

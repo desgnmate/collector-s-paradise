@@ -7,6 +7,7 @@ import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
 import { getEffectiveEventStatus } from '@/lib/events/status';
 import { getEventMarketDate } from '@/lib/event-date';
+import { uploadEventCover, EVENT_COVER_TYPES } from '@/lib/events/cover-storage';
 
 // ============================================
 // Types
@@ -33,11 +34,13 @@ export type Event = {
   vendor_payment_link: string | null;
   vendor_contact_email: string | null;
   vendor_instructions: string | null;
+  /** Set when an admin closes vendor applications (spots filled). Admin-only field. */
+  vendor_applications_closed_at?: string | null;
   created_at: string;
   updated_at: string;
 };
 
-const EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions, created_at, updated_at';
+const EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions, vendor_applications_closed_at, created_at, updated_at';
 const PUBLIC_EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, booking_link, created_at, updated_at';
 
 // ============================================
@@ -138,7 +141,7 @@ const normalizeEvent = (event: Event): Event => ({
   ...event,
   status: getEffectiveEventStatus(event),
   cover_image_url: event.cover_image_url?.startsWith('data:')
-    ? `/api/events/${event.id}/cover`
+    ? `/api/events/${event.id}/cover?v=${encodeURIComponent(event.updated_at)}`
     : event.cover_image_url,
 });
 
@@ -156,7 +159,7 @@ type PublicEventRow = Omit<Event,
 const normalizePublicEvent = (event: PublicEventRow): Event => ({
   ...event,
   status: getEffectiveEventStatus(event as Event),
-  cover_image_url: `/api/events/${event.id}/cover`,
+  cover_image_url: `/api/events/${event.id}/cover?v=${encodeURIComponent(event.updated_at)}`,
   vendor_table_price: null,
   vendor_power_fee: 0,
   vendor_response_deadline: null,
@@ -239,12 +242,19 @@ export async function getEvents(): Promise<Event[]> {
 const getCachedVendorApplicationEvents = unstable_cache(
   async (): Promise<Array<Pick<Event, 'id' | 'title' | 'event_date' | 'venue'>>> => {
     const supabase = createPublicEventsClient();
-    const { data, error } = await supabase
+    const upcomingEvents = () => supabase
       .from('events')
       .select('id, title, event_date, venue')
       .eq('status', 'upcoming')
       .gte('event_date', getEventMarketDate())
       .order('event_date', { ascending: true });
+
+    // Events whose vendor spots are filled no longer accept applications.
+    let { data, error } = await upcomingEvents().is('vendor_applications_closed_at', null);
+    // Keep the form usable if code deploys before the closure migration.
+    if (error && ['42703', '42501'].includes(error.code)) {
+      ({ data, error } = await upcomingEvents());
+    }
 
     if (error) {
       console.error('Error fetching vendor application events:', error);
@@ -311,26 +321,12 @@ async function uploadCoverImage(
   file: File,
   eventId?: string
 ): Promise<string | null> {
-  const fileExt = file.name.split('.').pop();
-  const filePath = `event-covers/${eventId || 'pending'}-${Date.now()}.${fileExt}`;
-  const arrayBuffer = await file.arrayBuffer();
-
-  const { error: uploadError } = await supabase.storage
-    .from('event_covers')
-    .upload(filePath, arrayBuffer, {
-      contentType: file.type,
-      cacheControl: '3600',
-      upsert: false,
-    });
-
-  if (uploadError) {
-    console.error('Event cover upload error:', uploadError);
-    // Do not persist data: URLs. They create multi-megabyte page payloads
-    // and cannot be indexed as standalone event images.
+  try {
+    return await uploadEventCover(supabase, file, eventId);
+  } catch (error) {
+    console.error('Event cover upload error:', error);
     return null;
   }
-
-  return `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/event_covers/${filePath}`;
 }
 
 /** Create a new event (admin only) */
@@ -348,8 +344,8 @@ export async function createEvent(
     if (coverImage.size > 5 * 1024 * 1024) {
       return { message: 'Cover image file size must be less than 5MB.' };
     }
-    if (!coverImage.type.startsWith('image/')) {
-      return { message: 'Cover image must be an image file.' };
+    if (!EVENT_COVER_TYPES.includes(coverImage.type)) {
+      return { message: 'Cover image must be a JPG, PNG, WebP or GIF.' };
     }
   }
 
@@ -411,8 +407,8 @@ export async function updateEvent(
     if (coverImage.size > 5 * 1024 * 1024) {
       return { message: 'Cover image file size must be less than 5MB.' };
     }
-    if (!coverImage.type.startsWith('image/')) {
-      return { message: 'Cover image must be an image file.' };
+    if (!EVENT_COVER_TYPES.includes(coverImage.type)) {
+      return { message: 'Cover image must be a JPG, PNG, WebP or GIF.' };
     }
   }
 
@@ -428,30 +424,14 @@ export async function updateEvent(
   let coverImageUrl: string | undefined;
 
   if (coverImage && coverImage.size > 0) {
-    // Fetch current event to get old cover image URL for potential cleanup
-    const { data: currentEvent } = await supabase
-      .from('events')
-      .select('cover_image_url')
-      .eq('id', eventId)
-      .maybeSingle();
-
     const uploadResult = await uploadCoverImage(supabase, coverImage, eventId);
     if (uploadResult === null) {
       return { message: 'Failed to upload cover image. Please try again.' };
     }
     coverImageUrl = uploadResult;
 
-    // Attempt to delete old cover image from storage (best effort)
-    if (currentEvent?.cover_image_url && !currentEvent.cover_image_url.startsWith('data:')) {
-      try {
-        const urlPath = currentEvent.cover_image_url.split('/storage/v1/object/public/event_covers/')[1];
-        if (urlPath) {
-          await supabase.storage.from('event_covers').remove([urlPath]);
-        }
-      } catch {
-        // Best effort cleanup — ignore errors
-      }
-    }
+    // Retain the previous object: failed saves and cached pages must still
+    // be able to retrieve the old cover. Cleanup belongs in a retention job.
   }
 
   const updateData: Record<string, unknown> = toEventWriteData(validatedFields.data);

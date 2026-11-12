@@ -5,15 +5,20 @@ import Image from 'next/image';
 import { useAdminData } from '@/contexts/AdminDataContext';
 import {
   assignVendorsToEvents,
+  closeVendorApplications,
   deleteVendor,
   removeVendorEventApplication,
+  reopenVendorApplications,
   resendVendorApplicationReceipt,
   resendVendorInvitation,
+  retryVendorClosureNotices,
   syncAllVendorsToSheet,
   updateVendor,
   updateVendorEventApplication,
   type Vendor,
+  type VendorApplicationClosureResult,
   type VendorApplicationStatus,
+  type VendorClosureNoticeStatus,
   type VendorEventApplication,
   type VendorInvitationStatus,
   type VendorUpdateData,
@@ -46,6 +51,18 @@ const invitationStatusLabels: Record<VendorInvitationStatus, string> = {
   complained: 'Spam complaint',
   suppressed: 'Suppressed',
 };
+
+const closureNoticeLabels: Record<VendorClosureNoticeStatus, string> = {
+  pending: 'queued',
+  sending: 'sending',
+  sent: 'sent',
+  failed: 'failed',
+  delivered: 'delivered',
+  bounced: 'bounced',
+  complained: 'marked as spam',
+  suppressed: 'suppressed',
+};
+const unsentClosureNoticeStatuses: VendorClosureNoticeStatus[] = ['pending', 'sending', 'failed'];
 
 const australianStates = [
   'New South Wales',
@@ -153,7 +170,7 @@ function Pagination({
 }
 
 export default function AdminVendorsClient() {
-  const { vendors, events, loading, errors, setVendors, refreshData } = useAdminData();
+  const { vendors, events, loading, errors, setVendors, setEvents, refreshData } = useAdminData();
   const [view, setView] = useState<View>('unassigned');
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -172,6 +189,8 @@ export default function AdminVendorsClient() {
   const [assignmentStatus, setAssignmentStatus] = useState<VendorApplicationStatus | 'preserve'>('pending');
   const [currentPage, setCurrentPage] = useState(1);
   const [processing, setProcessing] = useState(false);
+  const [showClosure, setShowClosure] = useState(false);
+  const [closeWaitlisted, setCloseWaitlisted] = useState(false);
 
   const applications = useMemo<ApplicationRow[]>(
     () => vendors.flatMap((vendor) =>
@@ -198,6 +217,13 @@ export default function AdminVendorsClient() {
       approved: eventApplications.filter((application) => application.application_status === 'approved').length,
       waitlisted: eventApplications.filter((application) => application.application_status === 'waitlisted').length,
       rejected: eventApplications.filter((application) => application.application_status === 'rejected').length,
+      noticesSent: eventApplications.filter((application) => (
+        application.closure_notice_status && !unsentClosureNoticeStatuses.includes(application.closure_notice_status)
+      )).length,
+      noticesUnsent: eventApplications.filter((application) => (
+        application.application_status === 'rejected' &&
+        application.closure_notice_status && unsentClosureNoticeStatuses.includes(application.closure_notice_status)
+      )).length,
     };
   }), [applications, manageableEvents]);
 
@@ -321,6 +347,48 @@ export default function AdminVendorsClient() {
       additional_notes: selectedVendor.additional_notes || '',
       booth_assignment: selectedVendor.booth_assignment || '',
     });
+  };
+
+  const finishClosureAction = (eventId: string, result: VendorApplicationClosureResult) => {
+    setNotice({
+      type: result.success && !result.failed ? 'success' : 'error',
+      message: result.message,
+    });
+    if (result.closed_at !== undefined) {
+      setEvents((current) => current.map((event) => event.id === eventId
+        ? { ...event, vendor_applications_closed_at: result.closed_at }
+        : event));
+    }
+    void refreshData(['vendors', 'events']);
+  };
+
+  const confirmClosure = async () => {
+    if (!selectedEvent) return;
+    const eventId = selectedEvent.event.id;
+    setProcessing(true);
+    const result = await closeVendorApplications(eventId, { includeWaitlisted: closeWaitlisted });
+    setProcessing(false);
+    setShowClosure(false);
+    finishClosureAction(eventId, result);
+  };
+
+  const retryClosureNotices = async () => {
+    if (!selectedEvent) return;
+    const eventId = selectedEvent.event.id;
+    setProcessing(true);
+    const result = await retryVendorClosureNotices(eventId);
+    setProcessing(false);
+    finishClosureAction(eventId, result);
+  };
+
+  const reopenApplications = async () => {
+    if (!selectedEvent) return;
+    const eventId = selectedEvent.event.id;
+    if (!window.confirm(`Reopen vendor applications for ${selectedEvent.event.title}? The event returns to the application form. Vendors already told they were not accepted keep that decision.`)) return;
+    setProcessing(true);
+    const result = await reopenVendorApplications(eventId);
+    setProcessing(false);
+    finishClosureAction(eventId, result);
   };
 
   const saveApplication = async () => {
@@ -573,7 +641,12 @@ export default function AdminVendorsClient() {
             <div className="empty-state"><p>No events created yet.</p></div>
           ) : eventSummaries.map((summary) => (
             <button key={summary.event.id} type="button" className="vendor-management-event-card" onClick={() => { setSelectedEventId(summary.event.id); setCurrentPage(1); }}>
-              <span className={`vendor-management-event-state is-${summary.event.status}`}>{summary.event.status}</span>
+              <span className="vendor-management-event-states">
+                <span className={`vendor-management-event-state is-${summary.event.status}`}>{summary.event.status}</span>
+                {summary.event.vendor_applications_closed_at && (
+                  <span className="vendor-management-event-state is-closed">Applications closed</span>
+                )}
+              </span>
               <strong>{summary.event.title}</strong>
               <span className="vendor-management-event-meta">{formatEventDate(summary.event.event_date)}</span>
               <span className="vendor-management-event-meta">{summary.event.venue || 'Venue not set'}</span>
@@ -600,6 +673,44 @@ export default function AdminVendorsClient() {
             <button type="button" className="vendor-management-secondary-button" onClick={exportEventCsv}>Export roster</button>
           </div>
 
+          {selectedEvent.event.vendor_applications_closed_at ? (
+            <div className="vendor-closure-panel is-closed" role="status">
+              <div>
+                <strong>Vendor applications closed {new Date(selectedEvent.event.vendor_applications_closed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
+                <p>
+                  This event is hidden from the application form. {selectedEvent.noticesSent} not-accepted email{selectedEvent.noticesSent === 1 ? '' : 's'} sent
+                  {selectedEvent.noticesUnsent > 0 ? `, ${selectedEvent.noticesUnsent} not sent yet` : ''}.
+                  {selectedEvent.pending > 0 ? ` ${selectedEvent.pending} applicant${selectedEvent.pending === 1 ? ' is' : 's are'} still pending.` : ''}
+                </p>
+              </div>
+              <div className="vendor-closure-panel-actions">
+                {selectedEvent.noticesUnsent > 0 && (
+                  <button type="button" className="vendor-management-secondary-button" onClick={retryClosureNotices} disabled={processing}>
+                    {processing ? 'Working...' : `Retry unsent emails (${selectedEvent.noticesUnsent})`}
+                  </button>
+                )}
+                {(selectedEvent.pending > 0 || selectedEvent.waitlisted > 0) && (
+                  <button type="button" className="vendor-management-secondary-button" onClick={() => { setCloseWaitlisted(false); setShowClosure(true); setNotice(null); }} disabled={processing}>
+                    Email remaining applicants
+                  </button>
+                )}
+                <button type="button" className="vendor-management-secondary-button" onClick={reopenApplications} disabled={processing}>Reopen applications</button>
+              </div>
+            </div>
+          ) : (
+            <div className="vendor-closure-panel">
+              <div>
+                <strong>Vendor applications are open</strong>
+                <p>Once every spot is filled, close applications to take this event off the application form and email everyone who was not accepted.</p>
+              </div>
+              <div className="vendor-closure-panel-actions">
+                <button type="button" className="vendor-management-secondary-button" onClick={() => { setCloseWaitlisted(false); setShowClosure(true); setNotice(null); }} disabled={processing}>
+                  Spots filled — close applications
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="vendor-management-toolbar">
             <div className="admin-tabs">
               {(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => (
@@ -622,7 +733,17 @@ export default function AdminVendorsClient() {
                     <td>{application.vendor.categories.slice(0, 3).join(', ') || 'Not provided'}</td>
                     <td>{application.tables_requested || '—'} table(s)<br /><span>{application.power_requirements || 'No power request'}</span></td>
                     <td>{application.booth_assignment || 'Unassigned'}</td>
-                    <td><StatusBadge status={application.application_status} /></td>
+                    <td>
+                      <StatusBadge status={application.application_status} />
+                      {application.closure_notice_status && (
+                        <span
+                          className={`vendor-closure-notice is-${application.closure_notice_status}`}
+                          title={application.closure_notice_error || undefined}
+                        >
+                          Spots-filled email {closureNoticeLabels[application.closure_notice_status]}
+                        </span>
+                      )}
+                    </td>
                     <td><button type="button" className="vendor-management-row-action" onClick={() => openApplication(application)}>Review</button></td>
                   </tr>
                 ))}
@@ -763,6 +884,63 @@ export default function AdminVendorsClient() {
         </div>
       )}
 
+      {showClosure && selectedEvent && (() => {
+        const alreadyClosed = Boolean(selectedEvent.event.vendor_applications_closed_at);
+        const emailCount = selectedEvent.pending + (closeWaitlisted ? selectedEvent.waitlisted : 0);
+        return (
+          <div className="modal-overlay" onClick={() => { if (!processing) setShowClosure(false); }}>
+            <div className="modal-content modal-lg vendor-management-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="closure-title">
+              <div className="modal-header">
+                <button type="button" className="modal-close-btn" onClick={() => setShowClosure(false)} disabled={processing} aria-label="Close">✕</button>
+                <p className="vendor-management-modal-kicker">{selectedEvent.event.title}</p>
+                <h3 className="modal-title" id="closure-title">{alreadyClosed ? 'Email remaining applicants' : 'Close vendor applications'}</h3>
+                <p className="modal-vendor-name">{formatEventDate(selectedEvent.event.event_date)} · {selectedEvent.event.venue || 'Venue not set'}</p>
+              </div>
+              <div className="modal-body vendor-closure-dialog">
+                <dl className="vendor-closure-summary">
+                  <div><dt>Approved</dt><dd>{selectedEvent.approved}</dd><small>Keep their place. No email.</small></div>
+                  <div><dt>Pending</dt><dd>{selectedEvent.pending}</dd><small>Marked not accepted and emailed.</small></div>
+                  <div><dt>Waitlisted</dt><dd>{selectedEvent.waitlisted}</dd><small>{closeWaitlisted ? 'Marked not accepted and emailed.' : 'Stay on the waitlist. No email.'}</small></div>
+                </dl>
+                {selectedEvent.waitlisted > 0 && (
+                  <label className="vendor-management-status-choice">
+                    <input type="checkbox" checked={closeWaitlisted} onChange={(event) => setCloseWaitlisted(event.target.checked)} disabled={processing} />
+                    <span>
+                      <strong>Also tell waitlisted vendors they were not accepted</strong>
+                      <small>Leave unticked to keep the waitlist as backup in case an approved vendor withdraws.</small>
+                    </span>
+                  </label>
+                )}
+                <div className="vendor-closure-email-preview">
+                  <span>Email each vendor receives</span>
+                  <strong>Vendor applications closed — {selectedEvent.event.title}</strong>
+                  <p>Thank you for applying to trade at {selectedEvent.event.title}. All vendor spots for this event have now been filled and applications are closed. Unfortunately we were not able to offer your business a place this time…</p>
+                </div>
+                <p className="vendor-management-assignment-note">
+                  {alreadyClosed ? '' : 'This event is removed from the vendor application form straight away. '}
+                  {emailCount > 0
+                    ? `${emailCount} vendor${emailCount === 1 ? '' : 's'} will be emailed immediately. Sent emails cannot be recalled, so finish approving vendors first.`
+                    : 'Nobody is waiting on a decision, so no emails will be sent.'}
+                </p>
+              </div>
+              <div className="modal-footer vendor-management-modal-actions">
+                <span />
+                <div>
+                  <button type="button" className="modal-footer-btn modal-footer-secondary" onClick={() => setShowClosure(false)} disabled={processing}>Cancel</button>
+                  <button type="button" className="modal-footer-btn modal-footer-primary" onClick={confirmClosure} disabled={processing || (alreadyClosed && emailCount === 0)}>
+                    {processing
+                      ? 'Sending emails...'
+                      : emailCount > 0
+                        ? `${alreadyClosed ? 'Email' : 'Close & email'} ${emailCount} vendor${emailCount === 1 ? '' : 's'}`
+                        : 'Close applications'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
       {activeApplication && (
         <div className="modal-overlay" onClick={() => setActiveApplication(null)}>
           <div className="modal-content modal-lg vendor-management-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="application-review-title">
@@ -782,6 +960,20 @@ export default function AdminVendorsClient() {
                   <div><dt>Power</dt><dd>{activeApplication.power_requirements || 'Not specified'}</dd></div>
                   <div><dt>Event notes</dt><dd>{activeApplication.additional_notes || 'No event-specific notes.'}</dd></div>
                   <div><dt>Applied</dt><dd>{new Date(activeApplication.applied_at).toLocaleDateString('en-AU')}</dd></div>
+                  {activeApplication.closure_notice_status && (
+                    <div>
+                      <dt>Spots-filled email</dt>
+                      <dd>
+                        <span className={`vendor-closure-notice is-${activeApplication.closure_notice_status}`}>
+                          {closureNoticeLabels[activeApplication.closure_notice_status]}
+                          {activeApplication.closure_notice_sent_at ? ` · ${new Date(activeApplication.closure_notice_sent_at).toLocaleDateString('en-AU')}` : ''}
+                        </span>
+                        {activeApplication.closure_notice_error && (
+                          <small className="vendor-application-receipt-error">{activeApplication.closure_notice_error}</small>
+                        )}
+                      </dd>
+                    </div>
+                  )}
                   <div>
                     <dt>Application email</dt>
                     <dd>

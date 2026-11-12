@@ -51,7 +51,7 @@ function getEventCoverImage(event: EventCoverInput) {
       : haystack.includes(term)
   )));
 
-  return locationCover?.src ?? event.cover_image_url ?? EVENT_COVER_FALLBACK;
+  return event.cover_image_url || locationCover?.src || EVENT_COVER_FALLBACK;
 }
 
 function buildEventMetaDescription(
@@ -194,7 +194,7 @@ export default async function EventDetailPage({ params }: Props) {
 
       <EventSchema
         name={event.title}
-        description={event.description || `${event.title} — trading card event in ${locationLabel}.`}
+        description={event.description?.trim() || `${event.title.trim()} — trading card event in ${locationLabel}.`}
         startDate={schemaDates.startDate}
         endDate={schemaDates.endDate}
         venue={event.venue || 'Event Venue'}
@@ -229,9 +229,7 @@ export default async function EventDetailPage({ params }: Props) {
               </span>
               <h1 className="edp-title">{event.title}</h1>
 
-              {event.description && (
-                <p className="edp-description">{event.description}</p>
-              )}
+              <p className="edp-description">{event.description?.trim() || `${event.title.trim()} — trading card event in ${locationLabel}.`}</p>
 
               <div className="edp-decision-strip" aria-label="Essential event details">
                 <div className="edp-decision-item">

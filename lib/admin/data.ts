@@ -32,7 +32,7 @@ type SupabaseAdminClient = ReturnType<typeof createSupabaseAdminClient>;
 const ADMIN_VENDOR_COLUMNS = 'id, business_name, contact_name, email, phone, location_state, description, categories, logo_url, social_links, tables_requested, power_requirements, additional_notes, application_status, application_receipt_status, application_receipt_sent_at, application_receipt_last_attempt_at, application_receipt_attempt_count, application_receipt_resend_id, application_receipt_error, booth_assignment, event_id, rejection_reason, applied_at';
 const ADMIN_VOLUNTEER_COLUMNS = 'id, full_name, email, phone, preferred_roles, availability, previous_experience, events_interested, t_shirt_size, emergency_contact_name, emergency_contact_phone, additional_notes, how_heard_about, application_status, rejection_reason, assigned_event_id, applied_at, updated_at';
 const ADMIN_SPONSOR_COLUMNS = 'id, company_name, website, industry, company_size, contact_name, contact_email, contact_phone, contact_position, sponsorship_tier, sponsorship_interest, previous_sponsor, sponsorship_history, logo_url, brand_description, social_media_links, marketing_goals, events_interested, preferred_booth_size, additional_services, budget_range, custom_proposal, additional_notes, how_heard_about, application_status, rejection_reason, assigned_account_manager, contract_sent, contract_signed, payment_received, applied_at, updated_at';
-const ADMIN_EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions, created_at, updated_at';
+const ADMIN_EVENT_COLUMNS = 'id, title, description, event_date, start_time, end_time, venue, venue_address, status, capacity, tickets_sold, ticket_price, cover_image_url, booking_link, vendor_table_price, vendor_power_fee, vendor_response_deadline, vendor_load_in_time, vendor_payment_link, vendor_contact_email, vendor_instructions, vendor_applications_closed_at, created_at, updated_at';
 const ADMIN_REPORT_COLUMNS = 'id, ticket_number, reporter_name, reporter_email, category, impact, priority, subject, description, page_url, browser_details, status, admin_notes, admin_notification_status, admin_notification_resend_id, admin_notification_error, admin_notification_attempt_count, admin_notification_sent_at, created_at, updated_at, resolved_at';
 
 function normalizeAdminEvent(event: Event): Event {
@@ -79,7 +79,7 @@ async function loadVendors(supabase: SupabaseAdminClient): Promise<Vendor[]> {
 
   const { data: applications, error: applicationsError } = await supabase
     .from('vendor_event_applications')
-    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, applied_at, updated_at, events(title, event_date, venue)')
+    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, closure_notice_status, closure_notice_sent_at, closure_notice_error, applied_at, updated_at, events(title, event_date, venue)')
     .in('vendor_id', vendors.map((vendor) => vendor.id))
     .order('applied_at', { ascending: false });
 
@@ -114,6 +114,9 @@ async function loadVendors(supabase: SupabaseAdminClient): Promise<Vendor[]> {
       invitation_resend_id: row.invitation_resend_id,
       invitation_error: row.invitation_error,
       invitation_version: row.invitation_version,
+      closure_notice_status: row.closure_notice_status,
+      closure_notice_sent_at: row.closure_notice_sent_at,
+      closure_notice_error: row.closure_notice_error,
       applied_at: row.applied_at,
       updated_at: row.updated_at,
       event_name: event?.title || 'Deleted event',

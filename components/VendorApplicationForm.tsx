@@ -40,11 +40,12 @@ const VENDOR_CATEGORIES = [
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;
 const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-export default function VendorApplicationForm({ events }: { events: VendorApplicationEvent[] }) {
+export default function VendorApplicationForm({ events, directoryEnabled = false }: { events: VendorApplicationEvent[]; directoryEnabled?: boolean }) {
   const [state, formAction, isPending] = useActionState(submitVendorApplication, {
     message: '',
   });
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [registrationKind, setRegistrationKind] = useState<'events' | 'directory'>('events');
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [logoName, setLogoName] = useState<string | null>(null);
   const [logoError, setLogoError] = useState<string | null>(null);
@@ -123,7 +124,7 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
   return (
     <form action={formAction} onReset={event => event.preventDefault()} className="vendor-apply-form">
       <div className="vendor-form-alert">
-        <strong>Already applied before?</strong> <Link href="/vendors/returning">Use your existing vendor profile</Link> to apply for more events without re-entering your details or uploading a logo.
+        <strong>Already applied before?</strong> {directoryEnabled && <>You can fill in this form again for admin review, or </>}<Link href="/vendors/returning">verify your email to use your existing profile</Link>.
       </div>
       {state.message && !state.success && (
         <div className="vendor-form-alert vendor-form-alert-error">
@@ -375,6 +376,19 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
       </div>
 
       {/* Event Availability */}
+      {directoryEnabled ? <div className="vendor-form-section">
+        <h3 className="vendor-form-section-title">What would you like to do?</h3>
+        <label className="vendor-agreement-label">
+          <input type="radio" name="registration_kind" value="events" checked={registrationKind === 'events'} onChange={() => setRegistrationKind('events')} />
+          Apply for upcoming events
+        </label>
+        <label className="vendor-agreement-label">
+          <input type="radio" name="registration_kind" value="directory" checked={registrationKind === 'directory'} onChange={() => setRegistrationKind('directory')} />
+          Join the vendor directory only
+        </label>
+        {registrationKind === 'directory' && <p className="vendor-form-section-hint">Your business listing will be reviewed before it appears publicly. This does not reserve a booth. You can return to this form to apply for events later, without creating an account.</p>}
+      </div> : <input type="hidden" name="registration_kind" value="events" />}
+      {registrationKind === 'events' && <>
       <div className="vendor-form-section">
         <h3 className="vendor-form-section-title">Choose your events *</h3>
         <p className="vendor-form-section-hint">
@@ -457,6 +471,7 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
       </div>
 
       {/* Additional Notes */}
+      </>}
       <div className="vendor-form-section">
         <h3 className="vendor-form-section-title">Additional Notes</h3>
         <div className="vendor-form-group vendor-form-group-wide">
@@ -495,9 +510,9 @@ export default function VendorApplicationForm({ events }: { events: VendorApplic
       <button
         type="submit"
         className="btn btn-yellow vendor-submit-btn"
-        disabled={isPending || events.length === 0}
+        disabled={isPending || (registrationKind === 'events' && events.length === 0)}
       >
-        {isPending ? 'Submitting...' : 'Submit Application'}
+        {isPending ? 'Submitting...' : registrationKind === 'directory' ? 'Submit Directory Registration' : 'Submit Application'}
       </button>
 
       <p className="vendor-form-disclaimer">

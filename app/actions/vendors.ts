@@ -6,6 +6,8 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { revalidatePath, unstable_cache, updateTag } from 'next/cache';
 import { z } from 'zod';
 import {
+  APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE,
+  sendApplicationsClosedEmails,
   sendNewApplicationEmail,
   sendRejectionEmail,
   sendVendorInvitationEmail,
@@ -29,6 +31,8 @@ export type VendorEmailDeliveryStatus =
   | 'complained'
   | 'suppressed';
 export type VendorInvitationStatus = VendorEmailDeliveryStatus;
+/** "Vendor spots filled" email state. `pending` = queued and not yet attempted. */
+export type VendorClosureNoticeStatus = Exclude<VendorEmailDeliveryStatus, 'not_sent'> | 'pending';
 
 export type VendorEventApplication = {
   id: string;
@@ -49,6 +53,9 @@ export type VendorEventApplication = {
   invitation_resend_id: string | null;
   invitation_error: string | null;
   invitation_version: number;
+  closure_notice_status?: VendorClosureNoticeStatus | null;
+  closure_notice_sent_at?: string | null;
+  closure_notice_error?: string | null;
   applied_at: string;
   updated_at: string;
   event_name: string;
@@ -122,7 +129,7 @@ async function attachEventApplications(
 
   const { data: applications, error } = await supabase
     .from('vendor_event_applications')
-    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, additional_notes, vendor_application_receipts(status), booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, applied_at, updated_at, events(title, event_date, venue)')
+    .select('id, vendor_id, event_id, application_status, tables_requested, power_requirements, additional_notes, vendor_application_receipts(status), booth_assignment, rejection_reason, approved_vendor_fee, invitation_status, invitation_sent_at, invitation_last_attempt_at, invitation_attempt_count, invitation_resend_id, invitation_error, invitation_version, closure_notice_status, closure_notice_sent_at, closure_notice_error, applied_at, updated_at, events(title, event_date, venue)')
     .in('vendor_id', vendors.map((vendor) => vendor.id))
     .order('applied_at', { ascending: false });
 
@@ -160,6 +167,9 @@ async function attachEventApplications(
       invitation_resend_id: row.invitation_resend_id,
       invitation_error: row.invitation_error,
       invitation_version: row.invitation_version,
+      closure_notice_status: row.closure_notice_status,
+      closure_notice_sent_at: row.closure_notice_sent_at,
+      closure_notice_error: row.closure_notice_error,
       applied_at: row.applied_at,
       updated_at: row.updated_at,
       event_name: event?.title || 'Deleted event',
@@ -191,11 +201,19 @@ const vendorApplicationSchema = z.object({
   description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
   categories: z.array(z.string()).min(1, 'Please select at least one category'),
   social_links: z.string().min(1, 'Social media link is required').url('Please enter a valid URL'),
-  tables_requested: z.string().min(1, 'Please select the number of tables'),
+  tables_requested: z.string(),
   power_requirements: z.string().optional(),
-  additional_notes: z.string().optional(),
-  event_ids: z.array(z.string().uuid('Please select valid events')).min(1, 'Please select at least one event'),
+  additional_notes: z.string().max(2000).optional(),
+  registration_kind: z.enum(['events', 'directory']),
+  event_ids: z.array(z.string().uuid('Please select valid events')).max(20),
   agreement: z.literal(true).refine((val) => val === true, { message: 'You must agree to the Terms and Conditions' }),
+}).superRefine((value, ctx) => {
+  if (value.registration_kind === 'events') {
+    if (!value.event_ids.length) ctx.addIssue({ code: 'custom', path: ['event_ids'], message: 'Please select at least one event' });
+    if (!['1', '2', '3', '4', '5+'].includes(value.tables_requested)) ctx.addIssue({ code: 'custom', path: ['tables_requested'], message: 'Please select the number of tables' });
+  } else if (value.event_ids.length) {
+    ctx.addIssue({ code: 'custom', path: ['event_ids'], message: 'Directory registration cannot include events' });
+  }
 });
 
 const MAX_LOGO_SIZE = 5 * 1024 * 1024;
@@ -208,6 +226,7 @@ const LOGO_EXTENSION_BY_TYPE: Record<string, string> = {
 };
 
 type VendorApplicationFields = {
+  registration_kind: string;
   business_name: string;
   contact_name: string;
   email: string;
@@ -485,6 +504,14 @@ async function sendAndTrackNewApplicationEmail(input: {
 }
 
 /** Submit a vendor application (publicly accessible) */
+export async function getVendorDirectoryRegistrationAvailable(): Promise<boolean> {
+  try {
+    const { data, error } = await createPublicVendorsClient()
+      .rpc('vendor_directory_registration_available').abortSignal(AbortSignal.timeout(4000));
+    return !error && data === true;
+  } catch { return false; }
+}
+
 export async function submitVendorApplication(
   prevState: ActionState,
   formData: FormData
@@ -495,6 +522,7 @@ export async function submitVendorApplication(
   const eventIds = [...new Set(formData.getAll('event_ids').map(String))];
   const logo = formData.get('logo') as File | null;
   const fields: VendorApplicationFields = {
+    registration_kind: String(formData.get('registration_kind') || 'events'),
     business_name: String(formData.get('business_name') || ''),
     contact_name: String(formData.get('contact_name') || ''),
     email: String(formData.get('email') || ''),
@@ -524,15 +552,26 @@ export async function submitVendorApplication(
   if (logo.size > MAX_LOGO_SIZE) return { message: 'Logo file size must be less than 5MB.', fields };
   if (!ALLOWED_LOGO_TYPES.has(logo.type)) return { message: 'Logo must be a JPG, PNG, WebP, or GIF image.', fields };
 
-  const { data: selectedEvents, error: eventError } = await supabase
+  const selectableEvents = () => supabase
     .from('events')
     .select('id, title')
     .in('id', validatedFields.data.event_ids)
     .gte('event_date', getEventMarketDate())
     .eq('status', 'upcoming');
+  let { data: selectedEvents, error: eventError }: {
+    data: Array<{ id: string; title: string }> | null;
+    error: { code?: string } | null;
+  } = validatedFields.data.registration_kind === 'directory'
+    ? { data: [], error: null }
+    : await selectableEvents().is('vendor_applications_closed_at', null);
+  // Keep registration working if code deploys before the closure migration;
+  // the database trigger remains the authority once it exists.
+  if (eventError && ['42703', '42501'].includes(eventError.code || '')) {
+    ({ data: selectedEvents, error: eventError } = await selectableEvents());
+  }
 
   if (eventError || selectedEvents?.length !== validatedFields.data.event_ids.length) {
-    return { message: 'One or more selected events are no longer available.', fields };
+    return { message: 'One or more selected events are no longer accepting vendor applications. Refresh the page and choose an available event.', fields };
   }
 
   const vendorId = crypto.randomUUID();
@@ -554,7 +593,7 @@ export async function submitVendorApplication(
   }
 
   const logoUrl = supabase.storage.from('vendor_logos').getPublicUrl(filePath).data.publicUrl;
-  const { data: submissionData, error: dbError } = await supabase.rpc('submit_vendor_with_events', {
+  const submissionParameters = {
     p_vendor_id: vendorId,
     p_business_name: validatedFields.data.business_name,
     p_contact_name: validatedFields.data.contact_name,
@@ -569,11 +608,23 @@ export async function submitVendorApplication(
     p_power_requirements: validatedFields.data.power_requirements || '',
     p_additional_notes: validatedFields.data.additional_notes || '',
     p_event_ids: validatedFields.data.event_ids,
-  });
+  };
+  let { data: submissionData, error: dbError } = await supabase.rpc('submit_vendor_registration', submissionParameters);
+  // Keep established event registration working if code deploys before SQL.
+  if (dbError?.code === 'PGRST202' && validatedFields.data.registration_kind === 'events') {
+    ({ data: submissionData, error: dbError } = await supabase.rpc('submit_vendor_with_events', submissionParameters));
+  }
 
   if (dbError) {
     console.error('Error submitting vendor application:', JSON.stringify(dbError, null, 2));
-    await supabase.storage.from('vendor_logos').remove([filePath]);
+    // A connection failure may happen after the transaction commits. Deleting
+    // then would break a saved profile or review request's logo.
+    const confirmedRejection = /^(22|23|42|PGRST)/.test(dbError.code || '');
+    if (confirmedRejection) await supabase.storage.from('vendor_logos').remove([filePath]);
+    else return {
+      message: `We could not confirm whether your application was saved. Please contact support with reference ${vendorId} before submitting again.`,
+      fields,
+    };
     if (isDatabaseSetupError(dbError)) {
       return { message: 'Database setup incomplete. Please contact support.', fields };
     }
@@ -588,6 +639,18 @@ export async function submitVendorApplication(
       return { message: 'A profile already uses these details. Choose “Use your existing vendor profile” above to verify your email and apply without a new logo. If your email has changed, contact support.', fields };
     }
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
+  }
+
+  // Queue submissions have no vendor/event ownership until an admin reviews them.
+  // Never send event invitations or claim that a receipt email was sent here.
+  if (submissionData?.review_request_id) {
+    revalidatePath('/admin/vendors');
+    return {
+      success: true,
+      message: validatedFields.data.registration_kind === 'directory'
+        ? `Directory registration received for review. Your listing will appear only after approval. This does not reserve a place at an event. To apply later, submit this form again and choose events. Reference: ${submissionData.review_request_id}.`
+        : `Application received for admin review. No event place is confirmed yet. Reference: ${submissionData.review_request_id}.`,
+    };
   }
 
   const savedApplication = submissionData && typeof submissionData === 'object'
@@ -1359,6 +1422,342 @@ export async function removeVendorEventApplication(applicationId: string): Promi
   revalidatePath('/vendors');
   updateTag('vendors');
   return { success: true, message: 'Event application removed.' };
+}
+
+// ============================================
+// Closing vendor applications once spots are filled
+// ============================================
+
+const CLOSURE_REJECTION_REASON = 'All vendor spots for this event have been filled.';
+const CLOSURE_NOTICE_STALE_MS = 10 * 60 * 1000;
+const CLOSURE_NOTICE_MAX_PER_RUN = 2000;
+const CLOSURE_SETUP_MESSAGE = 'Database setup incomplete. Apply the vendor application closure migration, then try again.';
+
+export type VendorApplicationClosureResult = {
+  success: boolean;
+  message: string;
+  closed_at?: string | null;
+  declined?: number;
+  sent?: number;
+  failed?: number;
+  queued_requests?: number;
+};
+
+type ClosureEventRecord = {
+  id: string;
+  title: string;
+  event_date: string | null;
+  vendor_contact_email: string | null;
+  vendor_applications_closed_at: string | null;
+};
+
+async function getClosureEvent(
+  supabase: SupabaseClient,
+  eventId: string,
+): Promise<{ event: ClosureEventRecord | null; error: string }> {
+  const { data, error } = await supabase
+    .from('events')
+    .select('id, title, event_date, vendor_contact_email, vendor_applications_closed_at')
+    .eq('id', eventId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error loading event for vendor application closure:', JSON.stringify(error, null, 2));
+    return {
+      event: null,
+      error: isDatabaseSetupError(error) ? CLOSURE_SETUP_MESSAGE : `Could not load the event: ${error.message}`,
+    };
+  }
+  return { event: data as ClosureEventRecord | null, error: data ? '' : 'Event not found.' };
+}
+
+/** Notices that still need sending: queued, failed, or stuck mid-send. */
+function closureNoticeDueFilter() {
+  const staleBefore = new Date(Date.now() - CLOSURE_NOTICE_STALE_MS).toISOString();
+  return `closure_notice_status.in.(pending,failed),and(closure_notice_status.eq.sending,closure_notice_last_attempt_at.lt."${staleBefore}")`;
+}
+
+async function getClosureNoticeIdempotencyKey(eventId: string, payload: unknown) {
+  // Keyed on the exact content: an identical retry is deduplicated by the
+  // provider, and a changed recipient or closure never reuses a stale key.
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(payload)));
+  const suffix = Array.from(new Uint8Array(digest).slice(0, 12))
+    .map((value) => value.toString(16).padStart(2, '0'))
+    .join('');
+  return `vendor-closure-${eventId}-${suffix}`;
+}
+
+async function deliverClosureNotices(
+  supabase: SupabaseClient,
+  event: ClosureEventRecord,
+): Promise<{ sent: number; failed: number; error: string | null }> {
+  const { data, error } = await supabase
+    .from('vendor_event_applications')
+    .select('id, vendors(email, business_name, contact_name)')
+    .eq('event_id', event.id)
+    .eq('application_status', 'rejected')
+    .or(closureNoticeDueFilter())
+    .order('id')
+    .limit(CLOSURE_NOTICE_MAX_PER_RUN);
+
+  if (error) {
+    console.error('Error loading closure notices:', JSON.stringify(error, null, 2));
+    return { sent: 0, failed: 0, error: error.message };
+  }
+
+  const candidates = (data || []) as unknown as Array<{
+    id: string;
+    vendors: InvitationVendorRecord | InvitationVendorRecord[] | null;
+  }>;
+  let sent = 0;
+  let failed = 0;
+
+  for (let offset = 0; offset < candidates.length; offset += APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE) {
+    const chunk = candidates.slice(offset, offset + APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE);
+    // Claim before sending so a double click or a second admin cannot email
+    // the same applicant twice.
+    const { data: claimed, error: claimError } = await supabase
+      .from('vendor_event_applications')
+      .update({
+        closure_notice_status: 'sending',
+        closure_notice_last_attempt_at: new Date().toISOString(),
+        closure_notice_error: null,
+      })
+      .in('id', chunk.map((row) => row.id))
+      .eq('application_status', 'rejected')
+      .or(closureNoticeDueFilter())
+      .select('id');
+
+    if (claimError) {
+      console.error('Error claiming closure notices:', JSON.stringify(claimError, null, 2));
+      return { sent, failed, error: claimError.message };
+    }
+
+    const claimedIds = new Set((claimed || []).map((row) => row.id as string));
+    const failures = new Map<string, string[]>();
+    const addFailure = (message: string, id: string) =>
+      failures.set(message, [...(failures.get(message) || []), id]);
+    const deliverable: Array<{ id: string; vendor: InvitationVendorRecord }> = [];
+    for (const row of chunk) {
+      if (!claimedIds.has(row.id)) continue;
+      const vendor = oneRelation(row.vendors);
+      if (vendor?.email) deliverable.push({ id: row.id, vendor });
+      else addFailure('Vendor contact details are missing.', row.id);
+    }
+
+    const emails = deliverable.map(({ id, vendor }) => ({
+      applicationId: id,
+      eventId: event.id,
+      recipientEmail: vendor.email,
+      businessName: vendor.business_name,
+      contactName: vendor.contact_name,
+      eventName: event.title,
+      eventDate: event.event_date,
+      replyTo: event.vendor_contact_email,
+    }));
+    const results = await sendApplicationsClosedEmails(
+      emails,
+      await getClosureNoticeIdempotencyKey(event.id, [event.vendor_applications_closed_at, emails]),
+    );
+
+    const sentAt = new Date().toISOString();
+    const tracked: Array<{ id: string; resendId: string }> = [];
+    const untracked: string[] = [];
+    results.forEach((result, index) => {
+      const { id } = deliverable[index];
+      if (!result.success) addFailure(result.error.slice(0, 1000), id);
+      else if (result.id) tracked.push({ id, resendId: result.id });
+      else untracked.push(id);
+    });
+
+    const finish = (ids: string[], values: Record<string, unknown>) => supabase
+      .from('vendor_event_applications')
+      .update(values)
+      .in('id', ids)
+      .eq('closure_notice_status', 'sending');
+    const sentValues = { closure_notice_status: 'sent', closure_notice_sent_at: sentAt, closure_notice_error: null };
+    const writes: Array<() => PromiseLike<{ error: unknown }>> = [
+      ...[...failures].map(([message, ids]) => () => finish(ids, {
+        closure_notice_status: 'failed',
+        closure_notice_error: message,
+      })),
+      ...(untracked.length ? [() => finish(untracked, { ...sentValues, closure_notice_resend_id: null })] : []),
+      ...tracked.map(({ id, resendId }) => () => finish([id], { ...sentValues, closure_notice_resend_id: resendId })),
+    ];
+    for (let index = 0; index < writes.length; index += 10) {
+      const outcomes = await Promise.all(writes.slice(index, index + 10).map((write) => write()));
+      for (const outcome of outcomes) {
+        if (outcome.error) console.error('Could not record closure notice result:', JSON.stringify(outcome.error, null, 2));
+      }
+    }
+
+    sent += tracked.length + untracked.length;
+    failed += [...failures.values()].reduce((total, ids) => total + ids.length, 0);
+  }
+
+  return { sent, failed, error: null };
+}
+
+function revalidateVendorApplicationAvailability() {
+  revalidatePath('/vendors/apply');
+  revalidatePath('/vendors');
+  updateTag('events');
+  updateTag('vendors');
+}
+
+const plural = (count: number, noun: string) => `${count} ${noun}${count === 1 ? '' : 's'}`;
+
+/**
+ * Vendor spots are filled: stop new applications for the event, mark everyone
+ * still awaiting a decision as not accepted, and email them. Safe to run again;
+ * approved vendors are never touched and nobody is emailed twice.
+ */
+export async function closeVendorApplications(
+  eventId: string,
+  options: { includeWaitlisted?: boolean } = {},
+): Promise<VendorApplicationClosureResult> {
+  if (!z.string().uuid().safeParse(eventId).success) return { success: false, message: 'Invalid event.' };
+  const includeWaitlisted = options?.includeWaitlisted === true;
+
+  const supabase = await requireAdminClient();
+  if (!supabase) return { success: false, message: 'Admin access required.' };
+  const { event, error: eventError } = await getClosureEvent(supabase, eventId);
+  if (!event) return { success: false, message: eventError };
+
+  const now = new Date().toISOString();
+  if (!event.vendor_applications_closed_at) {
+    const { data: closedEvent, error: closeError } = await supabase
+      .from('events')
+      .update({ vendor_applications_closed_at: now })
+      .eq('id', eventId)
+      .is('vendor_applications_closed_at', null)
+      .select('vendor_applications_closed_at')
+      .maybeSingle();
+    if (closeError) {
+      console.error('Error closing vendor applications:', JSON.stringify(closeError, null, 2));
+      return { success: false, message: `Could not close vendor applications: ${closeError.message}` };
+    }
+    // No row means another admin closed it a moment ago; keep going.
+    event.vendor_applications_closed_at = closedEvent?.vendor_applications_closed_at || now;
+  }
+  const closedAt = event.vendor_applications_closed_at;
+
+  // Applications are closed first, so nobody can apply between this sweep and the emails.
+  const { data: declinedRows, error: sweepError } = await supabase
+    .from('vendor_event_applications')
+    .update({
+      application_status: 'rejected',
+      rejection_reason: CLOSURE_REJECTION_REASON,
+      closure_notice_status: 'pending',
+      closure_notice_sent_at: null,
+      closure_notice_resend_id: null,
+      closure_notice_error: null,
+      updated_at: now,
+    })
+    .eq('event_id', eventId)
+    .in('application_status', includeWaitlisted ? ['pending', 'waitlisted'] : ['pending'])
+    .select('id');
+
+  revalidateVendorApplicationAvailability();
+  if (sweepError) {
+    console.error('Error marking applicants as not accepted:', JSON.stringify(sweepError, null, 2));
+    return {
+      success: false,
+      closed_at: closedAt,
+      message: `Vendor applications are now closed, but applicants could not be updated: ${sweepError.message}. No emails were sent. Run this again to retry.`,
+    };
+  }
+
+  const declined = declinedRows?.length || 0;
+  const delivery = await deliverClosureNotices(supabase, event);
+
+  // Queue submissions have no application row yet, so they are never emailed here.
+  const { count: queuedRequests } = await supabase
+    .from('vendor_registration_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('status', 'pending')
+    .eq('kind', 'events')
+    .contains('event_ids', [eventId]);
+
+  const parts = [
+    `Vendor applications closed for ${event.title}.`,
+    `${plural(declined, 'applicant')} marked not accepted and ${plural(delivery.sent, 'email')} sent.`,
+  ];
+  if (delivery.failed > 0) parts.push(`${plural(delivery.failed, 'email')} failed — use "Retry unsent emails".`);
+  if (delivery.error) parts.push(`Email delivery stopped early: ${delivery.error}. Use "Retry unsent emails".`);
+  if (queuedRequests) {
+    parts.push(`${plural(queuedRequests, 'unreviewed registration request')} for this event ${queuedRequests === 1 ? 'was' : 'were'} not emailed — decline ${queuedRequests === 1 ? 'it' : 'them'} in the review queue.`);
+  }
+
+  return {
+    success: true,
+    message: parts.join(' '),
+    closed_at: closedAt,
+    declined,
+    sent: delivery.sent,
+    failed: delivery.failed + (delivery.error ? 1 : 0),
+    queued_requests: queuedRequests || 0,
+  };
+}
+
+/** Retry "spots filled" emails that failed or were interrupted. */
+export async function retryVendorClosureNotices(eventId: string): Promise<VendorApplicationClosureResult> {
+  if (!z.string().uuid().safeParse(eventId).success) return { success: false, message: 'Invalid event.' };
+
+  const supabase = await requireAdminClient();
+  if (!supabase) return { success: false, message: 'Admin access required.' };
+  const { event, error: eventError } = await getClosureEvent(supabase, eventId);
+  if (!event) return { success: false, message: eventError };
+
+  const delivery = await deliverClosureNotices(supabase, event);
+  if (delivery.error) {
+    return {
+      success: false,
+      sent: delivery.sent,
+      failed: delivery.failed,
+      message: `Email delivery stopped early: ${delivery.error}. ${plural(delivery.sent, 'email')} sent before the problem.`,
+    };
+  }
+  if (delivery.sent === 0 && delivery.failed === 0) {
+    return {
+      success: true,
+      sent: 0,
+      failed: 0,
+      message: 'No emails are waiting. An email that was interrupted mid-send can be retried after 10 minutes.',
+    };
+  }
+  return {
+    success: delivery.failed === 0,
+    sent: delivery.sent,
+    failed: delivery.failed,
+    message: `${plural(delivery.sent, 'email')} sent${delivery.failed > 0 ? `; ${plural(delivery.failed, 'email')} failed again. Check the vendor's email address and retry` : ''}.`,
+  };
+}
+
+/** Accept applications for the event again. Earlier decisions and emails are not undone. */
+export async function reopenVendorApplications(eventId: string): Promise<VendorApplicationClosureResult> {
+  if (!z.string().uuid().safeParse(eventId).success) return { success: false, message: 'Invalid event.' };
+
+  const supabase = await requireAdminClient();
+  if (!supabase) return { success: false, message: 'Admin access required.' };
+  const { error } = await supabase
+    .from('events')
+    .update({ vendor_applications_closed_at: null })
+    .eq('id', eventId);
+  if (error) {
+    console.error('Error reopening vendor applications:', JSON.stringify(error, null, 2));
+    return {
+      success: false,
+      message: isDatabaseSetupError(error) ? CLOSURE_SETUP_MESSAGE : `Could not reopen vendor applications: ${error.message}`,
+    };
+  }
+
+  revalidateVendorApplicationAvailability();
+  return {
+    success: true,
+    closed_at: null,
+    message: 'Vendor applications reopened. Vendors already told they were not accepted keep that decision.',
+  };
 }
 
 export async function updateVendor(vendorId: string, data: VendorUpdateData): Promise<ActionState> {

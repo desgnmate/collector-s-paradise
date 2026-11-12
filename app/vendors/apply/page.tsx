@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import VendorApplicationForm from '@/components/VendorApplicationForm';
 import { getVendorApplicationEvents } from '@/app/actions/events';
+import { getVendorDirectoryRegistrationAvailable } from '@/app/actions/vendors';
 
 export const revalidate = 0;
 
@@ -37,7 +38,9 @@ export const metadata: Metadata = {
 };
 
 export default async function VendorApplyPage() {
-  const availableEvents = await getVendorApplicationEvents();
+  const [availableEvents, directoryEnabled] = await Promise.all([
+    getVendorApplicationEvents(), getVendorDirectoryRegistrationAvailable(),
+  ]);
 
   return (
     <main>
@@ -56,7 +59,7 @@ export default async function VendorApplyPage() {
           <div className="vendor-apply-layout">
             {/* Form */}
             <div className="vendor-apply-form-wrapper">
-              <VendorApplicationForm events={availableEvents} />
+              <VendorApplicationForm events={availableEvents} directoryEnabled={directoryEnabled} />
             </div>
 
 

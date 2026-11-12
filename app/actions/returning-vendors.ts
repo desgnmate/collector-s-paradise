@@ -94,6 +94,8 @@ export async function submitReturningVendor(_previous: ReturningActionState, for
       console.error('vendor_reapplication', { reference, stage: 'save', code: error.code });
       return { message: error.code === '42501'
         ? 'This profile is not available for your verified email. Sign in with the original email or contact support.'
+        : error.code === '22023' && /applications are closed/i.test(error.message)
+          ? 'One or more selected events are no longer accepting vendor applications. Nothing was saved. Refresh the page and choose an available event.'
         : `We could not confirm the save. Please retry; an existing application will not be duplicated. Reference: ${reference}` };
     }
     // A malformed/ambiguous response must never invent success or event IDs.

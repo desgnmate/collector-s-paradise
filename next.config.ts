@@ -28,6 +28,11 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ['lucide-react', 'framer-motion'],
   },
   images: {
+    localPatterns: [
+      { pathname: '/**', search: '' },
+      // Cover versions invalidate both browser and image-optimizer caches.
+      { pathname: '/api/events/*/cover' },
+    ],
     formats: ['image/avif', 'image/webp'],
     remotePatterns: supabaseHostname
       ? [{ protocol: 'https', hostname: supabaseHostname, pathname: '/storage/v1/object/public/**' }]

@@ -31,8 +31,8 @@ export default function EventsContent() {
       e.target.value = '';
       return;
     }
-    if (!file.type.startsWith('image/')) {
-      setMessage({ text: 'Cover image must be an image file.', type: 'error' });
+    if (!['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type)) {
+      setMessage({ text: 'Cover image must be a JPG, PNG, WebP or GIF.', type: 'error' });
       e.target.value = '';
       return;
     }
@@ -74,7 +74,8 @@ export default function EventsContent() {
         if (result.event) upsertEvent(result.event);
         else void refreshData(['events']);
       } else {
-        setMessage({ text: result.message, type: 'error' });
+        const details = result.errors ? Object.values(result.errors).flat().filter(Boolean).join(' ') : '';
+        setMessage({ text: details || result.message, type: 'error' });
       }
     } catch {
       setMessage({ text: 'Something went wrong. Please try again.', type: 'error' });
