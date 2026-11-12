@@ -1441,6 +1441,18 @@ export type VendorApplicationClosureResult = {
   sent?: number;
   failed?: number;
   queued_requests?: number;
+  /** Applications this run marked not accepted; lets the admin screen update without a reload. */
+  declined_ids?: string[];
+  rejection_reason?: string;
+  /** Email outcome for every application this run attempted. */
+  notices?: VendorClosureNoticeUpdate[];
+};
+
+export type VendorClosureNoticeUpdate = {
+  application_id: string;
+  status: VendorClosureNoticeStatus;
+  sent_at: string | null;
+  error: string | null;
 };
 
 type ClosureEventRecord = {
@@ -1490,7 +1502,8 @@ async function getClosureNoticeIdempotencyKey(eventId: string, payload: unknown)
 async function deliverClosureNotices(
   supabase: SupabaseClient,
   event: ClosureEventRecord,
-): Promise<{ sent: number; failed: number; error: string | null }> {
+): Promise<{ sent: number; failed: number; error: string | null; notices: VendorClosureNoticeUpdate[] }> {
+  const notices: VendorClosureNoticeUpdate[] = [];
   const { data, error } = await supabase
     .from('vendor_event_applications')
     .select('id, vendors(email, business_name, contact_name)')
@@ -1502,7 +1515,7 @@ async function deliverClosureNotices(
 
   if (error) {
     console.error('Error loading closure notices:', JSON.stringify(error, null, 2));
-    return { sent: 0, failed: 0, error: error.message };
+    return { sent: 0, failed: 0, error: error.message, notices };
   }
 
   const candidates = (data || []) as unknown as Array<{
@@ -1530,7 +1543,7 @@ async function deliverClosureNotices(
 
     if (claimError) {
       console.error('Error claiming closure notices:', JSON.stringify(claimError, null, 2));
-      return { sent, failed, error: claimError.message };
+      return { sent, failed, error: claimError.message, notices };
     }
 
     const claimedIds = new Set((claimed || []).map((row) => row.id as string));
@@ -1591,11 +1604,17 @@ async function deliverClosureNotices(
       }
     }
 
+    for (const id of [...tracked.map((item) => item.id), ...untracked]) {
+      notices.push({ application_id: id, status: 'sent', sent_at: sentAt, error: null });
+    }
+    for (const [message, ids] of failures) {
+      for (const id of ids) notices.push({ application_id: id, status: 'failed', sent_at: null, error: message });
+    }
     sent += tracked.length + untracked.length;
     failed += [...failures.values()].reduce((total, ids) => total + ids.length, 0);
   }
 
-  return { sent, failed, error: null };
+  return { sent, failed, error: null, notices };
 }
 
 function revalidateVendorApplicationAvailability() {
@@ -1697,6 +1716,9 @@ export async function closeVendorApplications(
     sent: delivery.sent,
     failed: delivery.failed + (delivery.error ? 1 : 0),
     queued_requests: queuedRequests || 0,
+    declined_ids: (declinedRows || []).map((row) => row.id as string),
+    rejection_reason: CLOSURE_REJECTION_REASON,
+    notices: delivery.notices,
   };
 }
 
@@ -1715,6 +1737,7 @@ export async function retryVendorClosureNotices(eventId: string): Promise<Vendor
       success: false,
       sent: delivery.sent,
       failed: delivery.failed,
+      notices: delivery.notices,
       message: `Email delivery stopped early: ${delivery.error}. ${plural(delivery.sent, 'email')} sent before the problem.`,
     };
   }
@@ -1730,6 +1753,7 @@ export async function retryVendorClosureNotices(eventId: string): Promise<Vendor
     success: delivery.failed === 0,
     sent: delivery.sent,
     failed: delivery.failed,
+    notices: delivery.notices,
     message: `${plural(delivery.sent, 'email')} sent${delivery.failed > 0 ? `; ${plural(delivery.failed, 'email')} failed again. Check the vendor's email address and retry` : ''}.`,
   };
 }

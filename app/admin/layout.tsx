@@ -12,9 +12,6 @@ import AdminConfigurationNotice from '@/components/AdminConfigurationNotice';
 import { loadAdminDataSnapshot } from '@/lib/admin/data';
 import logo from '@/public/images/logo.png';
 
-// Admin server actions include bulk vendor emails, which can outlast the default limit.
-export const maxDuration = 60;
-
 export const metadata: Metadata = {
   title: "Admin Panel | Collector's Paradise",
   robots: { index: false, follow: false },

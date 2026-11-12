@@ -359,7 +359,38 @@ export default function AdminVendorsClient() {
         ? { ...event, vendor_applications_closed_at: result.closed_at }
         : event));
     }
-    void refreshData(['vendors', 'events']);
+    // Apply the result directly. The admin vendor snapshot is large, and a
+    // reload here overlaps the one the action already triggers and fails.
+    const declinedIds = new Set(result.declined_ids || []);
+    const notices = new Map((result.notices || []).map((notice) => [notice.application_id, notice]));
+    if (declinedIds.size === 0 && notices.size === 0) return;
+    setVendors((current) => current.map((vendor) => (
+      vendor.event_applications.some((application) => declinedIds.has(application.id) || notices.has(application.id))
+        ? {
+            ...vendor,
+            event_applications: vendor.event_applications.map((application) => {
+              const declined = declinedIds.has(application.id);
+              const notice = notices.get(application.id);
+              if (!declined && !notice) return application;
+              return {
+                ...application,
+                ...(declined ? {
+                  application_status: 'rejected' as const,
+                  rejection_reason: result.rejection_reason || application.rejection_reason,
+                  closure_notice_status: 'pending' as const,
+                  closure_notice_sent_at: null,
+                  closure_notice_error: null,
+                } : {}),
+                ...(notice ? {
+                  closure_notice_status: notice.status,
+                  closure_notice_sent_at: notice.sent_at,
+                  closure_notice_error: notice.error,
+                } : {}),
+              };
+            }),
+          }
+        : vendor
+    )));
   };
 
   const confirmClosure = async () => {
