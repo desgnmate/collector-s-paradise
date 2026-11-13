@@ -153,8 +153,10 @@ export default function AdminSponsorsClient() {
   return (
     <div className="admin-content-panel">
       <div className="vendor-page-header">
-        <h2 className="vendor-page-title">Sponsor Applications</h2>
-        <p className="vendor-page-subtitle">Review and manage sponsorship applications</p>
+        <div>
+          <h2 className="vendor-page-title">Sponsor Applications</h2>
+          <p className="vendor-page-subtitle">Review and manage sponsorship applications.</p>
+        </div>
       </div>
 
       <div className="admin-tabs">

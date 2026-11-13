@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import { useAdminData } from '@/contexts/AdminDataContext';
 import { useAdminRouter } from '@/contexts/AdminRouterContext';
+import { formatEventTimeRange } from '@/lib/event-date';
 
 export default function DashboardContent() {
   const { stats: displayStats, events, loading } = useAdminData();
@@ -122,7 +123,7 @@ export default function DashboardContent() {
           {upcomingEvents.length > 0 ? (
             <div className="events-grid">
               {upcomingEvents.map(event => (
-                <div key={event.id} className="event-card">
+                <div key={event.id} className={`event-card ${event.cover_image_url ? '' : 'event-card--no-cover'}`}>
                   {event.cover_image_url && (
                     <div className="event-cover-image-wrapper">
                       <Image src={event.cover_image_url} alt={event.title} className="event-cover-image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{ objectFit: 'cover' }} />
@@ -147,7 +148,7 @@ export default function DashboardContent() {
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                       </svg>
-                      <span>{event.start_time} – {event.end_time}</span>
+                      <span>{formatEventTimeRange(event.start_time, event.end_time)}</span>
                     </div>
 
                     {(event.venue_address || event.venue) && (

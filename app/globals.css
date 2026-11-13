@@ -19972,3 +19972,270 @@ fieldset.vendor-form-group {
   outline: 3px solid var(--color-blue-primary);
   outline-offset: 2px;
 }
+
+/* ============================================
+   Admin polish (Nov 2026)
+   Loaded last on purpose: earlier admin rules are layered across several
+   redesigns, and these resolve the conflicts between them.
+   ============================================ */
+
+/* -- Review queue: lives inside Vendor Management as its own tab -- */
+.vendor-management-view-switch button.has-attention span {
+  background: var(--admin-yellow);
+  color: #242522;
+}
+
+.vendor-review-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: -12px 0 24px;
+  padding: 12px 14px 12px 16px;
+  border: 1px solid var(--admin-border);
+  border-left: 4px solid var(--admin-yellow);
+  border-radius: 10px;
+  background: var(--admin-yellow-soft);
+}
+.vendor-review-callout p {
+  margin: 0;
+  color: var(--admin-text-secondary);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+.vendor-review-callout strong { color: var(--admin-text-primary); }
+
+.vendor-review-list { margin-top: 2px; }
+.vendor-review-row { cursor: default; }
+.vendor-review-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+.vendor-review-meta small {
+  min-width: 78px;
+  color: var(--admin-text-muted);
+  font-size: 0.66rem;
+  text-align: right;
+}
+.vendor-review-kind {
+  display: inline-flex;
+  align-items: center;
+  min-height: 25px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.vendor-review-kind.is-events { color: #1d4f91; background: #dce8f8; }
+.vendor-review-kind.is-directory { color: #5b3fa0; background: #e9e1f8; }
+.vendor-review-kind.is-match { color: #7b5800; background: #f8e7b0; }
+html[data-admin-theme="dark"] .vendor-review-kind.is-events { color: #9cc3f5; background: rgba(59, 130, 246, 0.16); }
+html[data-admin-theme="dark"] .vendor-review-kind.is-directory { color: #c4b2f5; background: rgba(139, 92, 246, 0.16); }
+html[data-admin-theme="dark"] .vendor-review-kind.is-match { color: #f4d27a; background: rgba(244, 197, 66, 0.16); }
+
+.vendor-review-more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  color: var(--admin-text-secondary);
+  font-size: 0.72rem;
+}
+.vendor-review-footnote {
+  margin: 12px 0 0;
+  color: var(--admin-text-muted);
+  font-size: 0.7rem;
+}
+
+.vendor-review-approved {
+  margin-top: 24px;
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  background: var(--admin-surface-raised);
+}
+.vendor-review-approved summary {
+  padding: 14px 16px;
+  color: var(--admin-text-primary);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  list-style-position: inside;
+}
+.vendor-review-approved summary:focus-visible { outline: 3px solid var(--admin-yellow); outline-offset: 2px; border-radius: 12px; }
+.vendor-review-approved ul { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--admin-border); }
+.vendor-review-approved li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--admin-border);
+  color: var(--admin-text-primary);
+  font-size: 0.76rem;
+}
+.vendor-review-approved li:last-child { border-bottom: 0; }
+
+.vendor-review-matches {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 10px;
+  background: var(--admin-surface-raised);
+}
+.vendor-review-matches > strong { display: block; color: var(--admin-text-primary); font-size: 0.76rem; }
+.vendor-review-matches > p { margin: 3px 0 10px; color: var(--admin-text-secondary); font-size: 0.68rem; }
+.vendor-review-matches ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.vendor-review-matches ul { grid-template-columns: minmax(0, 1fr); }
+.vendor-review-matches li .vendor-management-row-action { flex-shrink: 0; min-height: 32px; padding: 7px 10px; font-size: 0.66rem; }
+.vendor-review-matches li { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.vendor-review-matches li > span { min-width: 0; display: flex; flex-direction: column; }
+.vendor-review-matches b { overflow: hidden; color: var(--admin-text-primary); font-size: 0.74rem; text-overflow: ellipsis; white-space: nowrap; }
+.vendor-review-matches small { overflow: hidden; color: var(--admin-text-secondary); font-size: 0.66rem; text-overflow: ellipsis; white-space: nowrap; }
+.vendor-review-matches button[aria-pressed="true"] { background: var(--admin-yellow) !important; color: #242522 !important; }
+.vendor-review-hint { margin: 12px 0 0; color: var(--admin-text-secondary); font-size: 0.7rem; line-height: 1.55; }
+.vendor-management-review-profile dd a { color: var(--admin-text-primary); font-weight: 700; word-break: break-all; }
+
+/* -- Page headers: title and subtitle always stack on the left -- */
+.vendor-page-header > div:first-child { min-width: 0; }
+.vendor-page-header .vendor-page-subtitle { margin-top: 6px; }
+
+/* -- Buttons: Reports used an older yellow, offset-shadow style -- */
+.admin-reports-refresh,
+.admin-report-save,
+.admin-report-email button {
+  min-height: 38px;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #292a27;
+  color: #fffdf8;
+  box-shadow: none;
+  font-family: var(--font-heading, system-ui, sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  transition: background var(--admin-transition), transform var(--admin-transition);
+}
+.admin-reports-refresh:hover:not(:disabled),
+.admin-report-save:hover:not(:disabled),
+.admin-report-email button:hover:not(:disabled) {
+  background: #44453f;
+  box-shadow: none;
+  transform: translateY(-1px);
+}
+.admin-reports-refresh:focus-visible,
+.admin-report-save:focus-visible,
+.admin-report-email button:focus-visible { outline: 3px solid var(--admin-yellow); outline-offset: 2px; }
+html[data-admin-theme="dark"] .admin-reports-refresh,
+html[data-admin-theme="dark"] .admin-report-save,
+html[data-admin-theme="dark"] .admin-report-email button { background: var(--admin-yellow); color: #242522; }
+
+/* -- Typography: values read as UI text, not code -- */
+.about-info-value,
+.admin-header-cache-info,
+.vendor-date { font-family: inherit; }
+
+/* -- Dashboard -- */
+.admin-quick-actions .admin-action-card {
+  justify-content: flex-start;
+  gap: 12px;
+}
+.admin-quick-actions .admin-action-card span { flex: 1; text-align: left; }
+.admin-quick-actions .admin-action-card::after {
+  content: '→';
+  color: var(--admin-text-muted);
+  font-weight: 700;
+  transition: transform var(--admin-transition), color var(--admin-transition);
+}
+.admin-quick-actions .admin-action-card:hover::after { color: var(--admin-text-primary); transform: translateX(3px); }
+.admin-dashboard-section--events .event-card.event-card--no-cover { padding-top: 14px; }
+.admin-section-link { padding-bottom: 3px; }
+
+/* Stat tiles wrap into a grid instead of hiding cards off-screen. */
+@media (max-width: 1180px) {
+  .admin-stats-grid {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    overflow: visible;
+  }
+}
+@media (max-width: 520px) {
+  .admin-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-stat-label { white-space: normal; }
+}
+
+/* -- Tab strips: scroll sideways on narrow screens instead of wrapping words -- */
+.vendor-management-view-switch,
+.admin-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.vendor-management-view-switch::-webkit-scrollbar,
+.admin-tabs::-webkit-scrollbar { display: none; }
+.vendor-management-view-switch button,
+.admin-tab { flex-shrink: 0; white-space: nowrap; }
+
+/* -- Tablet & phone: the sidebar becomes a top bar instead of disappearing.
+   An older rule hid it entirely at this width, leaving no navigation. -- */
+@media (max-width: 768px) {
+  .admin-sidebar {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    inset: auto;
+    width: 100%;
+    margin-bottom: 12px;
+    overflow: hidden;
+  }
+  .admin-sidebar-header { min-height: 0; padding: 12px 16px; }
+  .admin-sidebar-logo { flex-direction: row; align-items: center; justify-content: space-between; width: 100%; }
+  .admin-sidebar-logo img { height: 30px; }
+  .admin-nav {
+    flex-direction: row;
+    gap: 6px;
+    padding: 10px 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .admin-nav::-webkit-scrollbar { display: none; }
+  .admin-nav-label { display: none; }
+  .admin-nav-link { width: auto; min-width: max-content; min-height: 40px; scroll-snap-align: start; }
+  .admin-nav-link:hover { transform: none; }
+  .admin-sidebar-footer {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+    padding: 8px 12px;
+  }
+  .admin-sidebar-footer > *,
+  .admin-logout-form,
+  .admin-logout-btn { width: 100%; justify-content: center; margin-top: 0 !important; }
+  .admin-sidebar-footer .admin-theme-toggle,
+  .admin-sidebar-footer .admin-back-link,
+  .admin-sidebar-footer .admin-logout-btn { min-height: 38px; padding: 8px; white-space: nowrap; font-size: 0.68rem !important; }
+  .vendor-review-callout { flex-direction: column; align-items: stretch; margin-top: -8px; }
+}
+
+@media (max-width: 560px) {
+  .vendor-review-row { grid-template-columns: 42px minmax(0, 1fr); }
+  .vendor-review-row .vendor-review-meta { grid-column: 2; justify-content: flex-start; }
+  .vendor-review-row .vendor-review-meta small { min-width: 0; text-align: left; }
+  .vendor-review-row .vendor-management-row-action { grid-column: 2; justify-self: start; }
+  .vendor-review-more { flex-direction: column; align-items: stretch; }
+  .vendor-review-approved li { flex-direction: column; align-items: flex-start; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-quick-actions .admin-action-card::after,
+  .admin-reports-refresh,
+  .admin-report-save,
+  .admin-report-email button { transition: none; }
+}

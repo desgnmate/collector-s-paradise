@@ -146,8 +146,10 @@ export default function AdminVolunteersClient() {
   return (
     <div className="admin-content-panel">
       <div className="vendor-page-header">
-        <h2 className="vendor-page-title">Volunteer Applications</h2>
-        <p className="vendor-page-subtitle">Review and manage volunteer applications</p>
+        <div>
+          <h2 className="vendor-page-title">Volunteer Applications</h2>
+          <p className="vendor-page-subtitle">Review and manage volunteer applications.</p>
+        </div>
       </div>
 
       <div className="admin-tabs">

@@ -26,7 +26,8 @@ test('directory-only form saves a private review request without event requireme
   expect(state.registrations).toHaveLength(1);
   expect(state.registrations[0].event_ids).toEqual([]);
   expect(state.registrations[0].kind).toBe('directory');
-  expect(state.sent).toHaveLength(0);
+  // Only the admin review alert goes out; the applicant gets nothing until a decision.
+  expect(state.sent.map((entry:[string,{to:string|string[]}])=>[entry[1].to].flat())).toEqual([['admin@example.test']]);
 });
 
 test('repeat email event application queues submitted details without changing saved applications',async({page,request})=>{
@@ -40,7 +41,8 @@ test('repeat email event application queues submitted details without changing s
   expect(state.registrations[0].kind).toBe('events');
   expect(state.registrations[0].details.tables_requested).toBe('2');
   expect(state.applications).toHaveLength(4);
-  expect(state.sent).toHaveLength(0);
+  // Only the admin review alert goes out; the applicant gets nothing until a decision.
+  expect(state.sent.map((entry:[string,{to:string|string[]}])=>[entry[1].to].flat())).toEqual([['admin@example.test']]);
 });
 
 test('upload error keeps directory selection and entered information for retry',async({page,request})=>{
@@ -92,7 +94,8 @@ test('admin reviews a directory request, links later event request, then removes
   await page.goto(state.mails.at(-1).url);
   await page.goto('/admin/vendors');
   const queue=page.getByRole('region',{name:'Registration review'});
-  await queue.locator('summary').filter({hasText:'Directory Test Business — Directory only'}).click();
+  await page.getByRole('tab',{name:/Review queue/}).click();
+  await queue.getByRole('button',{name:'Review Directory Test Business — Directory only'}).click();
   await queue.getByLabel('Profile to use').selectOption('new');
   page.on('dialog',dialog=>dialog.accept());
   await queue.getByRole('button',{name:'Approve directory listing',exact:true}).click();
@@ -107,7 +110,8 @@ test('admin reviews a directory request, links later event request, then removes
   await page.getByRole('button',{name:'Submit Application',exact:true}).click();
   await expect(page.getByText('Application received for admin review.',{exact:false})).toBeVisible();
   await page.goto('/admin/vendors');
-  await queue.locator('summary').filter({hasText:'Directory Test Business — Event application'}).click();
+  await page.getByRole('tab',{name:/Review queue/}).click();
+  await queue.getByRole('button',{name:'Review Directory Test Business — Event application'}).click();
   await queue.getByLabel('Profile to use').selectOption(vendor.id);
   await queue.getByRole('button',{name:'Create pending event applications'}).click();
   await expect(queue.getByRole('status')).toContainText('Request processed');

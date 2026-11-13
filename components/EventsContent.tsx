@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useState, useRef } from 'react';
 import { createEvent, updateEvent, deleteEvent, type Event } from '@/app/actions/events';
 import { useAdminData } from '@/contexts/AdminDataContext';
+import { formatEventTimeRange } from '@/lib/event-date';
 
 export default function EventsContent() {
   const { events, setEvents, loading, errors, refreshData } = useAdminData();
@@ -254,7 +255,7 @@ export default function EventsContent() {
                     <circle cx="12" cy="12" r="10" />
                     <polyline points="12 6 12 12 16 14" />
                   </svg>
-                  <span>{event.start_time} – {event.end_time}</span>
+                  <span>{formatEventTimeRange(event.start_time, event.end_time)}</span>
                 </div>
                 {event.venue && (
                   <div className="event-detail">

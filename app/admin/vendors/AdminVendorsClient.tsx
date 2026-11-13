@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useAdminData } from '@/contexts/AdminDataContext';
+import VendorRegistrationQueue, { useRegistrationQueue } from '@/components/VendorRegistrationQueue';
 import {
   assignVendorsToEvents,
   closeVendorApplications,
@@ -26,7 +27,7 @@ import {
 import type { Event as ManagedEvent } from '@/app/actions/events';
 import { getVendorInvitationReadinessIssues } from '@/lib/vendor-invitation';
 
-type View = 'events' | 'unassigned' | 'vendors';
+type View = 'events' | 'unassigned' | 'vendors' | 'review';
 type StatusFilter = 'all' | VendorApplicationStatus;
 type ApplicationRow = VendorEventApplication & { vendor: Vendor };
 
@@ -172,6 +173,8 @@ function Pagination({
 export default function AdminVendorsClient() {
   const { vendors, events, loading, errors, setVendors, setEvents, refreshData } = useAdminData();
   const [view, setView] = useState<View>('unassigned');
+  const registrationQueue = useRegistrationQueue();
+  const pendingReviews = registrationQueue.requests.length;
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [search, setSearch] = useState('');
@@ -673,7 +676,24 @@ export default function AdminVendorsClient() {
         <button type="button" role="tab" aria-selected={view === 'vendors'} className={view === 'vendors' ? 'active' : ''} onClick={() => { setView('vendors'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
           All profiles <span>{vendors.length}</span>
         </button>
+        <button type="button" role="tab" aria-selected={view === 'review'} className={`${view === 'review' ? 'active' : ''} ${pendingReviews > 0 ? 'has-attention' : ''}`} onClick={() => { setView('review'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
+          Review queue <span>{registrationQueue.loading && pendingReviews === 0 ? '…' : pendingReviews}</span>
+        </button>
       </div>
+
+      {view !== 'review' && pendingReviews > 0 && (
+        <div className="vendor-review-callout">
+          <p>
+            <strong>{pendingReviews} submission{pendingReviews === 1 ? '' : 's'} waiting for review.</strong>{' '}
+            They match an existing vendor or are directory-only, so they are not on any event roster yet.
+          </p>
+          <button type="button" className="vendor-management-secondary-button" onClick={() => { setView('review'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
+            Open review queue
+          </button>
+        </div>
+      )}
+
+      {view === 'review' && <VendorRegistrationQueue queue={registrationQueue} />}
 
       {view === 'events' && !selectedEvent && (
         <section className="vendor-management-event-grid">
