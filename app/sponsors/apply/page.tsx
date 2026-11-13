@@ -5,6 +5,8 @@ import { submitSponsorApplication } from '@/app/actions/sponsors';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { FieldError, HoneypotField, fieldValue, invalidProps } from '@/components/forms/FieldError';
+import SuccessHeading from '@/components/forms/SuccessHeading';
 
 const SPONSORSHIP_TIERS = [
   { id: 'platinum', name: 'Platinum ($5,000+)', description: 'Maximum visibility and premium benefits' },
@@ -97,9 +99,9 @@ export default function SponsorApplyPage() {
         <div className="container application-success-layout">
           <div className="vendor-form-success">
             <div className="vendor-success-icon" aria-hidden="true">✓</div>
-            <h2 className="vendor-success-title">Application submitted</h2>
+            <SuccessHeading>Application submitted</SuccessHeading>
             <p className="vendor-success-text">{state.message}</p>
-            <p className="vendor-success-note">Our partnerships team will review your application and contact you within 2-3 business days.</p>
+            <p className="vendor-success-note">A copy of your application is on its way to your inbox. If it doesn&apos;t arrive in a few minutes, check your spam folder.</p>
             <div className="application-success-actions">
               <Link href="/" className="btn btn-yellow vendor-submit-btn">
                 Back to Home
@@ -130,12 +132,14 @@ export default function SponsorApplyPage() {
           </div>
 
           <div className="vendor-apply-layout">
-          <form action={formAction} className="vendor-apply-form application-form-consistent">
+          {/* onReset: keep what people typed when the server returns an error. */}
+          <form action={formAction} onReset={(event) => event.preventDefault()} className="vendor-apply-form application-form-consistent">
             {state.message && !state.success && (
               <div className="vendor-form-alert vendor-form-alert-error" role="alert">
                 {state.message}
               </div>
             )}
+            <HoneypotField />
 
             {/* Company Information */}
             <div className="vendor-form-section">
@@ -152,13 +156,15 @@ export default function SponsorApplyPage() {
                     type="text"
                     id="company_name"
                     name="company_name"
+                    defaultValue={fieldValue(state.fields, 'company_name')}
+                    autoComplete="organization"
+                    maxLength={200}
+                    {...invalidProps(state.errors, 'company_name')}
                     required
                     className="form-input"
 
                   />
-                  {state.errors?.company_name && (
-                    <p className="vendor-form-error">{state.errors.company_name[0]}</p>
-                  )}
+                  <FieldError errors={state.errors} name="company_name" />
                 </div>
 
                 <div className="vendor-form-group">
@@ -169,10 +175,15 @@ export default function SponsorApplyPage() {
                     type="url"
                     id="website"
                     name="website"
+                    defaultValue={fieldValue(state.fields, 'website')}
+                    autoComplete="url"
+                    maxLength={500}
+                    {...invalidProps(state.errors, 'website')}
                     placeholder="https://yourcompany.com"
                     className="form-input"
 
                   />
+                  <FieldError errors={state.errors} name="website" />
                 </div>
               </div>
 
@@ -185,6 +196,8 @@ export default function SponsorApplyPage() {
                     type="text"
                     id="industry"
                     name="industry"
+                    defaultValue={fieldValue(state.fields, 'industry')}
+                    maxLength={200}
                     placeholder="e.g., Gaming, Retail, Food & Beverage"
                     className="form-input"
 
@@ -198,6 +211,7 @@ export default function SponsorApplyPage() {
                   <select
                     id="company_size"
                     name="company_size"
+                    defaultValue={fieldValue(state.fields, 'company_size')}
                     className="form-input"
 
                   >
@@ -225,13 +239,15 @@ export default function SponsorApplyPage() {
                     type="text"
                     id="contact_name"
                     name="contact_name"
+                    defaultValue={fieldValue(state.fields, 'contact_name')}
+                    autoComplete="name"
+                    maxLength={200}
+                    {...invalidProps(state.errors, 'contact_name')}
                     required
                     className="form-input"
 
                   />
-                  {state.errors?.contact_name && (
-                    <p className="vendor-form-error">{state.errors.contact_name[0]}</p>
-                  )}
+                  <FieldError errors={state.errors} name="contact_name" />
                 </div>
 
                 <div className="vendor-form-group">
@@ -242,6 +258,9 @@ export default function SponsorApplyPage() {
                     type="text"
                     id="contact_position"
                     name="contact_position"
+                    defaultValue={fieldValue(state.fields, 'contact_position')}
+                    autoComplete="organization-title"
+                    maxLength={200}
                     placeholder="e.g., Marketing Director, CEO"
                     className="form-input"
 
@@ -258,13 +277,15 @@ export default function SponsorApplyPage() {
                     type="email"
                     id="contact_email"
                     name="contact_email"
+                    defaultValue={fieldValue(state.fields, 'contact_email')}
+                    autoComplete="email"
+                    maxLength={320}
+                    {...invalidProps(state.errors, 'contact_email')}
                     required
                     className="form-input"
 
                   />
-                  {state.errors?.contact_email && (
-                    <p className="vendor-form-error">{state.errors.contact_email[0]}</p>
-                  )}
+                  <FieldError errors={state.errors} name="contact_email" />
                 </div>
 
                 <div className="vendor-form-group">
@@ -275,6 +296,9 @@ export default function SponsorApplyPage() {
                     type="tel"
                     id="contact_phone"
                     name="contact_phone"
+                    defaultValue={fieldValue(state.fields, 'contact_phone')}
+                    autoComplete="tel"
+                    maxLength={50}
                     className="form-input"
 
                   />
@@ -295,6 +319,7 @@ export default function SponsorApplyPage() {
                 <select
                   id="sponsorship_tier"
                   name="sponsorship_tier"
+                  defaultValue={fieldValue(state.fields, 'sponsorship_tier')}
                   className="form-input"
 
                 >
@@ -305,10 +330,14 @@ export default function SponsorApplyPage() {
                 </select>
               </div>
 
-              <div className="vendor-form-group">
-                <label className="form-label">
+              <fieldset
+                className="vendor-form-group"
+                aria-required="true"
+                {...invalidProps(state.errors, 'sponsorship_interest')}
+              >
+                <legend className="form-label">
                   Sponsorship Interests * (Select all that apply)
-                </label>
+                </legend>
                 <div className="application-choice-grid">
                   {SPONSORSHIP_INTERESTS.map(interest => (
                     <label key={interest.id} className="application-choice">
@@ -327,10 +356,8 @@ export default function SponsorApplyPage() {
                     </label>
                   ))}
                 </div>
-                {state.errors?.sponsorship_interest && (
-                  <p className="vendor-form-error">{state.errors.sponsorship_interest[0]}</p>
-                )}
-              </div>
+                <FieldError errors={state.errors} name="sponsorship_interest" />
+              </fieldset>
 
               <div className="vendor-form-group">
                 <label htmlFor="budget_range" className="form-label">
@@ -339,6 +366,7 @@ export default function SponsorApplyPage() {
                 <select
                   id="budget_range"
                   name="budget_range"
+                  defaultValue={fieldValue(state.fields, 'budget_range')}
                   className="form-input"
 
                 >
@@ -355,15 +383,13 @@ export default function SponsorApplyPage() {
                     type="checkbox"
                     id="previous_sponsor"
                     name="previous_sponsor"
+                    defaultChecked={state.fields?.previous_sponsor === true}
 
                   />
                   <span>We have sponsored Collector&apos;s Paradise events before</span>
                 </label>
               </div>
 
-              {state.errors?.brand_description && (
-                <p className="vendor-form-error">{state.errors.brand_description[0]}</p>
-              )}
             </div>
 
             {/* Brand & Marketing */}
@@ -379,12 +405,19 @@ export default function SponsorApplyPage() {
                 <textarea
                   id="brand_description"
                   name="brand_description"
+                  defaultValue={fieldValue(state.fields, 'brand_description')}
                   required
+                  minLength={10}
+                  maxLength={1000}
+                  aria-describedby={state.errors?.brand_description ? 'brand_description-hint brand_description-error' : 'brand_description-hint'}
+                  aria-invalid={state.errors?.brand_description ? true : undefined}
                   rows={4}
                   placeholder="Tell us about your brand, products, and target audience..."
                   className="form-input"
 
                 />
+                <p id="brand_description-hint" className="form-field-hint">10–1000 characters.</p>
+                <FieldError errors={state.errors} name="brand_description" />
               </div>
 
               <div className="vendor-form-group">
@@ -392,9 +425,11 @@ export default function SponsorApplyPage() {
                   Social Media Links
                 </label>
                 <input
-                  type="url"
+                  type="text"
                   id="social_media_links"
                   name="social_media_links"
+                  defaultValue={fieldValue(state.fields, 'social_media_links')}
+                  maxLength={1000}
                   placeholder="https://instagram.com/yourbrand or https://facebook.com/yourbrand"
                   className="form-input"
 
@@ -408,6 +443,8 @@ export default function SponsorApplyPage() {
                 <textarea
                   id="marketing_goals"
                   name="marketing_goals"
+                  defaultValue={fieldValue(state.fields, 'marketing_goals')}
+                  maxLength={2000}
                   rows={3}
                   placeholder="e.g., Brand awareness, product launches, community engagement..."
                   className="form-input"
@@ -422,10 +459,10 @@ export default function SponsorApplyPage() {
                 Event Preferences
               </h3>
 
-              <div className="vendor-form-group">
-                <label className="form-label">
+              <fieldset className="vendor-form-group">
+                <legend className="form-label">
                   Events Interested In
-                </label>
+                </legend>
                 <div className="application-choice-grid">
                   {EVENTS_INTEREST.map(event => (
                     <label key={event} className="application-choice">
@@ -441,12 +478,12 @@ export default function SponsorApplyPage() {
                     </label>
                   ))}
                 </div>
-              </div>
+              </fieldset>
 
-              <div className="vendor-form-group">
-                <label className="form-label">
+              <fieldset className="vendor-form-group">
+                <legend className="form-label">
                   Additional Services
-                </label>
+                </legend>
                 <div className="application-choice-grid">
                   {ADDITIONAL_SERVICES.map(service => (
                     <label key={service} className="application-choice">
@@ -462,7 +499,7 @@ export default function SponsorApplyPage() {
                     </label>
                   ))}
                 </div>
-              </div>
+              </fieldset>
 
               <div className="vendor-form-group">
                 <label htmlFor="preferred_booth_size" className="form-label">
@@ -472,6 +509,8 @@ export default function SponsorApplyPage() {
                   type="text"
                   id="preferred_booth_size"
                   name="preferred_booth_size"
+                  defaultValue={fieldValue(state.fields, 'preferred_booth_size')}
+                  maxLength={200}
                   placeholder="e.g., Standard table, 3x3m booth, Custom setup"
                   className="form-input"
 
@@ -492,6 +531,7 @@ export default function SponsorApplyPage() {
                 <select
                   id="how_heard_about"
                   name="how_heard_about"
+                  defaultValue={fieldValue(state.fields, 'how_heard_about')}
                   className="form-input"
 
                 >
@@ -509,6 +549,8 @@ export default function SponsorApplyPage() {
                 <textarea
                   id="custom_proposal"
                   name="custom_proposal"
+                  defaultValue={fieldValue(state.fields, 'custom_proposal')}
+                  maxLength={2000}
                   rows={3}
                   placeholder="If you have a custom sponsorship idea, tell us about it..."
                   className="form-input"
@@ -523,6 +565,8 @@ export default function SponsorApplyPage() {
                 <textarea
                   id="additional_notes"
                   name="additional_notes"
+                  defaultValue={fieldValue(state.fields, 'additional_notes')}
+                  maxLength={2000}
                   rows={3}
                   placeholder="Any other information you&apos;d like to share..."
                   className="form-input"

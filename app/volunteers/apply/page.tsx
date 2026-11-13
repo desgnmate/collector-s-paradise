@@ -5,6 +5,8 @@ import { submitVolunteerApplication } from '@/app/actions/volunteers';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import { FieldError, HoneypotField, fieldValue, invalidProps } from '@/components/forms/FieldError';
+import SuccessHeading from '@/components/forms/SuccessHeading';
 
 const VOLUNTEER_ROLES = [
   { id: 'setup', name: 'Event Setup Crew', description: 'Help set up tables, chairs, and decorations (7:00 AM - 10:00 AM)' },
@@ -46,7 +48,7 @@ export default function VolunteerApplyPage() {
         <div className="container application-success-layout">
           <div className="vendor-form-success">
             <div className="vendor-success-icon" aria-hidden="true">✓</div>
-            <h2 className="vendor-success-title">Application submitted</h2>
+            <SuccessHeading>Application submitted</SuccessHeading>
             <p className="vendor-success-text">{state.message}</p>
             <p className="vendor-success-note">We&apos;ll review your application and contact you via email with available shifts and next steps.</p>
             <div className="application-success-actions">
@@ -79,12 +81,14 @@ export default function VolunteerApplyPage() {
           </div>
 
           <div className="vendor-apply-layout">
-          <form action={formAction} className="vendor-apply-form application-form-consistent">
+          {/* onReset: keep what people typed when the server returns an error. */}
+          <form action={formAction} onReset={(event) => event.preventDefault()} className="vendor-apply-form application-form-consistent">
             {state.message && !state.success && (
               <div className="vendor-form-alert vendor-form-alert-error" role="alert">
                 {state.message}
               </div>
             )}
+            <HoneypotField />
 
             {/* Personal Information */}
             <div className="vendor-form-section">
@@ -101,13 +105,15 @@ export default function VolunteerApplyPage() {
                     type="text"
                     id="full_name"
                     name="full_name"
+                    defaultValue={fieldValue(state.fields, 'full_name')}
+                    autoComplete="name"
+                    maxLength={200}
+                    {...invalidProps(state.errors, 'full_name')}
                     required
                     className="form-input"
 
                   />
-                  {state.errors?.full_name && (
-                    <p className="vendor-form-error">{state.errors.full_name[0]}</p>
-                  )}
+                  <FieldError errors={state.errors} name="full_name" />
                 </div>
 
                 <div className="vendor-form-group">
@@ -118,13 +124,15 @@ export default function VolunteerApplyPage() {
                     type="email"
                     id="email"
                     name="email"
+                    defaultValue={fieldValue(state.fields, 'email')}
+                    autoComplete="email"
+                    maxLength={320}
+                    {...invalidProps(state.errors, 'email')}
                     required
                     className="form-input"
 
                   />
-                  {state.errors?.email && (
-                    <p className="vendor-form-error">{state.errors.email[0]}</p>
-                  )}
+                  <FieldError errors={state.errors} name="email" />
                 </div>
               </div>
 
@@ -137,6 +145,9 @@ export default function VolunteerApplyPage() {
                     type="tel"
                     id="phone"
                     name="phone"
+                    defaultValue={fieldValue(state.fields, 'phone')}
+                    autoComplete="tel"
+                    maxLength={50}
                     className="form-input"
 
                   />
@@ -149,6 +160,7 @@ export default function VolunteerApplyPage() {
                   <select
                     id="t_shirt_size"
                     name="t_shirt_size"
+                    defaultValue={fieldValue(state.fields, 't_shirt_size')}
                     className="form-input"
 
                   >
@@ -167,10 +179,14 @@ export default function VolunteerApplyPage() {
                 Volunteer Preferences
               </h3>
 
-              <div className="vendor-form-group">
-                <label className="form-label">
+              <fieldset
+                className="vendor-form-group"
+                aria-required="true"
+                {...invalidProps(state.errors, 'preferred_roles')}
+              >
+                <legend className="form-label">
                   Preferred Roles * (Select all that apply)
-                </label>
+                </legend>
                 <div className="application-choice-grid">
                   {VOLUNTEER_ROLES.map(role => (
                     <label key={role.id} className="application-choice">
@@ -189,10 +205,8 @@ export default function VolunteerApplyPage() {
                     </label>
                   ))}
                 </div>
-                {state.errors?.preferred_roles && (
-                  <p className="vendor-form-error">{state.errors.preferred_roles[0]}</p>
-                )}
-              </div>
+                <FieldError errors={state.errors} name="preferred_roles" />
+              </fieldset>
 
               <div className="vendor-form-group">
                 <label htmlFor="availability" className="form-label">
@@ -201,15 +215,19 @@ export default function VolunteerApplyPage() {
                 <textarea
                   id="availability"
                   name="availability"
+                  defaultValue={fieldValue(state.fields, 'availability')}
                   required
+                  minLength={10}
+                  maxLength={1000}
+                  aria-describedby={state.errors?.availability ? 'availability-hint availability-error' : 'availability-hint'}
+                  aria-invalid={state.errors?.availability ? true : undefined}
                   rows={4}
                   placeholder="e.g., Available on weekends, weekday mornings, specific dates..."
                   className="form-input"
 
                 />
-                {state.errors?.availability && (
-                  <p className="vendor-form-error">{state.errors.availability[0]}</p>
-                )}
+                <p id="availability-hint" className="form-field-hint">At least 10 characters — the days and times that suit you.</p>
+                <FieldError errors={state.errors} name="availability" />
               </div>
 
               <div className="vendor-form-group">
@@ -219,6 +237,8 @@ export default function VolunteerApplyPage() {
                 <textarea
                   id="previous_experience"
                   name="previous_experience"
+                  defaultValue={fieldValue(state.fields, 'previous_experience')}
+                  maxLength={2000}
                   rows={3}
                   placeholder="Tell us about any relevant volunteer experience..."
                   className="form-input"
@@ -242,6 +262,9 @@ export default function VolunteerApplyPage() {
                     type="text"
                     id="emergency_contact_name"
                     name="emergency_contact_name"
+                    defaultValue={fieldValue(state.fields, 'emergency_contact_name')}
+                    autoComplete="off"
+                    maxLength={200}
                     className="form-input"
 
                   />
@@ -255,6 +278,9 @@ export default function VolunteerApplyPage() {
                     type="tel"
                     id="emergency_contact_phone"
                     name="emergency_contact_phone"
+                    defaultValue={fieldValue(state.fields, 'emergency_contact_phone')}
+                    autoComplete="off"
+                    maxLength={50}
                     className="form-input"
 
                   />
@@ -275,6 +301,7 @@ export default function VolunteerApplyPage() {
                 <select
                   id="how_heard_about"
                   name="how_heard_about"
+                  defaultValue={fieldValue(state.fields, 'how_heard_about')}
                   className="form-input"
 
                 >
@@ -292,6 +319,8 @@ export default function VolunteerApplyPage() {
                 <textarea
                   id="additional_notes"
                   name="additional_notes"
+                  defaultValue={fieldValue(state.fields, 'additional_notes')}
+                  maxLength={2000}
                   rows={3}
                   placeholder="Any other information you&apos;d like to share..."
                   className="form-input"

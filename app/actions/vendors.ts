@@ -9,6 +9,7 @@ import {
   APPLICATIONS_CLOSED_EMAIL_BATCH_SIZE,
   sendApplicationsClosedEmails,
   sendNewApplicationEmail,
+  sendVendorReviewRequestAdminEmail,
   sendRejectionEmail,
   sendVendorInvitationEmail,
   sendWaitlistEmail,
@@ -193,15 +194,19 @@ async function attachEventApplications(
 const vendorApplicationSchema = z.object({
   business_name: z.string().trim().min(1, 'Business name is required').max(200),
   contact_name: z.string().trim().min(1, 'Contact name is required').max(200),
-  email: z.string().trim().toLowerCase().email('Please enter a valid email address'),
-  phone: z.string().optional(),
-  location_state: z.string().min(1, 'Please select your state'),
-  description: z.string().min(10, 'Please provide at least a brief description of your business').max(1000),
-  categories: z.array(z.string()).min(1, 'Please select at least one category'),
-  social_links: z.string().min(1, 'Social media link is required').url('Please enter a valid URL'),
+  email: z.string().trim().toLowerCase().email('Please enter a valid email address').max(320),
+  phone: z.string().trim().max(50, 'Please enter a shorter phone number').optional(),
+  location_state: z.string().min(1, 'Please select your state').max(100),
+  description: z.string().trim()
+    .min(10, 'Please describe your business in at least 10 characters')
+    .max(1000, 'Please keep your description under 1000 characters'),
+  categories: z.array(z.string().max(100)).min(1, 'Please select at least one category').max(20),
+  // The database also requires http(s); zod's url() alone accepts javascript: and data: links.
+  social_links: z.string().trim().min(1, 'Social media link is required').url('Please enter a valid URL')
+    .refine((value) => /^https?:\/\//i.test(value), 'Please enter a link that starts with https://'),
   tables_requested: z.string(),
-  power_requirements: z.string().optional(),
-  additional_notes: z.string().max(2000).optional(),
+  power_requirements: z.enum(['none', 'standard', 'multiple', 'heavy'], { message: 'Please choose a power option' }).optional(),
+  additional_notes: z.string().max(2000, 'Please keep your notes under 2000 characters').optional(),
   registration_kind: z.enum(['events', 'directory']),
   event_ids: z.array(z.string().uuid('Please select valid events')).max(20),
   agreement: z.literal(true).refine((val) => val === true, { message: 'You must agree to the Terms and Conditions' }),
@@ -214,7 +219,8 @@ const vendorApplicationSchema = z.object({
   }
 });
 
-const MAX_LOGO_SIZE = 5 * 1024 * 1024;
+// Vercel rejects request bodies over 4.5MB before the action runs, so stay under it.
+const MAX_LOGO_SIZE = 4 * 1024 * 1024;
 const ALLOWED_LOGO_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 const LOGO_EXTENSION_BY_TYPE: Record<string, string> = {
   'image/jpeg': 'jpg',
@@ -531,6 +537,11 @@ export async function submitVendorApplication(
     agreement: formData.get('agreement') === 'on',
   };
 
+  // Spam trap: real visitors never see this field. Pretend success so bots move on.
+  if (String(formData.get('fax_number') || '')) {
+    return { success: true, message: 'Application submitted.' };
+  }
+
   const validatedFields = vendorApplicationSchema.safeParse({
     ...fields,
     phone: fields.phone || undefined,
@@ -543,7 +554,7 @@ export async function submitVendorApplication(
     return { message: 'Please fix the errors below.', errors: validatedFields.error.flatten().fieldErrors, fields };
   }
   if (!logo || logo.size === 0) return { message: 'A business logo or profile avatar is required.', fields };
-  if (logo.size > MAX_LOGO_SIZE) return { message: 'Logo file size must be less than 5MB.', fields };
+  if (logo.size > MAX_LOGO_SIZE) return { message: 'Logo file size must be less than 4MB.', fields };
   if (!ALLOWED_LOGO_TYPES.has(logo.type)) return { message: 'Logo must be a JPG, PNG, WebP, or GIF image.', fields };
 
   const selectableEvents = () => supabase
@@ -630,7 +641,7 @@ export async function submitVendorApplication(
       return { message: 'You have already applied to one or more selected events. Choose a different event or contact support.', fields };
     }
     if (dbError.code === '23505') {
-      return { message: 'A profile already uses these details. Choose “Use your existing vendor profile” above to verify your email and apply without a new logo. If your email has changed, contact support.', fields };
+      return { message: 'A vendor profile already uses these details. Use the “verify your email to use your existing profile” link at the top of this form to apply without a new logo. If your email has changed, contact support.', fields };
     }
     return { message: 'Something went wrong while saving your application. Please contact support.', fields };
   }
@@ -639,6 +650,15 @@ export async function submitVendorApplication(
   // Never send event invitations or claim that a receipt email was sent here.
   if (submissionData?.review_request_id) {
     revalidatePath('/admin/vendors');
+    // Admins still need to know a review is waiting. Best-effort: never block the response on it.
+    await sendVendorReviewRequestAdminEmail({
+      reviewRequestId: String(submissionData.review_request_id),
+      kind: validatedFields.data.registration_kind,
+      businessName: validatedFields.data.business_name,
+      contactName: validatedFields.data.contact_name,
+      vendorEmail: validatedFields.data.email,
+      eventNames: (selectedEvents || []).map((event) => event.title),
+    });
     return {
       success: true,
       message: validatedFields.data.registration_kind === 'directory'

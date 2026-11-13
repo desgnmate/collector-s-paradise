@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
-import { sendApprovalEmail, sendRejectionEmail, sendWaitlistEmail } from '@/lib/email';
+import { sendApprovalEmail, sendRejectionEmail, sendSponsorApplicationEmails, sendWaitlistEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -49,30 +49,44 @@ const ADMIN_SPONSOR_COLUMNS = 'id, company_name, website, industry, company_size
 // ============================================
 // Validation Schema
 // ============================================
+const optionalText = (max: number) => z.string().trim().max(max, `Please keep this under ${max} characters`).optional();
+const httpUrl = z.string().trim()
+  .url('Please enter a valid website URL')
+  .refine((value) => /^https?:\/\//i.test(value), 'Website must start with http:// or https://');
+
 const sponsorApplicationSchema = z.object({
-  company_name: z.string().min(1, 'Company name is required').max(200),
-  website: z.string().url('Please enter a valid website URL').optional().or(z.literal('')),
-  industry: z.string().optional(),
-  company_size: z.string().optional(),
-  contact_name: z.string().min(1, 'Contact name is required').max(200),
-  contact_email: z.string().email('Please enter a valid email address'),
-  contact_phone: z.string().optional(),
-  contact_position: z.string().optional(),
-  sponsorship_tier: z.string().optional(),
-  sponsorship_interest: z.array(z.string()).min(1, 'Please select at least one sponsorship interest'),
+  company_name: z.string().trim().min(1, 'Company name is required').max(200),
+  website: httpUrl.optional().or(z.literal('')),
+  industry: optionalText(200),
+  company_size: optionalText(100),
+  contact_name: z.string().trim().min(1, 'Contact name is required').max(200),
+  contact_email: z.string().trim().toLowerCase().email('Please enter a valid email address').max(320),
+  contact_phone: optionalText(50),
+  contact_position: optionalText(200),
+  sponsorship_tier: optionalText(100),
+  sponsorship_interest: z.array(z.string().max(200)).min(1, 'Please select at least one sponsorship interest').max(20),
   previous_sponsor: z.boolean().optional(),
-  sponsorship_history: z.string().optional(),
-  brand_description: z.string().min(10, 'Please provide a brief description of your brand').max(1000),
-  social_media_links: z.string().optional(),
-  marketing_goals: z.string().optional(),
-  events_interested: z.array(z.string()).optional(),
-  preferred_booth_size: z.string().optional(),
-  additional_services: z.array(z.string()).optional(),
-  budget_range: z.string().optional(),
-  custom_proposal: z.string().optional(),
-  additional_notes: z.string().optional(),
-  how_heard_about: z.string().optional(),
+  sponsorship_history: optionalText(2000),
+  brand_description: z.string().trim()
+    .min(10, 'Please describe your brand in at least 10 characters')
+    .max(1000, 'Please keep your brand description under 1000 characters'),
+  social_media_links: optionalText(1000),
+  marketing_goals: optionalText(2000),
+  events_interested: z.array(z.string().max(200)).max(20).optional(),
+  preferred_booth_size: optionalText(200),
+  additional_services: z.array(z.string().max(200)).max(20).optional(),
+  budget_range: optionalText(100),
+  custom_proposal: optionalText(2000),
+  additional_notes: optionalText(2000),
+  how_heard_about: optionalText(200),
 });
+
+const SPONSOR_TIER_LABELS: Record<string, string> = {
+  platinum: 'Platinum ($5,000+)',
+  gold: 'Gold ($2,500+)',
+  silver: 'Silver ($1,000+)',
+  custom: 'Custom',
+};
 
 type ActionState = {
   message: string;
@@ -152,20 +166,16 @@ export async function submitSponsorApplication(
     };
   }
 
-  // Check if company/email is already registered
-  const { data: existingEmail } = await supabase
-    .from('sponsors')
-    .select('id')
-    .eq('contact_email', validatedFields.data.contact_email)
-    .maybeSingle();
-
-  if (existingEmail) {
-    return { message: 'An application with this email already exists.', fields };
+  // Spam trap: real visitors never see this field. Pretend success so bots move on.
+  if (String(formData.get('fax_number') || '')) {
+    return { success: true, message: 'Sponsorship application submitted successfully!' };
   }
 
-  // Save Sponsor Record
+  // Save Sponsor Record. Duplicate emails are caught by the table's unique
+  // constraint (anonymous visitors cannot read the table to check first).
+  const sponsorId = crypto.randomUUID();
   const { error: dbError } = await supabase.from('sponsors').insert({
-    id: crypto.randomUUID(),
+    id: sponsorId,
     company_name: validatedFields.data.company_name,
     website: validatedFields.data.website || null,
     industry: validatedFields.data.industry || null,
@@ -176,7 +186,7 @@ export async function submitSponsorApplication(
     contact_position: validatedFields.data.contact_position || null,
     sponsorship_tier: validatedFields.data.sponsorship_tier || null,
     sponsorship_interest: validatedFields.data.sponsorship_interest,
-    previous_sponsor: validatedFields.data.previous_sponsor || null,
+    previous_sponsor: validatedFields.data.previous_sponsor ?? null,
     sponsorship_history: validatedFields.data.sponsorship_history || null,
     brand_description: validatedFields.data.brand_description,
     social_media_links: validatedFields.data.social_media_links || null,
@@ -201,11 +211,34 @@ export async function submitSponsorApplication(
       };
     }
     
-    return { message: 'Something went wrong while saving your application. Please contact support.', fields };
+    if (dbError.code === '23505') {
+      return {
+        message: 'We already have a sponsorship application from this email address. Our team will be in touch — reply to your confirmation email if anything has changed.',
+        errors: { contact_email: ['An application with this email already exists.'] },
+        fields,
+      };
+    }
+
+    return { message: 'Something went wrong while saving your application. Please try again, or email us if it keeps happening.', fields };
   }
 
+  // Emails are best-effort: the application is saved even if a send fails.
+  const data = validatedFields.data;
+  await sendSponsorApplicationEmails({
+    sponsorId,
+    recipientEmail: data.contact_email,
+    companyName: data.company_name,
+    contactName: data.contact_name,
+    contactPhone: data.contact_phone || null,
+    website: data.website || null,
+    tier: data.sponsorship_tier ? SPONSOR_TIER_LABELS[data.sponsorship_tier] || data.sponsorship_tier : null,
+    interests: data.sponsorship_interest,
+    budgetRange: data.budget_range || null,
+    brandDescription: data.brand_description,
+  }, `sponsor-application-${sponsorId}`);
+
   return {
-    message: 'Sponsorship application submitted successfully! We\'ll review your application and get back to you within 2-3 business days.',
+    message: 'Sponsorship application submitted successfully! We\'ve emailed you a copy, and we\'ll get back to you within 2-3 business days.',
     success: true,
   };
 }
@@ -293,6 +326,7 @@ export async function approveSponsor(sponsorId: string): Promise<ActionState> {
     sponsor.company_name,
     sponsor.contact_name,
     `sponsor-approved-${sponsorId}-${updatedAt}`,
+    'sponsor',
   );
   if (!emailResult.success) {
     return {
@@ -338,6 +372,7 @@ export async function rejectSponsor(sponsorId: string, reason?: string): Promise
     reason || undefined,
     undefined,
     `sponsor-rejected-${sponsorId}-${updatedAt}`,
+    'sponsor',
   );
   if (!emailResult.success) {
     return {
@@ -377,6 +412,7 @@ export async function waitlistSponsor(sponsorId: string): Promise<ActionState> {
     sponsor.contact_name,
     undefined,
     `sponsor-waitlisted-${sponsorId}-${updatedAt}`,
+    'sponsor',
   );
   if (!emailResult.success) {
     return {

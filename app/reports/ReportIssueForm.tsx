@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import { CheckCircle2, LoaderCircle, Send } from 'lucide-react';
 import { submitSupportReport, type ReportFormState } from '@/app/actions/reports';
 import { REPORT_CATEGORY_OPTIONS, REPORT_IMPACT_OPTIONS } from '@/lib/reports';
@@ -33,11 +33,20 @@ function normalisePageUrl(value: string) {
 export default function ReportIssueForm({ initialPageUrl = '' }: { initialPageUrl?: string }) {
   const [state, formAction, isPending] = useActionState(submitSupportReport, initialState);
   const pageUrlRef = useRef<HTMLInputElement>(null);
-  const browserDetailsRef = useRef<HTMLInputElement>(null);
+  const successRef = useRef<HTMLDivElement>(null);
+  // Held in state: React re-applies a hidden input's defaultValue on every
+  // render, which wiped a value written directly to the DOM after one submit.
+  const [browserDetails, setBrowserDetails] = useState('');
   const normalisedInitialPageUrl = normalisePageUrl(initialPageUrl);
 
   useEffect(() => {
-    if (browserDetailsRef.current) browserDetailsRef.current.value = navigator.userAgent;
+    if (state.success) successRef.current?.focus();
+  }, [state.success]);
+
+  useEffect(() => {
+    // navigator only exists in the browser, so this cannot be computed during render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setBrowserDetails(navigator.userAgent);
 
     if (normalisedInitialPageUrl) {
       if (pageUrlRef.current) pageUrlRef.current.value = normalisedInitialPageUrl;
@@ -58,7 +67,7 @@ export default function ReportIssueForm({ initialPageUrl = '' }: { initialPageUr
 
   if (state.success) {
     return (
-      <div className={styles.successCard} role="status">
+      <div ref={successRef} tabIndex={-1} className={styles.successCard} role="status" style={{ outline: 'none' }}>
         <span className={styles.successIcon}><CheckCircle2 aria-hidden="true" /></span>
         <p className={styles.eyebrow}>Report received</p>
         <h2>Thanks for letting us know.</h2>
@@ -67,7 +76,7 @@ export default function ReportIssueForm({ initialPageUrl = '' }: { initialPageUr
           <span>Ticket reference</span>
           <strong>{state.ticketNumber}</strong>
         </div>
-        <p className={styles.successNote}>Our team can reply to the email address you provided if we need more information.</p>
+        <p className={styles.successNote}>We&apos;ve emailed you a copy with this reference. Our team will reply to that address if we need more information.</p>
         <div className={styles.successActions}>
           <button type="button" className={styles.primaryLink} onClick={() => window.location.reload()}>File another report</button>
           <Link href="/" className={styles.secondaryLink}>Return home</Link>
@@ -77,8 +86,9 @@ export default function ReportIssueForm({ initialPageUrl = '' }: { initialPageUr
   }
 
   return (
-    <form action={formAction} className={styles.form} noValidate>
-      <input ref={browserDetailsRef} type="hidden" name="browser_details" defaultValue="" />
+    // onReset: keep the typed details and consent tick when the server returns an error.
+    <form action={formAction} onReset={(event) => event.preventDefault()} className={styles.form} noValidate>
+      <input type="hidden" name="browser_details" value={browserDetails} />
       <div className={styles.honeypot} aria-hidden="true">
         <label htmlFor="report-website">Website</label>
         <input id="report-website" name="website" type="text" tabIndex={-1} autoComplete="off" />

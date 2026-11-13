@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { sendReportNotificationEmail } from '@/lib/email';
+import { sendReportNotificationEmail, sendReportReceiptEmail } from '@/lib/email';
 import {
   REPORT_CATEGORY_OPTIONS,
   REPORT_IMPACT_OPTIONS,
@@ -217,10 +217,12 @@ export async function submitSupportReport(
 
     if (error) throw error;
     const report = data as SupportReport;
-    const emailResult = await sendReportNotificationEmail(
-      report,
-      `report-admin-${report.id}-attempt-1`,
-    );
+    // The reporter's acknowledgement is best-effort and not tracked; the admin
+    // notification is tracked so it can be retried from the dashboard.
+    const [emailResult] = await Promise.all([
+      sendReportNotificationEmail(report, `report-admin-${report.id}-attempt-1`),
+      sendReportReceiptEmail(report, `report-receipt-${report.id}`),
+    ]);
     await persistNotificationResult(report, 1, emailResult);
 
     revalidatePath('/admin/reports');

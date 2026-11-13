@@ -4,6 +4,8 @@ import { useActionState, useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { submitVendorApplication } from '@/app/actions/vendors';
+import { FieldError, HoneypotField, invalidProps } from '@/components/forms/FieldError';
+import SuccessHeading from '@/components/forms/SuccessHeading';
 
 export type VendorApplicationEvent = {
   id: string;
@@ -37,7 +39,8 @@ const VENDOR_CATEGORIES = [
   'Other Collectibles',
 ];
 
-const MAX_LOGO_SIZE = 5 * 1024 * 1024;
+// Matches the server limit (hosting rejects request bodies over 4.5MB).
+const MAX_LOGO_SIZE = 4 * 1024 * 1024;
 const ALLOWED_LOGO_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 export default function VendorApplicationForm({ events, directoryEnabled = false }: { events: VendorApplicationEvent[]; directoryEnabled?: boolean }) {
@@ -75,7 +78,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
       }
 
       if (file.size > MAX_LOGO_SIZE) {
-        setLogoError('Logo file size must be less than 5MB.');
+        setLogoError('Logo file size must be less than 4MB.');
         setLogoName(null);
         setLogoPreview(null);
         e.target.value = '';
@@ -112,8 +115,8 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
   if (state.success) {
     return (
       <div className="vendor-form-success">
-        <div className="vendor-success-icon">✓</div>
-        <h2 className="vendor-success-title">Application submitted</h2>
+        <div className="vendor-success-icon" aria-hidden="true">✓</div>
+        <SuccessHeading>Application submitted</SuccessHeading>
         <p className="vendor-success-text">
           {state.message || 'We received your application for every selected event. Each event will be reviewed separately, and we\'ll contact you by email with each decision.'}
         </p>
@@ -127,10 +130,11 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
         <strong>Already applied before?</strong> {directoryEnabled && <>You can fill in this form again for admin review, or </>}<Link href="/vendors/returning">verify your email to use your existing profile</Link>.
       </div>
       {state.message && !state.success && (
-        <div className="vendor-form-alert vendor-form-alert-error">
+        <div className="vendor-form-alert vendor-form-alert-error" role="alert">
           {state.message}
         </div>
       )}
+      <HoneypotField />
 
       {/* Business Info */}
       <div className="vendor-form-section">
@@ -141,14 +145,15 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <input
               id="business_name"
               name="business_name"
+              autoComplete="organization"
+              maxLength={200}
+              {...invalidProps(state.errors, 'business_name')}
               type="text"
               placeholder="e.g. Rare Card Co."
               required
               defaultValue={state.fields?.business_name || ''}
             />
-            {state.errors?.business_name && (
-              <span className="vendor-form-error">{state.errors.business_name[0]}</span>
-            )}
+            <FieldError errors={state.errors} name="business_name" />
           </div>
 
           <div className="vendor-form-group">
@@ -229,12 +234,12 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
                     </svg>
                   </div>
                   <span style={{ fontSize: '1rem', fontWeight: 800, color: 'var(--color-dark)', textTransform: 'uppercase' }}>Click to upload logo</span>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#666' }}>Maximum file size: 5MB (PNG, JPG)</span>
+                  <span style={{ fontSize: '0.8rem', fontWeight: 500, color: '#666' }}>Max 4MB · PNG, JPG, WebP or GIF</span>
                 </div>
               )}
             </label>
             {logoError && (
-              <span className="vendor-form-error">{logoError}</span>
+              <span className="vendor-form-error" role="alert">{logoError}</span>
             )}
           </div>
 
@@ -243,14 +248,15 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <input
               id="contact_name"
               name="contact_name"
+              autoComplete="name"
+              maxLength={200}
+              {...invalidProps(state.errors, 'contact_name')}
               type="text"
               placeholder="Your full name"
               required
               defaultValue={state.fields?.contact_name || ''}
             />
-            {state.errors?.contact_name && (
-              <span className="vendor-form-error">{state.errors.contact_name[0]}</span>
-            )}
+            <FieldError errors={state.errors} name="contact_name" />
           </div>
 
           <div className="vendor-form-group">
@@ -258,6 +264,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <select
               id="location_state"
               name="location_state"
+              {...invalidProps(state.errors, 'location_state')}
               required
               defaultValue={state.fields?.location_state || ''}
             >
@@ -266,9 +273,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
                 <option key={s} value={s}>{s}</option>
               ))}
             </select>
-            {state.errors?.location_state && (
-              <span className="vendor-form-error">{state.errors.location_state[0]}</span>
-            )}
+            <FieldError errors={state.errors} name="location_state" />
           </div>
 
           <div className="vendor-form-group">
@@ -276,14 +281,15 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <input
               id="email"
               name="email"
+              autoComplete="email"
+              maxLength={320}
+              {...invalidProps(state.errors, 'email')}
               type="email"
               placeholder="you@example.com"
               required
               defaultValue={state.fields?.email || ''}
             />
-            {state.errors?.email && (
-              <span className="vendor-form-error">{state.errors.email[0]}</span>
-            )}
+            <FieldError errors={state.errors} name="email" />
           </div>
 
           <div className="vendor-form-group">
@@ -291,19 +297,23 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <input
               id="phone"
               name="phone"
+              autoComplete="tel"
+              maxLength={50}
+              {...invalidProps(state.errors, 'phone')}
               type="tel"
               placeholder="+61 400 000 000"
               defaultValue={state.fields?.phone || ''}
             />
+            <FieldError errors={state.errors} name="phone" />
           </div>
         </div>
       </div>
 
       {/* Categories */}
       <div className="vendor-form-section">
-        <h3 className="vendor-form-section-title">What do you sell? *</h3>
+        <h3 id="categories-heading" className="vendor-form-section-title">What do you sell? *</h3>
         <p className="vendor-form-section-hint">Select all categories that apply.</p>
-        <div className="vendor-category-grid">
+        <div className="vendor-category-grid" role="group" aria-labelledby="categories-heading" {...invalidProps(state.errors, 'categories')}>
           {VENDOR_CATEGORIES.map((cat) => (
             <label
               key={cat}
@@ -330,9 +340,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             </label>
           ))}
         </div>
-        {state.errors?.categories && (
-          <span className="vendor-form-error">{state.errors.categories[0]}</span>
-        )}
+        <FieldError errors={state.errors} name="categories" />
       </div>
 
       {/* Description */}
@@ -345,14 +353,15 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
           <textarea
             id="description"
             name="description"
+            minLength={10}
+            maxLength={1000}
+            {...invalidProps(state.errors, 'description')}
             rows={5}
             placeholder="We specialize in graded vintage Pokémon cards and sealed booster boxes. We've been selling at collector events for 3 years..."
             required
             defaultValue={state.fields?.description || ''}
           />
-          {state.errors?.description && (
-            <span className="vendor-form-error">{state.errors.description[0]}</span>
-          )}
+          <FieldError errors={state.errors} name="description" />
         </div>
       </div>
 
@@ -365,12 +374,17 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <input
               id="social_links"
               name="social_links"
+              autoComplete="url"
+              maxLength={500}
+              aria-describedby={state.errors?.social_links ? 'social_links-hint social_links-error' : 'social_links-hint'}
+              aria-invalid={state.errors?.social_links ? true : undefined}
               type="url"
               required
               placeholder="https://instagram.com/yourbusiness"
               defaultValue={state.fields?.social_links || ''}
             />
-            <span className="vendor-form-hint">Share your Instagram, Facebook, or other social profiles.</span>
+            <span id="social_links-hint" className="vendor-form-hint">Share your Instagram, Facebook, or other social profile link (starting with https://).</span>
+            <FieldError errors={state.errors} name="social_links" />
           </div>
         </div>
       </div>
@@ -423,9 +437,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             No upcoming events are accepting vendor applications right now.
           </div>
         )}
-        {state.errors?.event_ids && (
-          <span className="vendor-form-error">{state.errors.event_ids[0]}</span>
-        )}
+        <FieldError errors={state.errors} name="event_ids" />
       </div>
 
       {/* Event Requirements */}
@@ -437,6 +449,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <select
               id="tables_requested"
               name="tables_requested"
+              {...invalidProps(state.errors, 'tables_requested')}
               required
               defaultValue={state.fields?.tables_requested || ''}
             >
@@ -447,9 +460,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
               <option value="4">4 Tables</option>
               <option value="5+">5+ Tables (contact for large setup)</option>
             </select>
-            {state.errors?.tables_requested && (
-              <span className="vendor-form-error">{state.errors.tables_requested[0]}</span>
-            )}
+            <FieldError errors={state.errors} name="tables_requested" />
           </div>
 
           <div className="vendor-form-group">
@@ -457,6 +468,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
             <select
               id="power_requirements"
               name="power_requirements"
+              {...invalidProps(state.errors, 'power_requirements')}
               defaultValue={state.fields?.power_requirements || ''}
             >
               <option value="">Select requirement</option>
@@ -466,6 +478,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
               <option value="heavy">Heavy duty (equipment requiring dedicated circuit)</option>
             </select>
             <span className="vendor-form-hint">Let us know your electrical needs for the event.</span>
+            <FieldError errors={state.errors} name="power_requirements" />
           </div>
         </div>
       </div>
@@ -479,10 +492,13 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
           <textarea
             id="additional_notes"
             name="additional_notes"
+            maxLength={2000}
+            {...invalidProps(state.errors, 'additional_notes')}
             rows={4}
             placeholder="Special setup requirements, accessibility needs, or other information..."
             defaultValue={state.fields?.additional_notes || ''}
           />
+          <FieldError errors={state.errors} name="additional_notes" />
         </div>
       </div>
 
@@ -500,9 +516,7 @@ export default function VendorApplicationForm({ events, directoryEnabled = false
               I agree to the <a href="/terms" target="_blank" rel="noopener noreferrer">Terms and Conditions</a> and confirm that all information provided is accurate. I understand that submission of this application does not guarantee vendor acceptance. *
             </span>
           </label>
-          {state.errors?.agreement && (
-            <span className="vendor-form-error">{state.errors.agreement[0]}</span>
-          )}
+          <FieldError errors={state.errors} name="agreement" />
         </div>
       </div>
 

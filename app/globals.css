@@ -19921,3 +19921,54 @@ html[data-admin-theme="dark"] .about-contact-link { background: var(--admin-yell
     text-wrap: balance;
   }
 }
+
+/* ============================================
+   Application forms: grouped fields, validation states, spam trap
+   ============================================ */
+fieldset.vendor-form-group {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.vendor-form-group legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-family: var(--font-heading);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #555;
+}
+
+.vendor-form-group select:focus {
+  border-color: var(--color-blue-primary);
+  outline: none;
+}
+
+.vendor-form-group [aria-invalid="true"] {
+  border-color: var(--color-red);
+}
+
+.form-field-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  color: #6b6b6b;
+}
+
+.form-honeypot {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* Visible keyboard focus for the visually hidden inputs in chips and the logo drop zone. */
+.vendor-category-chip:has(input:focus-visible),
+.upload-zone:has(input:focus-visible) {
+  outline: 3px solid var(--color-blue-primary);
+  outline-offset: 2px;
+}

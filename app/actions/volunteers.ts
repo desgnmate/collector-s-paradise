@@ -3,7 +3,7 @@
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import { z } from 'zod';
-import { sendApprovalEmail, sendRejectionEmail, sendWaitlistEmail } from '@/lib/email';
+import { sendApprovalEmail, sendRejectionEmail, sendVolunteerApplicationEmails, sendWaitlistEmail } from '@/lib/email';
 
 // ============================================
 // Types
@@ -35,20 +35,31 @@ const ADMIN_VOLUNTEER_COLUMNS = 'id, full_name, email, phone, preferred_roles, a
 // ============================================
 // Validation Schema
 // ============================================
+const optionalText = (max: number) => z.string().trim().max(max, `Please keep this under ${max} characters`).optional();
+
 const volunteerApplicationSchema = z.object({
-  full_name: z.string().min(1, 'Full name is required').max(200),
-  email: z.string().email('Please enter a valid email address'),
-  phone: z.string().optional(),
-  preferred_roles: z.array(z.string()).min(1, 'Please select at least one volunteer role'),
-  availability: z.string().min(10, 'Please describe your availability'),
-  previous_experience: z.string().optional(),
-  events_interested: z.array(z.string()).optional(),
-  t_shirt_size: z.string().optional(),
-  emergency_contact_name: z.string().optional(),
-  emergency_contact_phone: z.string().optional(),
-  additional_notes: z.string().optional(),
-  how_heard_about: z.string().optional(),
+  full_name: z.string().trim().min(1, 'Full name is required').max(200),
+  email: z.string().trim().toLowerCase().email('Please enter a valid email address').max(320),
+  phone: optionalText(50),
+  preferred_roles: z.array(z.string().max(100)).min(1, 'Please select at least one volunteer role').max(10),
+  availability: z.string().trim()
+    .min(10, 'Please describe your availability in at least 10 characters (e.g. "Saturdays, 8am–2pm")')
+    .max(1000, 'Please keep your availability under 1000 characters'),
+  previous_experience: optionalText(2000),
+  events_interested: z.array(z.string().max(200)).max(20).optional(),
+  t_shirt_size: optionalText(20),
+  emergency_contact_name: optionalText(200),
+  emergency_contact_phone: optionalText(50),
+  additional_notes: optionalText(2000),
+  how_heard_about: optionalText(200),
 });
+
+const VOLUNTEER_ROLE_LABELS: Record<string, string> = {
+  setup: 'Event Setup Crew',
+  registration: 'Registration Desk',
+  floor: 'Floor Guides',
+  breakdown: 'Breakdown Crew',
+};
 
 type ActionState = {
   message: string;
@@ -108,20 +119,16 @@ export async function submitVolunteerApplication(
     };
   }
 
-  // Check if email is already registered
-  const { data: existingEmail } = await supabase
-    .from('volunteers')
-    .select('id')
-    .eq('email', validatedFields.data.email)
-    .maybeSingle();
-
-  if (existingEmail) {
-    return { message: 'An application with this email already exists.', fields };
+  // Spam trap: real visitors never see this field. Pretend success so bots move on.
+  if (String(formData.get('fax_number') || '')) {
+    return { success: true, message: 'Application submitted successfully!' };
   }
 
-  // Save Volunteer Record
+  // Save Volunteer Record. Duplicate emails are caught by the table's unique
+  // constraint (anonymous visitors cannot read the table to check first).
+  const volunteerId = crypto.randomUUID();
   const { error: dbError } = await supabase.from('volunteers').insert({
-    id: crypto.randomUUID(),
+    id: volunteerId,
     full_name: validatedFields.data.full_name,
     email: validatedFields.data.email,
     phone: validatedFields.data.phone || null,
@@ -147,11 +154,31 @@ export async function submitVolunteerApplication(
       };
     }
     
-    return { message: 'Something went wrong while saving your application. Please contact support.', fields };
+    if (dbError.code === '23505') {
+      return {
+        message: 'We already have a volunteer application from this email address. Reply to your confirmation email if you need to update it.',
+        errors: { email: ['An application with this email already exists.'] },
+        fields,
+      };
+    }
+
+    return { message: 'Something went wrong while saving your application. Please try again, or email us if it keeps happening.', fields };
   }
 
+  // Emails are best-effort: the application is saved even if a send fails.
+  const data = validatedFields.data;
+  await sendVolunteerApplicationEmails({
+    volunteerId,
+    recipientEmail: data.email,
+    fullName: data.full_name,
+    phone: data.phone || null,
+    roles: data.preferred_roles.map((role) => VOLUNTEER_ROLE_LABELS[role] || role),
+    availability: data.availability,
+    events: data.events_interested,
+  }, `volunteer-application-${volunteerId}`);
+
   return {
-    message: 'Application submitted successfully! We\'ll review your application and get back to you soon.',
+    message: 'Application submitted successfully! We\'ve emailed you a copy, and we\'ll be in touch soon.',
     success: true,
   };
 }
@@ -239,6 +266,7 @@ export async function approveVolunteer(volunteerId: string): Promise<ActionState
     volunteer.full_name,
     volunteer.full_name,
     `volunteer-approved-${volunteerId}-${updatedAt}`,
+    'volunteer',
   );
   if (!emailResult.success) {
     return {
@@ -284,6 +312,7 @@ export async function rejectVolunteer(volunteerId: string, reason?: string): Pro
     reason || undefined,
     undefined,
     `volunteer-rejected-${volunteerId}-${updatedAt}`,
+    'volunteer',
   );
   if (!emailResult.success) {
     return {
@@ -323,6 +352,7 @@ export async function waitlistVolunteer(volunteerId: string): Promise<ActionStat
     volunteer.full_name,
     undefined,
     `volunteer-waitlisted-${volunteerId}-${updatedAt}`,
+    'volunteer',
   );
   if (!emailResult.success) {
     return {
