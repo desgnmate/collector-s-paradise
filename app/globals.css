@@ -20817,3 +20817,269 @@ html[data-admin-theme="dark"] .admin-date-chip small { color: var(--admin-yellow
 }
 .admin-menu-popover.is-up { min-width: 0; }
 html[data-admin-theme="dark"] .admin-nav-link-active .admin-nav-badge { background: #242522; color: var(--admin-yellow); }
+
+/* ============================================
+   Experience section: interactive 3D event floor map
+   (replaces the video carousel; see components/experience/FloorMap3D.tsx)
+   ============================================ */
+.experience-tags-hint {
+  margin: 1.5rem 0 0.7rem;
+  color: #5f5b53;
+  font-size: 0.82rem;
+  font-weight: 500;
+}
+.experience-content .experience-tags { margin-top: 0; }
+button.experience-tag {
+  cursor: pointer;
+  line-height: 1;
+  white-space: nowrap;
+  transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+}
+button.experience-tag .experience-tag-icon { display: inline-flex; flex-shrink: 0; }
+button.experience-tag .experience-tag-icon svg { width: 16px; height: 16px; }
+button.experience-tag.is-active {
+  background: var(--color-yellow);
+  border: 2px solid var(--color-dark);
+  box-shadow: 0 3px 0 var(--color-dark);
+}
+button.experience-tag:focus-visible,
+.experience-cta:focus-visible,
+.floor-map-pin:focus-visible,
+.experience-map-toggle button:focus-visible,
+.experience-map-dialog-nav button:focus-visible { outline: 3px solid var(--color-blue-primary); outline-offset: 3px; }
+
+.experience-cta {
+  align-self: flex-start;
+  margin-top: 1.5rem;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 1.5rem;
+  border: 2px solid var(--color-dark);
+  border-radius: 999px;
+  background: var(--color-yellow);
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+.experience-cta:hover { transform: translateY(-2px); box-shadow: 0 3px 0 var(--color-dark); }
+
+.experience-map-side {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  min-height: 640px;
+  border: 2px solid var(--color-dark) !important;
+  border-radius: 15px;
+  overflow: hidden;
+  background: #eae4d6;
+}
+.experience-map-stage { position: relative; flex: 1; min-height: 640px; }
+.experience-map-side .experience-media-label { gap: 8px; padding: 7px 11px; }
+
+.experience-map-toggle {
+  position: absolute;
+  z-index: 12;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  padding: 3px;
+  border: 1.5px solid var(--color-dark);
+  border-radius: 999px;
+  background: var(--color-white);
+}
+.experience-map-toggle button {
+  min-width: 52px;
+  min-height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.experience-map-toggle button.is-active { background: var(--color-dark); color: var(--color-white); }
+
+.experience-map-dialog {
+  position: absolute;
+  z-index: 12;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 16px 18px 16px 20px;
+  border: 3px solid var(--color-dark);
+  border-radius: 14px;
+  background: var(--color-white);
+  box-shadow: 0 4px 0 var(--color-dark);
+}
+.experience-map-dialog-copy { flex: 1; min-width: 0; }
+.experience-map-dialog-kicker {
+  margin: 0;
+  color: var(--color-blue-primary);
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.experience-map-dialog h3 {
+  margin: 4px 0 6px;
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1.15;
+  text-transform: uppercase;
+}
+.experience-map-dialog-copy > p:last-child { margin: 0; color: #3a3a3a; font-size: 0.94rem; line-height: 1.55; }
+.experience-map-dialog-nav { display: flex; gap: 8px; }
+.experience-map-dialog-nav button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--color-dark);
+  border-radius: 8px;
+  background: var(--color-white);
+  color: var(--color-dark);
+  cursor: pointer;
+}
+.experience-map-dialog-nav button:hover { background: var(--color-yellow); }
+.experience-map-dialog-more { position: absolute; right: 12px; bottom: 6px; fill: var(--color-dark); animation: floorMapBlink 1s steps(1) infinite; }
+
+/* The 3D map itself */
+.floor-map { position: absolute; inset: 0; overflow: hidden; perspective: 1800px; perspective-origin: 50% 20%; }
+.floor-map-stage { position: absolute; left: 50%; width: 0; height: 0; transform-style: preserve-3d; transition: transform 0.5s ease, top 0.5s ease; }
+.floor-map-plane {
+  position: absolute;
+  left: -380px;
+  top: -380px;
+  width: 760px;
+  height: 760px;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+.floor-map-image {
+  position: absolute;
+  inset: 0;
+  width: 760px;
+  height: 760px;
+  border-radius: 12px;
+  box-shadow: 0 0 0 3px var(--color-dark);
+  image-rendering: pixelated;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.floor-map-side { position: absolute; background: var(--color-dark); }
+.floor-map-side.is-front { left: 6px; top: 760px; width: 748px; height: 26px; border-radius: 0 0 10px 10px; transform-origin: top; transform: rotateX(-90deg); }
+.floor-map-side.is-right { left: 760px; top: 6px; width: 26px; height: 748px; border-radius: 0 10px 10px 0; background: #1f1f20; transform-origin: left; transform: rotateY(90deg); }
+.is-top .floor-map-side { display: none; }
+
+.floor-map-area {
+  position: absolute;
+  box-sizing: border-box;
+  border: 2px dashed rgba(255, 253, 248, 0.55);
+  border-radius: 10px;
+  transform: translateZ(1px);
+  transition: transform 0.4s cubic-bezier(0.2, 0.75, 0.25, 1), background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  pointer-events: none;
+}
+.floor-map-area.is-active {
+  border: 3px solid var(--color-yellow);
+  background: rgba(244, 197, 66, 0.22);
+  box-shadow: 0 0 0 3px var(--color-dark), 0 18px 30px rgba(46, 46, 46, 0.35);
+}
+.is-3d .floor-map-area.is-active { transform: translateZ(6px); }
+
+.floor-map-pin-anchor {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transition: transform 0.9s cubic-bezier(0.2, 0.75, 0.25, 1);
+}
+.floor-map-pin {
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  transform: translateX(-50%);
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 12px 4px 4px;
+  border: 2px solid var(--color-dark);
+  border-radius: 999px;
+  background: var(--color-white);
+  box-shadow: 0 3px 0 var(--color-dark);
+  color: var(--color-dark);
+  font-family: var(--font-heading);
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.floor-map-pin:hover { background: #fff6d6; }
+.floor-map-pin.is-active { background: var(--color-yellow); }
+.floor-map-pin-num {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--color-dark);
+  border-radius: 13px;
+  background: var(--color-cream);
+  font-size: 0.69rem;
+  font-weight: 900;
+}
+.floor-map-pin.is-active .floor-map-pin-num { background: var(--color-white); }
+.floor-map-cursor {
+  position: absolute;
+  left: 0;
+  bottom: 52px;
+  fill: var(--color-yellow);
+  stroke: var(--color-dark);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+  animation: floorMapBob 1.2s ease-in-out infinite;
+}
+@keyframes floorMapBob { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -6px); } }
+@keyframes floorMapBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+
+/* Phones and small tablets: the dialogue box sits under the map instead of over it. */
+@media (max-width: 899px) {
+  /* Older stacked-layout rules give this panel flex: 1 1 0, which collapses it in a column. */
+  .experience-map-side { flex: none; min-height: 0; height: auto; border-width: 3px !important; border-radius: 24px; }
+  .experience-map-stage { flex: none; min-height: 0; height: clamp(320px, 78vw, 460px); }
+  .experience-map-dialog { position: static; margin: 0 12px 14px; }
+  .experience-cta { align-self: stretch; justify-content: center; }
+}
+@media (max-width: 560px) {
+  .experience-map-dialog { flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px; }
+  .experience-map-dialog-nav { justify-content: flex-end; }
+  .experience-map-dialog h3 { font-size: 1.05rem; }
+  .experience-map-toggle { top: 12px; right: 12px; }
+  .experience-map-side .experience-media-label { top: 12px; left: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .floor-map-stage,
+  .floor-map-plane,
+  .floor-map-area,
+  .floor-map-pin-anchor { transition: none; }
+  .floor-map-cursor,
+  .experience-map-dialog-more { animation: none; }
+}
