@@ -1,81 +1,82 @@
 'use client';
 
-import Image from 'next/image';
+import { useMemo } from 'react';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import { useAdminRouter } from '@/contexts/AdminRouterContext';
+import { useAdminRouter, type AdminRoute } from '@/contexts/AdminRouterContext';
+import { requestVendorView } from '@/contexts/RegistrationQueueContext';
+import { useAdminAttention } from '@/components/admin/useAdminAttention';
+import { RowChevron } from '@/components/admin/ui';
 import { formatEventTimeRange } from '@/lib/event-date';
 
+type AttentionItem = {
+  key: string;
+  title: string;
+  detail: string;
+  tone: 'attention' | 'alert' | 'neutral';
+  route: AdminRoute;
+  vendorView?: 'events' | 'unassigned' | 'vendors' | 'review';
+};
+
+function plural(count: number, one: string, many = `${one}s`) {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 export default function DashboardContent() {
-  const { stats: displayStats, events, loading } = useAdminData();
+  const { stats, events, vendors, loading } = useAdminData();
   const { navigate } = useAdminRouter();
+  const attention = useAdminAttention();
 
-  const upcomingEvents = events
-    .filter(e => e.status === 'upcoming')
-    .sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime())
-    .slice(0, 5);
+  const upcomingEvents = useMemo(() => events
+    .filter((event) => event.status === 'upcoming')
+    .sort((a, b) => a.event_date.localeCompare(b.event_date))
+    .slice(0, 5), [events]);
 
-  const statCards = [
-    {
-      label: 'Total Vendors',
-      value: displayStats.totalVendors,
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-      tone: 'yellow',
-    },
-    {
-      label: 'Pending',
-      value: displayStats.pendingVendors,
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="12" r="10" />
-          <polyline points="12 6 12 12 16 14" />
-        </svg>
-      ),
-      tone: 'red',
-    },
-    {
-      label: 'Approved',
-      value: displayStats.approvedVendors,
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-          <polyline points="22 4 12 14.01 9 11.01" />
-        </svg>
-      ),
-      tone: 'green',
-    },
-    {
-      label: 'Events',
-      value: displayStats.totalEvents,
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-      ),
-      tone: 'blue',
-    },
-    {
-      label: 'Open Reports',
-      value: displayStats.openReports,
-      icon: (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M10.3 2.9 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0Z" />
-          <line x1="12" x2="12" y1="9" y2="13" />
-          <line x1="12" x2="12.01" y1="17" y2="17" />
-        </svg>
-      ),
-      tone: 'purple',
-    },
-  ];
+  const approvedByEvent = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const vendor of vendors) {
+      for (const application of vendor.event_applications) {
+        if (application.application_status === 'approved') {
+          counts.set(application.event_id, (counts.get(application.event_id) || 0) + 1);
+        }
+      }
+    }
+    return counts;
+  }, [vendors]);
+
+  const items: AttentionItem[] = [];
+  if (attention.reviewQueue > 0) items.push({
+    key: 'queue', tone: 'attention', route: '/admin/vendors', vendorView: 'review',
+    title: `${plural(attention.reviewQueue, 'submission')} in the review queue`,
+    detail: 'Repeat applicants and directory sign-ups to link to a profile',
+  });
+  if (attention.pendingApplications > 0) items.push({
+    key: 'applications', tone: 'attention', route: '/admin/vendors', vendorView: 'events',
+    title: `${plural(attention.pendingApplications, 'pending vendor application')}`,
+    detail: 'Approve, waitlist or reject from each event roster',
+  });
+  if (attention.failedInvitations > 0) items.push({
+    key: 'invitations', tone: 'alert', route: '/admin/vendors', vendorView: 'events',
+    title: `${plural(attention.failedInvitations, 'invitation email')} did not send`,
+    detail: 'Open the vendor on its event roster to resend',
+  });
+  if (attention.openReports > 0) items.push({
+    key: 'reports', tone: attention.urgentReports > 0 ? 'alert' : 'attention', route: '/admin/reports',
+    title: `${plural(attention.openReports, 'open report')}${attention.urgentReports > 0 ? `, ${attention.urgentReports} urgent` : ''}`,
+    detail: attention.oldestOpenReport ? `Oldest: “${attention.oldestOpenReport.subject}”` : 'Website and booking issues from visitors',
+  });
+  if (attention.pendingSponsors > 0) items.push({
+    key: 'sponsors', tone: 'attention', route: '/admin/sponsors',
+    title: `${plural(attention.pendingSponsors, 'sponsor application')} to review`, detail: 'New partnership enquiries',
+  });
+  if (attention.pendingVolunteers > 0) items.push({
+    key: 'volunteers', tone: 'attention', route: '/admin/volunteers',
+    title: `${plural(attention.pendingVolunteers, 'volunteer application')} to review`, detail: 'People offering to help at events',
+  });
+
+  const open = (item: AttentionItem) => {
+    if (item.vendorView) requestVendorView(item.vendorView);
+    navigate(item.route);
+  };
 
   if (loading) {
     return (
@@ -88,128 +89,78 @@ export default function DashboardContent() {
     );
   }
 
+  const summary = [
+    { label: 'Vendor profiles', value: stats.totalVendors },
+    { label: 'Pending applications', value: attention.pendingApplications },
+    { label: 'In review queue', value: attention.reviewQueueLoading && attention.reviewQueue === 0 ? '…' : attention.reviewQueue },
+    { label: 'Upcoming events', value: upcomingEvents.length },
+    { label: 'Open reports', value: stats.openReports },
+  ];
+
   return (
-    <div className="admin-page">
+    <div className="admin-page admin-dashboard">
       <div className="admin-page-header">
         <h1 className="admin-page-title">Dashboard</h1>
-        <p className="admin-page-subtitle">Welcome to Collector&apos;s Paradise Admin Panel.</p>
+        <p className="admin-page-subtitle">What needs you today, and what’s coming up.</p>
       </div>
 
-      <div className="admin-stats-grid">
-        {statCards.map((card, index) => (
-          <div key={index} className={`admin-stat-card admin-stat-card--${card.tone}`}>
-            <div className="admin-stat-icon">
-              {card.icon}
-            </div>
-            <div className="admin-stat-content">
-              <span className="admin-stat-value">{card.value}</span>
-              <span className="admin-stat-label">{card.label}</span>
-            </div>
+      <section className="admin-summary-grid" aria-label="Summary">
+        {summary.map((card) => (
+          <div key={card.label} className="admin-summary-card">
+            <span>{card.label}</span>
+            <strong>{card.value}</strong>
           </div>
         ))}
-      </div>
+      </section>
 
-      <div className="admin-dashboard-workspace">
-        <section className="admin-dashboard-section admin-dashboard-section--events">
-          <div className="admin-section-heading">
-            <div>
-              <span className="admin-section-kicker">Schedule</span>
-              <h2 className="admin-section-title">Upcoming Events</h2>
-            </div>
-            <button type="button" className="admin-section-link" onClick={() => navigate('/admin/events')}>
-              View all events
+      <div className="admin-dashboard-columns">
+        <section className="admin-card-list" aria-labelledby="attention-title">
+          <h2 id="attention-title" className="admin-card-list-title">Needs your attention</h2>
+          {items.length === 0 ? (
+            <p className="admin-card-list-empty">You’re all caught up. New applications and reports will show up here.</p>
+          ) : items.map((item) => (
+            <button key={item.key} type="button" className="admin-list-row" onClick={() => open(item)}>
+              <span className={`admin-dot is-${item.tone}`} aria-hidden="true" />
+              <span className="admin-list-row-copy">
+                <strong>{item.title}</strong>
+                <span>{item.detail}</span>
+              </span>
+              <RowChevron />
             </button>
-          </div>
-          {upcomingEvents.length > 0 ? (
-            <div className="events-grid">
-              {upcomingEvents.map(event => (
-                <div key={event.id} className={`event-card ${event.cover_image_url ? '' : 'event-card--no-cover'}`}>
-                  {event.cover_image_url && (
-                    <div className="event-cover-image-wrapper">
-                      <Image src={event.cover_image_url} alt={event.title} className="event-cover-image" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" style={{ objectFit: 'cover' }} />
-                    </div>
-                  )}
-
-                  <h3 className="event-card-title">{event.title}</h3>
-
-                  <div className="event-card-details">
-                    <div className="event-detail">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                        <line x1="16" y1="2" x2="16" y2="6" />
-                        <line x1="8" y1="2" x2="8" y2="6" />
-                        <line x1="3" y1="10" x2="21" y2="10" />
-                      </svg>
-                      <span>{new Date(event.event_date + 'T00:00:00').toLocaleDateString('en-AU', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                    </div>
-
-                    <div className="event-detail">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10" />
-                        <polyline points="12 6 12 12 16 14" />
-                      </svg>
-                      <span>{formatEventTimeRange(event.start_time, event.end_time)}</span>
-                    </div>
-
-                    {(event.venue_address || event.venue) && (
-                      <div className="event-detail">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                        <span>{event.venue_address || event.venue}</span>
-                      </div>
-                    )}
-
-                    <div className="event-detail">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                      </svg>
-                      <span>{event.tickets_sold} / {event.capacity} sold</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="admin-dashboard-message">No upcoming events scheduled.</div>
-          )}
+          ))}
         </section>
 
-        <section className="admin-dashboard-section admin-dashboard-section--actions">
-          <span className="admin-section-kicker">Shortcuts</span>
-          <h2 className="admin-section-title">Quick Actions</h2>
-          <div className="admin-quick-actions">
-            <button type="button" className="admin-action-card" onClick={() => navigate('/admin/vendors')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-            </svg>
-            <span>Vendor Management</span>
-            </button>
-            <button type="button" className="admin-action-card" onClick={() => navigate('/admin/events')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            <span>View Events</span>
-            </button>
-            <button type="button" className="admin-action-card" onClick={() => navigate('/admin/reports')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.3 2.9 1.8 17a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 2.9a2 2 0 0 0-3.4 0Z" />
-              <line x1="12" x2="12" y1="9" y2="13" />
-              <line x1="12" x2="12.01" y1="17" y2="17" />
-            </svg>
-            <span>Review Reports</span>
-            </button>
+        <section className="admin-card-list" aria-labelledby="events-title">
+          <div className="admin-card-list-heading">
+            <h2 id="events-title" className="admin-card-list-title">Upcoming events</h2>
+            <button type="button" className="admin-text-button" onClick={() => navigate('/admin/events')}>View all</button>
           </div>
+          {upcomingEvents.length === 0 ? (
+            <p className="admin-card-list-empty">No upcoming events scheduled.</p>
+          ) : upcomingEvents.map((event) => {
+            const date = new Date(`${event.event_date}T00:00:00`);
+            const approved = approvedByEvent.get(event.id) || 0;
+            return (
+              <button
+                key={event.id}
+                type="button"
+                className="admin-list-row"
+                onClick={() => { requestVendorView('events'); navigate('/admin/vendors'); }}
+                aria-label={`${event.title}, ${date.toLocaleDateString('en-AU', { weekday: 'long', day: 'numeric', month: 'long' })}. Open vendor roster`}
+              >
+                <span className="admin-date-chip" aria-hidden="true">
+                  <small>{date.toLocaleDateString('en-AU', { month: 'short' })}</small>
+                  <strong>{date.getDate()}</strong>
+                </span>
+                <span className="admin-list-row-copy">
+                  <strong>{event.title}</strong>
+                  <span>{[event.venue, formatEventTimeRange(event.start_time, event.end_time)].filter(Boolean).join(' · ')}</span>
+                </span>
+                <span className="admin-list-row-meta">{plural(approved, 'vendor')}</span>
+                <RowChevron />
+              </button>
+            );
+          })}
         </section>
       </div>
     </div>

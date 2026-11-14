@@ -1,33 +1,43 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 
-export default function AdminThemeToggle() {
-  const [isDark, setIsDark] = useState(false);
+const THEME_ATTRIBUTE = 'data-admin-theme';
+
+function subscribeToTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, { attributes: true, attributeFilter: [THEME_ATTRIBUTE] });
+  return () => observer.disconnect();
+}
+
+function setTheme(dark: boolean) {
+  if (dark) document.documentElement.setAttribute(THEME_ATTRIBUTE, 'dark');
+  else document.documentElement.removeAttribute(THEME_ATTRIBUTE);
+}
+
+/** Admin light/dark theme, stored per browser. The <html> attribute is the source of truth. */
+export function useAdminTheme() {
+  const isDark = useSyncExternalStore(
+    subscribeToTheme,
+    () => document.documentElement.getAttribute(THEME_ATTRIBUTE) === 'dark',
+    () => false,
+  );
 
   useEffect(() => {
-    const stored = localStorage.getItem('admin-theme');
-    if (stored === 'dark') {
-      document.documentElement.setAttribute('data-admin-theme', 'dark');
-      setIsDark(true);
-    } else {
-      document.documentElement.removeAttribute('data-admin-theme');
-      setIsDark(false);
-    }
+    try { setTheme(localStorage.getItem('admin-theme') === 'dark'); } catch { /* storage unavailable */ }
   }, []);
 
   const toggle = () => {
-    const next = isDark ? 'light' : 'dark';
-    if (next === 'dark') {
-      document.documentElement.setAttribute('data-admin-theme', 'dark');
-      localStorage.setItem('admin-theme', 'dark');
-      setIsDark(true);
-    } else {
-      document.documentElement.removeAttribute('data-admin-theme');
-      localStorage.setItem('admin-theme', 'light');
-      setIsDark(false);
-    }
+    const next = !isDark;
+    setTheme(next);
+    try { localStorage.setItem('admin-theme', next ? 'dark' : 'light'); } catch { /* storage unavailable */ }
   };
+
+  return { isDark, toggle };
+}
+
+export default function AdminThemeToggle() {
+  const { isDark, toggle } = useAdminTheme();
 
   return (
     <button

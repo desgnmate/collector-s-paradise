@@ -1,9 +1,11 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useAdminData } from '@/contexts/AdminDataContext';
-import VendorRegistrationQueue, { useRegistrationQueue } from '@/components/VendorRegistrationQueue';
+import VendorRegistrationQueue from '@/components/VendorRegistrationQueue';
+import { useRegistrationQueue, VENDOR_VIEW_STORAGE_KEY } from '@/contexts/RegistrationQueueContext';
+import { ActionMenu, DecisionControl, FilterSelect, RowChevron, SearchField, UnderlineTabs, useEscapeToClose, type ActionMenuItem } from '@/components/admin/ui';
 import {
   assignVendorsToEvents,
   closeVendorApplications,
@@ -194,6 +196,28 @@ export default function AdminVendorsClient() {
   const [processing, setProcessing] = useState(false);
   const [showClosure, setShowClosure] = useState(false);
   const [closeWaitlisted, setCloseWaitlisted] = useState(false);
+
+  // Escape closes whichever panel is open (topmost first).
+  useEscapeToClose(Boolean(activeApplication || selectedVendor || showAssignment || showClosure), () => {
+    if (showClosure) setShowClosure(false);
+    else if (showAssignment) setShowAssignment(false);
+    else if (activeApplication) setActiveApplication(null);
+    else setSelectedVendor(null);
+  }, processing);
+
+  // The dashboard can ask for a specific tab (e.g. the review queue) before navigating here.
+  useEffect(() => {
+    let requested: string | null = null;
+    try {
+      requested = sessionStorage.getItem(VENDOR_VIEW_STORAGE_KEY);
+      sessionStorage.removeItem(VENDOR_VIEW_STORAGE_KEY);
+    } catch { /* storage unavailable */ }
+    if (requested === 'events' || requested === 'unassigned' || requested === 'vendors' || requested === 'review') {
+      // Reading browser storage has to wait until after hydration.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setView(requested);
+    }
+  }, []);
 
   const applications = useMemo<ApplicationRow[]>(
     () => vendors.flatMap((vendor) =>
@@ -625,6 +649,30 @@ export default function AdminVendorsClient() {
     URL.revokeObjectURL(url);
   };
 
+  const syncToSheet = async () => {
+    setProcessing(true);
+    const result = await syncAllVendorsToSheet();
+    setProcessing(false);
+    setNotice({ type: result.success ? 'success' : 'error', message: result.message });
+  };
+  const openClosure = () => { setCloseWaitlisted(false); setShowClosure(true); setNotice(null); };
+  const headerMenuItems: ActionMenuItem[] = [];
+  if (view === 'events' && selectedEvent) {
+    headerMenuItems.push({ label: 'Export roster (CSV)', onSelect: exportEventCsv });
+    if (selectedEvent.event.vendor_applications_closed_at) {
+      if (selectedEvent.noticesUnsent > 0) headerMenuItems.push({ label: `Retry unsent spots-filled emails (${selectedEvent.noticesUnsent})`, onSelect: () => void retryClosureNotices(), disabled: processing });
+      if (selectedEvent.pending > 0 || selectedEvent.waitlisted > 0) headerMenuItems.push({ label: 'Email remaining applicants…', onSelect: openClosure, disabled: processing });
+      headerMenuItems.push({ label: 'Reopen applications', onSelect: () => void reopenApplications(), disabled: processing });
+    } else {
+      headerMenuItems.push({ label: 'Spots filled — close applications…', onSelect: openClosure, disabled: processing });
+    }
+  }
+  if (view === 'review') headerMenuItems.push({ label: 'Reload review queue', onSelect: registrationQueue.refresh, disabled: registrationQueue.loading });
+  if (view === 'unassigned' && selectedVendorIds.length === 0 && unassignedVendors.length > 0) {
+    headerMenuItems.push({ label: 'Assign vendors to events…', onSelect: () => openAssignment(unassignedVendors.map((vendor) => vendor.id)) });
+  }
+  headerMenuItems.push({ label: 'Sync all vendors to Google Sheet', onSelect: () => void syncToSheet(), disabled: processing, separated: headerMenuItems.length > 0 });
+
   if (loading) {
     return <div className="admin-content-panel vendor-management-loading"><div className="admin-spinner" /><span>Loading vendor management...</span></div>;
   }
@@ -640,22 +688,27 @@ export default function AdminVendorsClient() {
     <div className="admin-content-panel vendor-management">
       <header className="vendor-page-header">
         <div>
-          <h2 className="vendor-page-title">Vendor Management</h2>
-          <p className="vendor-page-subtitle">Review vendors by event, then manage reusable vendor profiles.</p>
+          {view === 'events' && selectedEvent ? (
+            <>
+              <button type="button" className="admin-breadcrumb" onClick={() => { setSelectedEventId(null); setStatusFilter('all'); setSearch(''); setCurrentPage(1); }}>
+                ← All events
+              </button>
+              <h2 className="vendor-page-title">{selectedEvent.event.title}</h2>
+              <p className="vendor-page-subtitle">
+                {formatEventDate(selectedEvent.event.event_date)} · {selectedEvent.event.venue || 'Venue not set'} ·{' '}
+                {selectedEvent.event.vendor_applications_closed_at
+                  ? <span className="admin-inline-status is-closed">Applications closed {new Date(selectedEvent.event.vendor_applications_closed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}</span>
+                  : <span className="admin-inline-status is-open">Applications open</span>}
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="vendor-page-title">Vendors</h2>
+              <p className="vendor-page-subtitle">Review applications by event, link repeat applicants, and manage vendor profiles.</p>
+            </>
+          )}
         </div>
-        <button
-          type="button"
-          className="vendor-management-secondary-button"
-          onClick={async () => {
-            setProcessing(true);
-            const result = await syncAllVendorsToSheet();
-            setProcessing(false);
-            setNotice({ type: result.success ? 'success' : 'error', message: result.message });
-          }}
-          disabled={processing}
-        >
-          Sync to Sheet
-        </button>
+        <ActionMenu items={headerMenuItems} />
       </header>
 
       {syncError && (
@@ -666,34 +719,19 @@ export default function AdminVendorsClient() {
       )}
       {notice && <div className={`admin-alert admin-alert-${notice.type}`}>{notice.message}</div>}
 
-      <div className="vendor-management-view-switch" role="tablist" aria-label="Vendor management views">
-        <button type="button" role="tab" aria-selected={view === 'events'} className={view === 'events' ? 'active' : ''} onClick={() => { setView('events'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
-          By event <span>{applications.length}</span>
-        </button>
-        <button type="button" role="tab" aria-selected={view === 'unassigned'} className={view === 'unassigned' ? 'active' : ''} onClick={() => { setView('unassigned'); setSelectedEventId(null); setSelectedVendorIds([]); setStatusFilter('all'); setSearch(''); setCurrentPage(1); }}>
-          Unassigned <span>{unassignedVendors.length}</span>
-        </button>
-        <button type="button" role="tab" aria-selected={view === 'vendors'} className={view === 'vendors' ? 'active' : ''} onClick={() => { setView('vendors'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
-          All profiles <span>{vendors.length}</span>
-        </button>
-        <button type="button" role="tab" aria-selected={view === 'review'} className={`${view === 'review' ? 'active' : ''} ${pendingReviews > 0 ? 'has-attention' : ''}`} onClick={() => { setView('review'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
-          Review queue <span>{registrationQueue.loading && pendingReviews === 0 ? '…' : pendingReviews}</span>
-        </button>
-      </div>
+      <UnderlineTabs
+        label="Vendor views"
+        active={view}
+        onChange={(next) => { setView(next); setSelectedEventId(null); setSelectedVendorIds([]); setStatusFilter('all'); setSearch(''); setCurrentPage(1); }}
+        tabs={[
+          { key: 'events', label: 'By event', count: applications.length },
+          { key: 'unassigned', label: 'Unassigned', count: unassignedVendors.length },
+          { key: 'vendors', label: 'All profiles', count: vendors.length },
+          { key: 'review', label: 'Review queue', count: pendingReviews, attention: true },
+        ]}
+      />
 
-      {view !== 'review' && pendingReviews > 0 && (
-        <div className="vendor-review-callout">
-          <p>
-            <strong>{pendingReviews} submission{pendingReviews === 1 ? '' : 's'} waiting for review.</strong>{' '}
-            They match an existing vendor or are directory-only, so they are not on any event roster yet.
-          </p>
-          <button type="button" className="vendor-management-secondary-button" onClick={() => { setView('review'); setSelectedEventId(null); setSelectedVendorIds([]); setSearch(''); setCurrentPage(1); }}>
-            Open review queue
-          </button>
-        </div>
-      )}
-
-      {view === 'review' && <VendorRegistrationQueue queue={registrationQueue} />}
+      {view === 'review' && <VendorRegistrationQueue />}
 
       {view === 'events' && !selectedEvent && (
         <section className="vendor-management-event-grid">
@@ -724,71 +762,35 @@ export default function AdminVendorsClient() {
 
       {view === 'events' && selectedEvent && (
         <section>
-          <div className="vendor-management-roster-header">
-            <button type="button" className="vendor-management-back" onClick={() => { setSelectedEventId(null); setStatusFilter('all'); setSearch(''); setCurrentPage(1); }}>← All events</button>
-            <div>
-              <h3>{selectedEvent.event.title}</h3>
-              <p>{formatEventDate(selectedEvent.event.event_date)} · {selectedEvent.event.venue || 'Venue not set'}</p>
-            </div>
-            <button type="button" className="vendor-management-secondary-button" onClick={exportEventCsv}>Export roster</button>
-          </div>
-
-          {selectedEvent.event.vendor_applications_closed_at ? (
-            <div className="vendor-closure-panel is-closed" role="status">
-              <div>
-                <strong>Vendor applications closed {new Date(selectedEvent.event.vendor_applications_closed_at).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
-                <p>
-                  This event is hidden from the application form. {selectedEvent.noticesSent} not-accepted email{selectedEvent.noticesSent === 1 ? '' : 's'} sent
-                  {selectedEvent.noticesUnsent > 0 ? `, ${selectedEvent.noticesUnsent} not sent yet` : ''}.
-                  {selectedEvent.pending > 0 ? ` ${selectedEvent.pending} applicant${selectedEvent.pending === 1 ? ' is' : 's are'} still pending.` : ''}
-                </p>
-              </div>
-              <div className="vendor-closure-panel-actions">
-                {selectedEvent.noticesUnsent > 0 && (
-                  <button type="button" className="vendor-management-secondary-button" onClick={retryClosureNotices} disabled={processing}>
-                    {processing ? 'Working...' : `Retry unsent emails (${selectedEvent.noticesUnsent})`}
-                  </button>
-                )}
-                {(selectedEvent.pending > 0 || selectedEvent.waitlisted > 0) && (
-                  <button type="button" className="vendor-management-secondary-button" onClick={() => { setCloseWaitlisted(false); setShowClosure(true); setNotice(null); }} disabled={processing}>
-                    Email remaining applicants
-                  </button>
-                )}
-                <button type="button" className="vendor-management-secondary-button" onClick={reopenApplications} disabled={processing}>Reopen applications</button>
-              </div>
-            </div>
-          ) : (
-            <div className="vendor-closure-panel">
-              <div>
-                <strong>Vendor applications are open</strong>
-                <p>Once every spot is filled, close applications to take this event off the application form and email everyone who was not accepted.</p>
-              </div>
-              <div className="vendor-closure-panel-actions">
-                <button type="button" className="vendor-management-secondary-button" onClick={() => { setCloseWaitlisted(false); setShowClosure(true); setNotice(null); }} disabled={processing}>
-                  Spots filled — close applications
-                </button>
-              </div>
-            </div>
+          {selectedEvent.event.vendor_applications_closed_at && (selectedEvent.noticesUnsent > 0 || selectedEvent.pending > 0) && (
+            <p className="admin-quiet-note" role="status">
+              {selectedEvent.noticesSent} spots-filled email{selectedEvent.noticesSent === 1 ? '' : 's'} sent
+              {selectedEvent.noticesUnsent > 0 ? `, ${selectedEvent.noticesUnsent} not sent yet` : ''}
+              {selectedEvent.pending > 0 ? ` · ${selectedEvent.pending} applicant${selectedEvent.pending === 1 ? ' is' : 's are'} still pending` : ''}.
+              {' '}Use ⋯ to follow up.
+            </p>
           )}
 
-          <div className="vendor-management-toolbar">
-            <div className="admin-tabs">
-              {(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => (
-                <button key={status} type="button" className={`admin-tab ${statusFilter === status ? 'active' : ''}`} onClick={() => { setStatusFilter(status); setCurrentPage(1); }}>
-                  {status === 'all' ? 'All' : statusLabels[status]}
-                  <span className="tab-count">{status === 'all' ? selectedEvent.applications.length : selectedEvent.applications.filter((application) => application.application_status === status).length}</span>
-                </button>
-              ))}
-            </div>
-            <input className="vendor-management-search" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder="Search this roster" aria-label="Search this event roster" />
+          <div className="admin-filter-bar">
+            <SearchField value={search} onChange={(value) => { setSearch(value); setCurrentPage(1); }} placeholder="Search vendors" label="Search this event roster" />
+            <FilterSelect
+              label="Status"
+              value={statusFilter}
+              onChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}
+              options={(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => ({
+                value: status,
+                label: status === 'all' ? 'All' : statusLabels[status],
+                count: status === 'all' ? selectedEvent.applications.length : selectedEvent.applications.filter((application) => application.application_status === status).length,
+              }))}
+            />
           </div>
 
           <div className="vendor-management-table-wrap">
             <table className="vendor-management-table">
-              <thead><tr><th>Vendor</th><th>Categories</th><th>Requirements</th><th>Booth</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr></thead>
+              <thead><tr><th>Vendor</th><th>Categories</th><th>Requirements</th><th>Booth</th><th>Status</th><th><span className="sr-only">Open</span></th></tr></thead>
               <tbody>
                 {paginatedApplications.map((application) => (
-                  <tr key={application.id}>
+                  <tr key={application.id} className="is-clickable" onClick={() => openApplication(application)}>
                     <td><strong>{application.vendor.business_name}</strong><span>{application.vendor.contact_name}<br />{application.vendor.email}</span></td>
                     <td>{application.vendor.categories.slice(0, 3).join(', ') || 'Not provided'}</td>
                     <td>{application.tables_requested || '—'} table(s)<br /><span>{application.power_requirements || 'No power request'}</span></td>
@@ -804,7 +806,7 @@ export default function AdminVendorsClient() {
                         </span>
                       )}
                     </td>
-                    <td><button type="button" className="vendor-management-row-action" onClick={() => openApplication(application)}>Review</button></td>
+                    <td className="admin-row-open-cell"><button type="button" className="admin-row-open" aria-label={`Review ${application.vendor.business_name}`} onClick={(event) => { event.stopPropagation(); openApplication(application); }}><RowChevron /></button></td>
                   </tr>
                 ))}
               </tbody>
@@ -817,31 +819,27 @@ export default function AdminVendorsClient() {
 
       {view === 'unassigned' && (
         <section>
-          <div className="vendor-management-directory-header">
-            <div>
-              <h3>Unassigned vendors</h3>
-              <p>Legacy status preserved. Assign vendors to events without changing existing profile data.</p>
-            </div>
-            <button
-              type="button"
-              className="vendor-management-secondary-button"
-              disabled={selectedVendorIds.length === 0}
-              onClick={() => openAssignment(selectedVendorIds)}
-            >
-              Assign selected ({selectedVendorIds.length})
-            </button>
+          <p className="admin-section-intro">Vendors with no event yet. Tick the ones to place, then assign them to events — their profile details stay as they are.</p>
+          <div className="admin-filter-bar">
+            <SearchField value={search} onChange={(value) => { setSearch(value); setCurrentPage(1); }} placeholder="Search vendors" label="Search unassigned vendors" />
+            <FilterSelect
+              label="Legacy status"
+              value={statusFilter}
+              onChange={(value) => { setStatusFilter(value); setCurrentPage(1); }}
+              options={(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => ({
+                value: status,
+                label: status === 'all' ? 'All' : statusLabels[status],
+                count: status === 'all' ? unassignedVendors.length : unassignedVendors.filter((vendor) => vendor.application_status === status).length,
+              }))}
+            />
           </div>
-          <div className="vendor-management-toolbar vendor-management-unassigned-toolbar">
-            <div className="admin-tabs">
-              {(['all', 'pending', 'approved', 'waitlisted', 'rejected'] as StatusFilter[]).map((status) => (
-                <button key={status} type="button" className={`admin-tab ${statusFilter === status ? 'active' : ''}`} onClick={() => { setStatusFilter(status); setCurrentPage(1); }}>
-                  {status === 'all' ? 'All statuses' : statusLabels[status]}
-                  <span className="tab-count">{status === 'all' ? unassignedVendors.length : unassignedVendors.filter((vendor) => vendor.application_status === status).length}</span>
-                </button>
-              ))}
+          {selectedVendorIds.length > 0 && (
+            <div className="admin-selection-bar" role="region" aria-label="Selected vendors">
+              <span>{selectedVendorIds.length} selected</span>
+              <button type="button" className="admin-selection-primary" onClick={() => openAssignment(selectedVendorIds)}>Assign to events…</button>
+              <button type="button" className="admin-selection-clear" onClick={() => setSelectedVendorIds([])}>Clear</button>
             </div>
-            <input className="vendor-management-search" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder="Search unassigned vendors" aria-label="Search unassigned vendors" />
-          </div>
+          )}
           <div className="vendor-management-bulk-bar">
             <label>
               <input
@@ -869,7 +867,7 @@ export default function AdminVendorsClient() {
                   <strong>{vendor.business_name}</strong><span>{vendor.contact_name} · {vendor.email}</span>
                 </button>
                 <span className="vendor-management-legacy-status"><small>Legacy status</small><StatusBadge status={vendor.application_status} /></span>
-                <button type="button" className="vendor-management-row-action" onClick={() => openAssignment([vendor.id])}>Assign</button>
+                <RowChevron />
               </div>
             ))}
             {visibleUnassignedVendors.length === 0 && <div className="vendor-management-empty">No unassigned vendors match this view.</div>}
@@ -882,7 +880,7 @@ export default function AdminVendorsClient() {
         <section>
           <div className="vendor-management-directory-header">
             <div><h3>Vendor directory</h3><p>Profiles stay separate from decisions made for each event.</p></div>
-            <input className="vendor-management-search" type="search" value={search} onChange={(event) => { setSearch(event.target.value); setCurrentPage(1); }} placeholder="Search all vendors" aria-label="Search all vendors" />
+            <SearchField value={search} onChange={(value) => { setSearch(value); setCurrentPage(1); }} placeholder="Search vendors" label="Search all vendors" />
           </div>
           <div className="vendor-management-directory">
             {paginatedVendors.map((vendor) => (
@@ -1056,7 +1054,18 @@ export default function AdminVendorsClient() {
                 </dl>
               </div>
               <div className="vendor-management-decision-form">
-                <label>Status<select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as VendorApplicationStatus)}><option value="pending">Pending</option><option value="approved">Approved</option><option value="waitlisted">Waitlisted</option><option value="rejected">Rejected</option></select></label>
+                <DecisionControl
+                  legend="Decision"
+                  value={nextStatus}
+                  onChange={setNextStatus}
+                  disabled={processing}
+                  options={[
+                    { value: 'pending', label: 'Pending', tone: 'neutral' },
+                    { value: 'approved', label: 'Approve', tone: 'positive' },
+                    { value: 'waitlisted', label: 'Waitlist', tone: 'caution' },
+                    { value: 'rejected', label: 'Reject', tone: 'negative' },
+                  ]}
+                />
                 <label>Booth assignment<input value={boothAssignment} onChange={(event) => setBoothAssignment(event.target.value)} placeholder="e.g. B12" /></label>
                 {nextStatus === 'rejected' && <label>Rejection reason<textarea value={rejectionReason} onChange={(event) => setRejectionReason(event.target.value)} rows={4} placeholder="Optional reason included in email" /></label>}
                 {nextStatus === 'approved' && (

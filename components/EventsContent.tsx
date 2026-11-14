@@ -6,6 +6,7 @@ import { useState, useRef } from 'react';
 import { createEvent, updateEvent, deleteEvent, type Event } from '@/app/actions/events';
 import { useAdminData } from '@/contexts/AdminDataContext';
 import { formatEventTimeRange } from '@/lib/event-date';
+import { ActionMenu, UnderlineTabs } from '@/components/admin/ui';
 
 export default function EventsContent() {
   const { events, setEvents, loading, errors, refreshData } = useAdminData();
@@ -181,19 +182,12 @@ export default function EventsContent() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="admin-tabs">
-        {tabs.map(tab => (
-          <button
-            key={tab.key}
-            onClick={() => setStatusFilter(tab.key)}
-            className={`admin-tab ${statusFilter === tab.key ? 'active' : ''}`}
-          >
-            {tab.label}
-            <span className="tab-count">{tab.count}</span>
-          </button>
-        ))}
-      </div>
+      <UnderlineTabs
+        label="Events by status"
+        active={statusFilter}
+        onChange={(key) => setStatusFilter(key)}
+        tabs={tabs.map((tab) => ({ key: tab.key, label: tab.label, count: tab.count }))}
+      />
 
       {/* Events Grid */}
       <div className="events-grid">
@@ -222,23 +216,18 @@ export default function EventsContent() {
                 <span className={`status-badge status-badge-${event.status}`}>
                   {event.status}
                 </span>
-                <div className="event-card-actions">
-                  <button onClick={() => openEdit(event)} className="btn-edit" title="Edit">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                    </svg>
-                  </button>
-                  <button onClick={() => setDeletingEvent(event)} className="btn-delete" title="Delete">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    </svg>
-                  </button>
-                </div>
+                <ActionMenu
+                  label={`Actions for ${event.title}`}
+                  items={[
+                    { label: 'Edit event', onSelect: () => openEdit(event) },
+                    { label: 'Delete event…', onSelect: () => setDeletingEvent(event), danger: true, separated: true },
+                  ]}
+                />
               </div>
 
-              <h3 className="event-card-title">{event.title}</h3>
+              <h3 className="event-card-title">
+                <button type="button" className="event-card-title-button" onClick={() => openEdit(event)}>{event.title}</button>
+              </h3>
 
               <div className="event-card-details">
                 <div className="event-detail">

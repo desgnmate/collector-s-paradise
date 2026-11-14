@@ -3,6 +3,7 @@
 import React from 'react';
 import { useAdminRouter } from '@/contexts/AdminRouterContext';
 import type { AdminRoute } from '@/contexts/AdminRouterContext';
+import { useAdminAttention } from '@/components/admin/useAdminAttention';
 
 const navItems: { href: AdminRoute; label: string; icon: React.ReactNode }[] = [
   { href: '/admin', label: 'Dashboard', icon: (
@@ -13,7 +14,7 @@ const navItems: { href: AdminRoute; label: string; icon: React.ReactNode }[] = [
       <rect x="3" y="14" width="7" height="7" />
     </svg>
   )},
-  { href: '/admin/vendors', label: 'Vendor Management', icon: (
+  { href: '/admin/vendors', label: 'Vendors', icon: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
@@ -58,6 +59,14 @@ const navItems: { href: AdminRoute; label: string; icon: React.ReactNode }[] = [
 
 export function AdminSidebarNav() {
   const { currentRoute, navigate } = useAdminRouter();
+  const attention = useAdminAttention();
+  // Badges only for work waiting on an admin; zero shows nothing.
+  const badges: Partial<Record<AdminRoute, { count: number; tone: 'attention' | 'alert' }>> = {
+    '/admin/vendors': { count: attention.reviewQueue + attention.pendingApplications, tone: 'attention' },
+    '/admin/sponsors': { count: attention.pendingSponsors, tone: 'attention' },
+    '/admin/volunteers': { count: attention.pendingVolunteers, tone: 'attention' },
+    '/admin/reports': { count: attention.openReports, tone: attention.urgentReports > 0 ? 'alert' : 'attention' },
+  };
 
   return (
     <nav className="admin-nav">
@@ -71,11 +80,18 @@ export function AdminSidebarNav() {
           <button
             key={item.href}
             className={`admin-nav-link ${isActive ? 'admin-nav-link-active' : ''}`}
+            aria-current={isActive ? 'page' : undefined}
             onClick={() => navigate(item.href)}
             type="button"
           >
             {item.icon}
-            {item.label}
+            <span className="admin-nav-text">{item.label}</span>
+            {badges[item.href] && badges[item.href]!.count > 0 && (
+              <span className={`admin-nav-badge is-${badges[item.href]!.tone}`}>
+                {badges[item.href]!.count}
+                <span className="sr-only"> waiting</span>
+              </span>
+            )}
           </button>
         );
       })}

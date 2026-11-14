@@ -46,8 +46,6 @@ export default function AdminReportsClient() {
     reports,
     setReports,
     errors,
-    refreshingSections,
-    refreshData,
   } = useAdminData();
   const [statusFilter, setStatusFilter] = useState<'all' | 'open' | ReportStatus>('open');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -82,7 +80,6 @@ export default function AdminReportsClient() {
   const currentStatus = draftStatus ?? selectedReport?.status ?? 'new';
   const currentPriority = draftPriority ?? selectedReport?.priority ?? 'normal';
   const currentNotes = draftNotes ?? selectedReport?.admin_notes ?? '';
-  const isRefreshing = refreshingSections.includes('reports');
 
   const selectReport = (report: SupportReport) => {
     setSelectedId(report.id);
@@ -130,15 +127,7 @@ export default function AdminReportsClient() {
           <h1 className="admin-page-title">Reports</h1>
           <p className="admin-page-subtitle">Review website problems and support requests filed by visitors.</p>
         </div>
-        <button
-          type="button"
-          className="admin-reports-refresh"
-          onClick={() => void refreshData(['reports'])}
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={isRefreshing ? 'is-spinning' : ''} aria-hidden="true" />
-          {isRefreshing ? 'Refreshing…' : 'Refresh'}
-        </button>
+        {/* Refreshing lives in the sidebar, next to "Synced …". */}
       </div>
 
       <div className="admin-report-summary" aria-label="Report summary">

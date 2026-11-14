@@ -1,17 +1,13 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import Image from 'next/image';
-import {
-  getVendorRegistrations,
-  removeDirectoryApproval,
-  reviewVendorRegistration,
-  type RegistrationRequest,
-} from '@/app/actions/vendor-registrations';
+import type { RegistrationRequest } from '@/app/actions/vendor-registrations';
 import { useAdminData } from '@/contexts/AdminDataContext';
+import { useRegistrationQueue } from '@/contexts/RegistrationQueueContext';
+import { FilterSelect, RowChevron, SearchField, useEscapeToClose } from '@/components/admin/ui';
 
 type KindFilter = 'all' | 'events' | 'directory';
-type Notice = { type: 'success' | 'error'; message: string } | null;
 
 const PAGE_SIZE = 20;
 const KIND_LABELS: Record<RegistrationRequest['kind'], string> = {
@@ -24,81 +20,9 @@ const normaliseEmail = (value: string) => value.trim().toLowerCase();
 const isHttpUrl = (value: string | undefined) => Boolean(value && /^https?:\/\//i.test(value));
 const formatDate = (value: string) => new Date(value).toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' });
 
-/**
- * Loads and processes the manual review queue: directory-only registrations
- * and event applications whose email or business name matched an existing
- * vendor. Lives in Vendor Management so the tab can show a live count.
- */
-export function useRegistrationQueue() {
-  const { refreshData } = useAdminData();
-  const [requests, setRequests] = useState<RegistrationRequest[]>([]);
-  const [approved, setApproved] = useState<{ id: string; business_name: string }[]>([]);
-  const [notice, setNotice] = useState<Notice>(null);
-  const [loading, setLoading] = useState(true);
-  const [busy, setBusy] = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      const result = await getVendorRegistrations();
-      setRequests(result.requests);
-      setApproved(result.approved || []);
-      if (result.error) setNotice({ type: 'error', message: result.error });
-    } catch {
-      setNotice({ type: 'error', message: 'Could not load registration requests. Try refreshing.' });
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { void load(); }, [load]);
-
-  const review = useCallback(async (request: RegistrationRequest, target: string, decline: boolean) => {
-    if (!decline && !target) {
-      setNotice({ type: 'error', message: 'Choose an existing vendor or create a new profile first.' });
-      return false;
-    }
-    if (!window.confirm(decline ? 'Decline this registration request?' : request.kind === 'directory'
-      ? 'Approve this public directory listing? Confirm the submitted business identity before linking an existing profile.'
-      : 'Link this request and create pending event applications? Existing profiles and event decisions will be preserved.')) return false;
-    setBusy(true);
-    try {
-      const result = await reviewVendorRegistration(request.id, target && target !== 'new' ? target : null, decline);
-      setNotice({ type: result.success ? 'success' : 'error', message: result.message });
-      if (result.success) { await load(); await refreshData(['vendors']); }
-      return result.success;
-    } catch {
-      setNotice({ type: 'error', message: 'Review failed. Refresh to check whether it was saved before retrying.' });
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }, [load, refreshData]);
-
-  const removeApproval = useCallback(async (id: string) => {
-    if (!window.confirm('Remove directory-only approval for this vendor? Event approvals will remain unchanged.')) return;
-    setBusy(true);
-    try {
-      const result = await removeDirectoryApproval(id);
-      setNotice({ type: result.success ? 'success' : 'error', message: result.message });
-      if (result.success) { await load(); await refreshData(['vendors']); }
-    } catch {
-      setNotice({ type: 'error', message: 'Could not remove approval. Refresh and try again.' });
-    } finally {
-      setBusy(false);
-    }
-  }, [load, refreshData]);
-
-  const refresh = useCallback(() => { setNotice(null); void load(); }, [load]);
-
-  return { requests, approved, notice, loading, busy, refresh, review, removeApproval };
-}
-
-export type RegistrationQueue = ReturnType<typeof useRegistrationQueue>;
-
-export default function VendorRegistrationQueue({ queue }: { queue: RegistrationQueue }) {
+export default function VendorRegistrationQueue() {
   const { vendors, events } = useAdminData();
-  const { requests, approved, notice, loading, busy, refresh, review, removeApproval } = queue;
+  const { requests, approved, notice, loading, busy, review, removeApproval } = useRegistrationQueue();
   const [kind, setKind] = useState<KindFilter>('all');
   const [search, setSearch] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -117,6 +41,7 @@ export default function VendorRegistrationQueue({ queue }: { queue: Registration
   }, [requests, kind, search]);
 
   const active = requests.find((request) => request.id === activeId) || null;
+  useEscapeToClose(Boolean(active), () => setActiveId(null), busy);
   const activeMatches = active ? matchesFor(active) : [];
   const counts = {
     all: requests.length,
@@ -132,37 +57,24 @@ export default function VendorRegistrationQueue({ queue }: { queue: Registration
 
   return (
     <section aria-label="Registration review">
-      <div className="vendor-management-directory-header">
-        <div>
-          <h3>Review queue</h3>
-          <p>
-            Directory-only registrations, plus event applications whose email or business name matches an existing vendor.
-            Link each one to the right profile before it joins an event roster. These buttons never send emails.
-          </p>
-        </div>
-        <button type="button" className="vendor-management-secondary-button" disabled={loading || busy} onClick={refresh}>
-          {loading ? 'Refreshing…' : 'Refresh'}
-        </button>
-      </div>
+      <p className="admin-section-intro">
+        Directory-only sign-ups, plus event applications whose email or business name matches an existing vendor.
+        Link each one to the right profile before it joins an event roster. Nothing here sends an email.
+      </p>
 
       {notice && <div className={`admin-alert admin-alert-${notice.type}`} role="status">{notice.message}</div>}
 
-      <div className="vendor-management-toolbar">
-        <div className="admin-tabs">
-          {(['all', 'events', 'directory'] as KindFilter[]).map((value) => (
-            <button key={value} type="button" className={`admin-tab ${kind === value ? 'active' : ''}`} onClick={() => { setKind(value); setVisibleCount(PAGE_SIZE); }}>
-              {value === 'all' ? 'All requests' : value === 'events' ? 'Event applications' : 'Directory only'}
-              <span className="tab-count">{counts[value]}</span>
-            </button>
-          ))}
-        </div>
-        <input
-          className="vendor-management-search"
-          type="search"
-          value={search}
-          onChange={(event) => { setSearch(event.target.value); setVisibleCount(PAGE_SIZE); }}
-          placeholder="Search requests"
-          aria-label="Search review requests"
+      <div className="admin-filter-bar">
+        <SearchField value={search} onChange={(value) => { setSearch(value); setVisibleCount(PAGE_SIZE); }} placeholder="Search requests" label="Search review requests" />
+        <FilterSelect
+          label="Type"
+          value={kind}
+          onChange={(value) => { setKind(value); setVisibleCount(PAGE_SIZE); }}
+          options={[
+            { value: 'all', label: 'All requests', count: counts.all },
+            { value: 'events', label: 'Event applications', count: counts.events },
+            { value: 'directory', label: 'Directory only', count: counts.directory },
+          ]}
         />
       </div>
 
@@ -177,7 +89,7 @@ export default function VendorRegistrationQueue({ queue }: { queue: Registration
           const details = request.details;
           const hasMatch = matchesFor(request).length > 0;
           return (
-            <div key={request.id} className="vendor-management-profile-card vendor-review-row">
+            <div key={request.id} className="vendor-management-profile-card vendor-review-row is-clickable" onClick={() => setActiveId(request.id)}>
               <span className="vendor-management-avatar">
                 {isHttpUrl(details.logo_url)
                   ? <Image src={details.logo_url} alt="" fill unoptimized sizes="48px" />
@@ -194,11 +106,11 @@ export default function VendorRegistrationQueue({ queue }: { queue: Registration
               </span>
               <button
                 type="button"
-                className="vendor-management-row-action"
+                className="admin-row-open"
                 aria-label={`Review ${details.business_name} — ${KIND_LABELS[request.kind]}`}
-                onClick={() => setActiveId(request.id)}
+                onClick={(event) => { event.stopPropagation(); setActiveId(request.id); }}
               >
-                Review
+                <RowChevron />
               </button>
             </div>
           );
@@ -207,7 +119,7 @@ export default function VendorRegistrationQueue({ queue }: { queue: Registration
       {filtered.length > visibleCount && (
         <div className="vendor-review-more">
           <span>Showing {visibleCount} of {filtered.length}</span>
-          <button type="button" className="vendor-management-secondary-button" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
+          <button type="button" className="admin-text-button" onClick={() => setVisibleCount((count) => count + PAGE_SIZE)}>
             Show {Math.min(PAGE_SIZE, filtered.length - visibleCount)} more
           </button>
         </div>
@@ -223,7 +135,7 @@ export default function VendorRegistrationQueue({ queue }: { queue: Registration
             {approved.map((vendor) => (
               <li key={vendor.id}>
                 <span>{vendor.business_name}</span>
-                <button type="button" className="vendor-management-row-action" disabled={busy || loading} onClick={() => void removeApproval(vendor.id)}>
+                <button type="button" className="admin-text-button is-danger" disabled={busy || loading} onClick={() => void removeApproval(vendor.id)}>
                   Remove directory approval
                 </button>
               </li>
