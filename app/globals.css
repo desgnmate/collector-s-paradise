@@ -22095,3 +22095,24 @@ button.experience-tag:focus-visible,
 @media print {
   .cookie-consent { display: none !important; }
 }
+
+/* Hero sky (three.js canvas). The still artwork sits behind it so the hero
+   never flashes plain blue while three.js loads, and stays if WebGL is off. */
+.hero-bg {
+  background-image: image-set(url('/images/hero-sky-1600.webp') 1x, url('/images/hero-sky-2560.webp') 2x);
+  background-position: center;
+  background-size: cover;
+}
+@media (min-width: 1700px) {
+  .hero-bg { background-image: url('/images/hero-sky-2560.webp'); }
+}
+.hero-sky {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 500ms ease;
+}
+.hero-sky.is-ready { opacity: 1; }

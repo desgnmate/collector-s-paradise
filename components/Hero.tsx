@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import HeroSky from '@/components/hero/HeroSky';
 import cardLeft from '@/public/images/card2-v2.jpg';
 import cardCenter from '@/public/images/card3.png';
 import cardRight from '@/public/images/card1-v3.png';
@@ -8,19 +9,9 @@ import cardRight from '@/public/images/card1-v3.png';
 export default function Hero() {
   return (
     <section className="hero" id="hero">
-      {/* Decorative background video */}
+      {/* Decorative background: the sky scene, drawn with three.js */}
       <div className="hero-bg">
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          aria-hidden="true"
-          className="hero-video"
-        >
-          <source src="/videos/4k-hero-video.mp4" type="video/mp4" />
-        </video>
+        <HeroSky />
       </div>
 
       {/* Content */}
