@@ -21,7 +21,7 @@ function getCountdown(targetTimeMs: number, nowMs: number) {
   };
 }
 
-function EventCountdown({ targetTimeMs }: { targetTimeMs: number }) {
+function useNow() {
   const [nowMs, setNowMs] = useState<number | null>(null);
 
   useEffect(() => {
@@ -31,10 +31,21 @@ function EventCountdown({ targetTimeMs }: { targetTimeMs: number }) {
     return () => window.clearInterval(interval);
   }, []);
 
+  return nowMs;
+}
+
+const COUNTDOWN_UNITS = [
+  ['days', 'Days'],
+  ['hours', 'Hrs'],
+  ['minutes', 'Min'],
+  ['seconds', 'Sec'],
+] as const;
+
+function EventCountdown({ targetTimeMs, nowMs }: { targetTimeMs: number; nowMs: number | null }) {
   if (nowMs === null) {
     return (
       <span className="next-event-countdown" aria-label="Countdown loading">
-        {['D', 'H', 'M', 'S'].map((label) => <strong key={label}>--<small>{label}</small></strong>)}
+        {COUNTDOWN_UNITS.map(([key, label]) => <span key={key}><strong>--</strong><small>{label}</small></span>)}
       </span>
     );
   }
@@ -43,13 +54,29 @@ function EventCountdown({ targetTimeMs }: { targetTimeMs: number }) {
   if (countdown.isLive) return <span className="next-event-live">Happening today</span>;
 
   return (
-    <span className="next-event-countdown" aria-label={`${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes and ${countdown.seconds} seconds until the event`}>
-      <strong>{String(countdown.days).padStart(2, '0')}<small>D</small></strong>
-      <strong>{String(countdown.hours).padStart(2, '0')}<small>H</small></strong>
-      <strong>{String(countdown.minutes).padStart(2, '0')}<small>M</small></strong>
-      <strong>{String(countdown.seconds).padStart(2, '0')}<small>S</small></strong>
+    <span
+      className="next-event-countdown"
+      role="timer"
+      aria-label={`${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes and ${countdown.seconds} seconds until the event`}
+    >
+      {COUNTDOWN_UNITS.map(([key, label]) => (
+        <span key={key} aria-hidden="true">
+          <strong>{String(countdown[key]).padStart(2, '0')}</strong>
+          <small>{label}</small>
+        </span>
+      ))}
     </span>
   );
+}
+
+/** "Today" / "Tomorrow" for the eyebrow, in the visitor's own calendar. */
+function relativeDay(targetTimeMs: number, nowMs: number | null) {
+  if (nowMs === null) return null;
+  const startOfDay = (ms: number) => { const date = new Date(ms); date.setHours(0, 0, 0, 0); return date.getTime(); };
+  const days = Math.round((startOfDay(targetTimeMs) - startOfDay(nowMs)) / 86400000);
+  if (days === 0) return 'Today';
+  if (days === 1) return 'Tomorrow';
+  return null;
 }
 
 export default function EventPromotionExperience({
@@ -62,6 +89,9 @@ export default function EventPromotionExperience({
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const dismissalKey = `cp-ticket-invite-dismissed:v1:${event.id}`;
   const hasMatchingTicketArtwork = /canberra/i.test(event.title);
+  const nowMs = useNow();
+  const dayLabel = relativeDay(event.targetTimeMs, nowMs);
+  const isExternalTicket = /^(https?:)?\/\//.test(event.ticketHref);
 
   const dismissPopup = useCallback(() => {
     window.localStorage.setItem(dismissalKey, String(Date.now()));
@@ -142,7 +172,10 @@ export default function EventPromotionExperience({
             <small>{event.dateMonth}</small>
           </span>
           <span className="next-event-copy">
-            <span className="next-event-eyebrow"><Ticket aria-hidden="true" /> Up next</span>
+            <span className="next-event-eyebrow">
+              <span className="next-event-dot" aria-hidden="true" />
+              Up next{dayLabel ? ` · ${dayLabel}` : ''}
+            </span>
             <span className="next-event-info">
               <strong>{event.title}</strong>
               <span className="next-event-meta">
@@ -150,11 +183,21 @@ export default function EventPromotionExperience({
               </span>
             </span>
           </span>
-          <EventCountdown targetTimeMs={event.targetTimeMs} />
-          <Link className="next-event-link" href={event.href}>
-            <span>Event details</span>
-            <ArrowRight aria-hidden="true" />
-          </Link>
+          <EventCountdown targetTimeMs={event.targetTimeMs} nowMs={nowMs} />
+          <span className="next-event-actions">
+            <Link className="next-event-details" href={event.href}>Details</Link>
+            {isExternalTicket ? (
+              <a className="next-event-link" href={event.ticketHref} target="_blank" rel="noreferrer" aria-label={`Get tickets for ${event.title}`}>
+                <span>Get tickets</span>
+                <ArrowRight aria-hidden="true" />
+              </a>
+            ) : (
+              <Link className="next-event-link" href={event.ticketHref || event.href} aria-label={`Get tickets for ${event.title}`}>
+                <span>Get tickets</span>
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            )}
+          </span>
         </div>
       </aside>
 

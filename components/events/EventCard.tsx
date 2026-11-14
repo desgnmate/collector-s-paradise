@@ -4,107 +4,104 @@ import Image from 'next/image';
 import Link from 'next/link';
 import type { Event } from '@/app/actions/events';
 import { getEffectiveEventStatus, getLocalDateKey } from '@/lib/events/status';
-
-const EVENT_COVER_FALLBACK = '/images/event-experience.jpg';
+import { getEventCoverImage } from '@/lib/events/cover';
+import { parseAustralianEventAddress } from '@/lib/event-location';
 
 interface EventCardProps {
   event: Event;
   variant?: 'upcoming' | 'past';
 }
 
+function formatPrice(price: number) {
+  return Number.isInteger(price) ? `$${price}` : `$${price.toFixed(2)}`;
+}
+
+function addDays(dateKey: string, days: number) {
+  const date = new Date(`${dateKey}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return getLocalDateKey(date);
+}
+
 export default function EventCard({ event, variant = 'upcoming' }: EventCardProps) {
   const dateObj = new Date(event.event_date + 'T00:00:00');
   const day = dateObj.getDate();
   const month = dateObj.toLocaleDateString('en-AU', { month: 'short' }).toUpperCase();
-  const fullDate = dateObj.toLocaleDateString('en-AU', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
+  const weekdayYear = `${dateObj.toLocaleDateString('en-AU', { weekday: 'long' })} ${dateObj.getFullYear()}`;
 
-  const isPast = event.event_date < getLocalDateKey();
+  const today = getLocalDateKey();
+  const status = getEffectiveEventStatus(event, today);
+  // A card in the "upcoming" group whose date has passed reads as a past event.
+  const isPast = status === 'completed' || (variant === 'past' && status !== 'cancelled');
+  const isCancelled = status === 'cancelled';
 
-  const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
-    upcoming: { label: 'UPCOMING', color: '#2E7D32', bg: '#E8F5E9' },
-    active: { label: 'ACTIVE', color: '#1565C0', bg: '#E3F2FD' },
-    completed: { label: 'PAST EVENT', color: '#757575', bg: '#F5F5F5' },
-    cancelled: { label: 'CANCELLED', color: '#C62828', bg: '#FFEBEE' },
-  };
+  const soonLabel = isPast || isCancelled ? null
+    : event.event_date === today ? 'Today'
+    : event.event_date === addDays(today, 1) ? 'Tomorrow'
+    : null;
+  const coverTag = isCancelled ? 'Cancelled' : isPast ? 'Past event' : soonLabel;
 
-  const effectiveKey = getEffectiveEventStatus(event);
-  const status = statusConfig[effectiveKey] || statusConfig.upcoming;
-
-  // If the card is rendered in the "upcoming" group but the date has
-  // actually passed, switch the variant so the CTA says "VIEW GALLERY".
-  const effectiveVariant = isPast ? 'past' : variant;
-  const showStatusBadge = effectiveVariant !== 'upcoming';
+  const { locality } = parseAustralianEventAddress(event.venue_address);
+  const place = [event.venue, locality && !event.venue?.toLowerCase().includes(locality.toLowerCase()) ? locality : null]
+    .filter(Boolean)
+    .join(' · ');
+  const price = event.ticket_price > 0 ? formatPrice(event.ticket_price) : null;
 
   return (
     <Link
       href={`/events/${event.id}`}
       prefetch
-      className={`ec-card ${isPast ? 'ec-card-past' : ''}`}
-      style={{ textDecoration: 'none', color: 'inherit' }}
+      className={`evc ${isPast ? 'is-past' : ''} ${isCancelled ? 'is-cancelled' : ''}`}
     >
-      {/* Cover Image with Date Chip */}
-      <div className="ec-image-wrapper">
+      <div className="evc-cover">
         <Image
-          src={event.cover_image_url || EVENT_COVER_FALLBACK}
-          alt={event.title}
+          src={getEventCoverImage(event)}
+          alt=""
           fill
+          sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 400px"
           loading="lazy"
-          style={{ objectFit: 'cover' }}
         />
-        {/* Date chip */}
-        <div className="ec-date-chip">
-          <span className="ec-date-day">{day}</span>
-          <span className="ec-date-month">{month}</span>
-        </div>
+        {coverTag && (
+          <span className={`evc-tag ${soonLabel ? 'is-soon' : ''}`}>
+            {soonLabel && <span className="evc-tag-dot" aria-hidden="true" />}
+            {coverTag}
+          </span>
+        )}
       </div>
 
-      {/* Card Content */}
-      <div className="ec-content">
-        {/* Status badge */}
-        <div className={`ec-card-kicker ${showStatusBadge ? '' : 'ec-card-kicker--date-only'}`}>
-          {showStatusBadge && (
-            <span
-              className="ec-status-badge"
-              style={{
-                color: status.color,
-                background: status.bg,
-              }}
-            >
-              {status.label}
-            </span>
-          )}
-          <span className="ec-full-date">{fullDate}</span>
-        </div>
-
-        {/* Title */}
-        <h3 className="ec-title">{event.title}</h3>
-
-        {/* Meta row: venue + price */}
-        <div className="ec-meta">
-          {event.venue && (
-            <span className="ec-venue">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                <circle cx="12" cy="10" r="3" />
-              </svg>
-              {event.venue}
-            </span>
-          )}
-          <span className="ec-price">
-            {event.ticket_price > 0 ? `$${event.ticket_price.toFixed(2)}` : ''}
+      <div className="evc-body">
+        <div className="evc-heading">
+          <span className="evc-date" aria-hidden="true">
+            <span className="evc-date-day">{day}</span>
+            <span className="evc-date-month">{month}</span>
           </span>
+          <div className="evc-heading-copy">
+            <span className="evc-weekday">{weekdayYear}</span>
+            <h3 className="evc-title">{event.title}</h3>
+          </div>
         </div>
 
-        {/* Footer row: CTA */}
-        <div className="ec-footer">
-          <span className="ec-cta">
-            {effectiveVariant === 'upcoming' ? 'VIEW EVENT' : 'VIEW GALLERY'}
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        {place && (
+          <span className="evc-place">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            {place}
+          </span>
+        )}
+
+        <div className="evc-footer">
+          {isPast || isCancelled ? (
+            <span className="evc-price-note">{price ? `Entry was ${price}` : isCancelled ? 'This event was cancelled' : 'Event finished'}</span>
+          ) : (
+            <span className="evc-price">
+              <span className="evc-price-label">{price ? 'Tickets from' : 'Tickets'}</span>
+              <span className="evc-price-value">{price ?? 'Details soon'}</span>
+            </span>
+          )}
+          <span className="evc-cta">
+            {isPast ? 'Event recap' : 'View event'}
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <line x1="5" y1="12" x2="19" y2="12" />
               <polyline points="12 5 19 12 12 19" />
             </svg>

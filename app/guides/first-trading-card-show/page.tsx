@@ -3,11 +3,13 @@ import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Link from 'next/link';
 import Footer from '@/components/Footer';
 import Navbar from '@/components/Navbar';
-import ResourcePageNav from '@/components/ResourcePageNav';
+import Image from 'next/image';
 import { absoluteUrl } from '@/lib/site';
 import { serializeJsonLd } from '@/lib/seo/jsonld';
 import FirstShowChecklist from './FirstShowChecklist';
 import styles from './guide.module.css';
+import hallPhoto from '@/public/images/buy-sell-trade.jpeg';
+import tablePhoto from '@/public/images/giveaways.jpeg';
 
 export const metadata: Metadata = {
   title: "First Trading Card Show Guide | Collector's Paradise",
@@ -31,6 +33,20 @@ const howToSteps = [
   ['Complete a clear trade', 'Agree on the exact items and values, inspect condition, and confirm before exchanging.'],
 ];
 
+const daySteps = [
+  ['Get your bearings.', 'Check entry, find the amenities and take in the room before you shop.'],
+  ['Do a first lap.', 'Browse and take notes on condition and price. You don’t have to buy at the first table.'],
+  ['Ask specific questions.', 'Name the card, set, number, player or budget. A clear brief gets you faster help.'],
+  ['Inspect, then agree.', 'Check condition and exactly what’s included before any deal or trade is done.'],
+  ['Take breaks.', 'Busy rooms are tiring. Step aside, check your list, go again.'],
+] as const;
+
+const manners = [
+  ['“Can I take a look?”', 'Wait for a yes before taking a card out of a case, sleeve, display or someone else’s binder.'],
+  ['“There’s a crease on the back.”', 'Be direct about condition. Mention issues you know about, check both sides, and don’t assume two copies are worth the same.'],
+  ['“Thanks, I’ll think about it.”', 'That’s enough. Not every conversation has to end in a deal, and nobody will take it personally.'],
+] as const;
+
 export default function FirstTradingCardShowGuidePage() {
   const howToSchema = {
     '@context': 'https://schema.org',
@@ -46,60 +62,99 @@ export default function FirstTradingCardShowGuidePage() {
       <Navbar />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: serializeJsonLd(howToSchema) }} />
 
-      <section id="before" className={styles.intro} aria-labelledby="before-title">
-        <div className={`${styles.shell} ${styles.introGrid}`}>
-          <div className={styles.introHeader}><p className={styles.label}>Before you go</p><h1 id="before-title">Give yourself a simple mission</h1></div>
-          <div className={styles.introCopy}>
-            <p>Your first show is easier when you choose one or two priorities: find a specific card, learn what a set is worth, meet local sellers, or simply see what the hobby looks like in person. <strong>Start with the live event page.</strong> That is where confirmed venue, time, entry, and ticket details belong. Re-check it before travelling.</p>
-            <p>Bring a short want list and note any condition, edition, language, grading, or budget requirements. This makes conversations quicker and helps you compare like with like. If you plan to trade, organise your cards so another collector can inspect them without handling your whole collection.</p>
-          </div>
+      <div className={styles.shell}>
+        <header className={styles.masthead}>
+          <h1>Your first<br />card show</h1>
+          <p>What to bring, how buying and trading works, and the small habits that make a first visit easy.</p>
+        </header>
+
+        <figure className={styles.heroFigure}>
+          <Image
+            src={hallPhoto}
+            alt="The floor at a Collector's Paradise show, with rows of vendor tables and visitors browsing"
+            sizes="(max-width: 1240px) 100vw, 1160px"
+            priority
+          />
+          <figcaption>The floor at a Collector&apos;s Paradise show. It&apos;s busy, but nobody minds you looking.</figcaption>
+        </figure>
+
+        <div className={styles.layout}>
+          <nav className={styles.toc} aria-label="In this guide">
+            <p>In this guide</p>
+            <a href="#before"><span>01</span>Before you go</a>
+            <a href="#pack"><span>02</span>What to pack</a>
+            <a href="#day"><span>03</span>On the day</a>
+            <a href="#manners"><span>04</span>Table manners</a>
+          </nav>
+
+          <article className={styles.article}>
+            <section id="before" className={styles.section} aria-labelledby="before-title">
+              <h2 id="before-title"><span>01</span>Before you go</h2>
+              <p className={styles.lead}>Pick one or two things you want out of the day. Find a specific card, learn what a set is worth, meet local sellers, or just see what the hobby looks like in person.</p>
+              <p>Then write a short want list. Note the condition, edition, language, grading and budget you care about, so conversations are quick and you&apos;re comparing like with like. If you plan to trade, sort your cards so someone can look through them without handling your whole collection.</p>
+
+              <div className={styles.beforeExtras}>
+                <div className={styles.wantList}>
+                  <p className={styles.wantListTitle}>A want list that works</p>
+                  <ul>
+                    <li><strong>Card</strong> · set · number</li>
+                    <li><strong>Condition</strong> you&apos;ll accept</li>
+                    <li><strong>Language</strong> / edition / graded?</li>
+                    <li><strong>Most</strong> you&apos;ll pay or trade</li>
+                  </ul>
+                </div>
+                <p className={styles.callout}>
+                  Check the <Link href="/events">live event page</Link> before you leave. That&apos;s where the confirmed venue, times, entry and tickets are.
+                </p>
+              </div>
+            </section>
+
+            <section id="pack" className={styles.section} aria-labelledby="pack-title">
+              <FirstShowChecklist />
+            </section>
+
+            <section id="day" className={styles.section} aria-labelledby="day-title">
+              <h2 id="day-title"><span>03</span>On the day</h2>
+              <div className={styles.dayLayout}>
+                <ol className={styles.steps}>
+                  {daySteps.map(([title, text], index) => (
+                    <li key={title}>
+                      <span className={styles.stepNumber} aria-hidden="true">{index + 1}</span>
+                      <p><strong>{title}</strong> {text}</p>
+                    </li>
+                  ))}
+                </ol>
+                <figure className={styles.dayFigure}>
+                  <Image src={tablePhoto} alt="Collectors looking through binders at a trading table" sizes="(max-width: 900px) 100vw, 320px" />
+                  <figcaption>Binders out at the trading tables.</figcaption>
+                </figure>
+              </div>
+            </section>
+
+            <section id="manners" className={styles.section} aria-labelledby="manners-title">
+              <h2 id="manners-title"><span>04</span>Table manners</h2>
+              <dl className={styles.manners}>
+                {manners.map(([say, why]) => (
+                  <div key={say}>
+                    <dt>{say}</dt>
+                    <dd>{why}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+
+            <section className={styles.closing}>
+              <h2>That&apos;s it. Pick a date.</h2>
+              <Link href="/events" className={styles.button}>
+                See upcoming events
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
+                </svg>
+              </Link>
+            </section>
+          </article>
         </div>
-      </section>
-
-      <ResourcePageNav items={[
-        { href: '#before', label: 'Before you go' },
-        { href: '#checklist', label: 'Packing check' },
-        { href: '#day-of', label: 'On the day' },
-        { href: '#etiquette', label: 'Etiquette' },
-      ]} />
-
-      <section id="checklist" className={styles.checklistSection} aria-label="First show preparation checklist">
-        <div className={styles.shell}><FirstShowChecklist /></div>
-      </section>
-
-      <section id="day-of" className={styles.timeline} aria-labelledby="day-title">
-        <div className={styles.shell}>
-          <div className={styles.timelineHeader}><p className={styles.label}>On the day</p><h2 id="day-title">A low-pressure first lap</h2></div>
-          <div className={styles.timelineList}>
-            <article className={styles.timelineItem}><span>Arrival</span><h3>Orient yourself</h3><p>Check entry instructions, locate amenities, and take a moment to understand the room before shopping.</p></article>
-            <article className={styles.timelineItem}><span>First lap</span><h3>Browse and take notes</h3><p>See what is available and compare condition and price. You do not need to buy from the first table you visit.</p></article>
-            <article className={styles.timelineItem}><span>Conversation</span><h3>Ask specific questions</h3><p>Share a card name, set, number, player, character, or budget. Vendors can help faster when the brief is clear.</p></article>
-            <article className={styles.timelineItem}><span>Decision</span><h3>Inspect before agreeing</h3><p>Look at condition, confirm exactly what is included, and make sure both sides understand a trade before completing it.</p></article>
-            <article className={styles.timelineItem}><span>Reset</span><h3>Take breaks</h3><p>Busy rooms can be tiring. Step aside, review your list, and return when you are ready.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section id="etiquette" className={styles.etiquette} aria-labelledby="etiquette-title">
-        <div className={styles.shell}>
-          <div className={styles.etiquetteHeader}><div><p className={styles.label}>Good table manners</p><h2 id="etiquette-title">Clear, calm, respectful</h2></div><p>Every table is different, but these three habits make buying and trading smoother for everyone.</p></div>
-          <div className={styles.etiquetteGrid}>
-            <article className={styles.etiquetteCard}><span>01</span><h3>Ask before handling</h3><p>Wait for permission before removing a card from a case, sleeve, display, or someone else&apos;s binder.</p></article>
-            <article className={styles.etiquetteCard}><span>02</span><h3>Be direct about condition</h3><p>Point out issues you know about, inspect both sides, and avoid assuming two copies have the same value.</p></article>
-            <article className={styles.etiquetteCard}><span>03</span><h3>It is okay to walk away</h3><p>A polite “thanks, I&apos;ll think about it” is enough. A good show does not require every conversation to become a deal.</p></article>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.nextStep}>
-        <div className={`${styles.shell} ${styles.nextStepInner}`}>
-          <div className={styles.nextStepCopy}>
-            <h2>Ready to choose a date?</h2>
-            <p>Start with the live event calendar.</p>
-          </div>
-          <Link href="/events" className={styles.button}>Find an event</Link>
-        </div>
-      </section>
+      </div>
       <Footer />
     </main>
   );

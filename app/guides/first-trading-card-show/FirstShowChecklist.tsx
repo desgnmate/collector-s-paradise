@@ -4,56 +4,50 @@ import { useState } from 'react';
 import styles from './guide.module.css';
 
 const checklistItems = [
-  { id: 'event', title: 'Re-check the event listing', detail: 'Confirm the published date, venue, times, and ticket link.' },
-  { id: 'budget', title: 'Set a comfortable limit', detail: 'Decide what you can spend or trade before you enter the room.' },
-  { id: 'want-list', title: 'Make a short want list', detail: 'Save set names, card numbers, players, or characters you are looking for.' },
-  { id: 'protection', title: 'Pack card protection', detail: 'Bring sleeves, top loaders, a secure binder, or a compact storage box.' },
-  { id: 'trade', title: 'Separate trade items', detail: 'Make it obvious which cards are available and which are not for trade.' },
-  { id: 'access', title: 'Raise access questions', detail: 'Contact the team early if you need venue-specific accessibility information.' },
+  { id: 'event', title: 'Event details', detail: 'Re-check the date, venue, times and ticket link.' },
+  { id: 'budget', title: 'A limit', detail: 'Decide what you can spend or trade before you walk in.' },
+  { id: 'want-list', title: 'Your want list', detail: 'Set names, card numbers, players or characters.' },
+  { id: 'protection', title: 'Card protection', detail: 'Sleeves, top loaders, a secure binder or a small box.' },
+  { id: 'trade', title: 'Trades, kept separate', detail: 'So it’s obvious what’s available and what isn’t.' },
+  { id: 'access', title: 'Access questions', detail: 'Contact the team early if you need venue accessibility details.' },
 ];
 
 export default function FirstShowChecklist() {
   const [checked, setChecked] = useState<string[]>([]);
-  const percent = Math.round((checked.length / checklistItems.length) * 100);
+  const allDone = checked.length === checklistItems.length;
 
   const toggle = (id: string) => {
     setChecked((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]);
   };
 
   return (
-    <div className={styles.checklistPanel}>
-      <div className={styles.checklistTopline}>
-        <div>
-          <p>Interactive packing check</p>
-          <h2>Ready for your first lap?</h2>
-        </div>
-        <div className={styles.progressBadge} aria-live="polite">
-          <strong>{percent}%</strong><span>prepared</span>
-        </div>
+    <>
+      <div className={styles.packHead}>
+        <h2 id="pack-title"><span>02</span>What to pack</h2>
+        <p className={styles.packCount} aria-live="polite">
+          {checked.length}/{checklistItems.length} <span>{allDone ? 'packed' : 'packed so far'}</span>
+        </p>
       </div>
-
-      <div className={styles.progressTrack} aria-hidden="true">
-        <span style={{ width: `${percent}%` }} />
-      </div>
-
-      <div className={styles.checklistItems}>
+      <p className={styles.packNote}>Tick them off as you go. Nothing is saved, it&apos;s just for you.</p>
+      <ul className={styles.checklist}>
         {checklistItems.map((item) => {
           const isChecked = checked.includes(item.id);
           return (
-            <label key={item.id} className={`${styles.checkItem} ${isChecked ? styles.checkItemDone : ''}`}>
-              <input type="checkbox" checked={isChecked} onChange={() => toggle(item.id)} />
-              <span className={styles.customCheck} aria-hidden="true">{isChecked ? '✓' : ''}</span>
-              <span><strong>{item.title}</strong><small>{item.detail}</small></span>
-            </label>
+            <li key={item.id}>
+              <label className={`${styles.checkItem} ${isChecked ? styles.checkItemDone : ''}`}>
+                <input type="checkbox" checked={isChecked} onChange={() => toggle(item.id)} />
+                <span className={styles.checkBox} aria-hidden="true">
+                  {isChecked && (
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  )}
+                </span>
+                <span className={styles.checkTitle}>{item.title}</span>
+                <span className={styles.checkDetail}>{item.detail}</span>
+              </label>
+            </li>
           );
         })}
-      </div>
-
-      {checked.length > 0 && (
-        <button type="button" className={styles.resetButton} onClick={() => setChecked([])}>
-          Reset checklist
-        </button>
-      )}
-    </div>
+      </ul>
+    </>
   );
 }

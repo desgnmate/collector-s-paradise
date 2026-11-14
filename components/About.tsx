@@ -21,7 +21,7 @@ const aboutFeatures = [
   {
     number: '03',
     title: 'Connect & collaborate',
-    description: 'Meet the people behind Melbourne’s collecting community and turn shared interests into lasting connections.',
+    description: 'Meet the people behind your local collecting community and turn shared interests into lasting connections.',
     accent: 'red',
     href: '/about',
     cta: 'Meet the community',
@@ -37,7 +37,7 @@ const About = () => {
           <span className="eyebrow-badge">ABOUT THE EVENT</span>
           <h2 className="section-title">WHAT IS COLLECTOR&apos;S<br/>PARADISE?</h2>
           <p className="section-subtitle">
-            Melbourne&apos;s live trading card experience — built for the thrill of the find and the people you meet along the way.
+            Australia&apos;s live trading card experience — built for the thrill of the find and the people you meet along the way.
           </p>
         </div>
 
@@ -52,13 +52,17 @@ const About = () => {
             >
               <div className="about-feature-topline">
                 <span className="about-feature-number">{feature.number}</span>
-                <span className="about-feature-mark" aria-hidden="true">✦</span>
+                <svg className="about-feature-spark" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z" />
+                </svg>
               </div>
               <h3>{feature.title}</h3>
               <p>{feature.description}</p>
               <span className="about-feature-link">
                 {feature.cta}
-                <span aria-hidden="true">→</span>
+                <svg className="about-feature-arrow" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <line x1="4" y1="12" x2="20" y2="12" /><polyline points="14 6 20 12 14 18" />
+                </svg>
               </span>
             </Link>
           ))}
