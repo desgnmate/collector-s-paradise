@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowRight, CalendarDays, MapPin, Ticket, X } from 'lucide-react';
 import type { PromotedEvent } from '@/lib/event-promotion';
+import { preferenceStorage } from '@/lib/consent';
 import vipTicket from '@/Canberra VIP ticket.png';
 import gaTicket from '@/Canberra GA ticket.png';
 
@@ -94,14 +95,14 @@ export default function EventPromotionExperience({
   const isExternalTicket = /^(https?:)?\/\//.test(event.ticketHref);
 
   const dismissPopup = useCallback(() => {
-    window.localStorage.setItem(dismissalKey, String(Date.now()));
+    preferenceStorage()?.setItem(dismissalKey, String(Date.now()));
     setShowPopup(false);
   }, [dismissalKey]);
 
   useEffect(() => {
     if (!hasMatchingTicketArtwork) return;
 
-    const dismissedAt = Number(window.localStorage.getItem(dismissalKey) || 0);
+    const dismissedAt = Number(preferenceStorage()?.getItem(dismissalKey) || 0);
     if (Date.now() - dismissedAt < DISMISS_FOR_MS) return;
 
     const timer = window.setTimeout(() => {

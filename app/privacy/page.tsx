@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { OPEN_GRAPH_DEFAULTS } from '@/lib/seo/metadata';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import CookieSettingsButton from '@/components/CookieSettingsButton';
 
 export const metadata: Metadata = {
   title: "Privacy Policy | Collector's Paradise",
@@ -85,14 +86,16 @@ export default function PrivacyPage() {
               <p>However, no method of transmission over the internet is 100% secure. While we strive to protect your data, we cannot guarantee absolute security.</p>
             </div>
 
-            <div className="legal-section">
+            <div className="legal-section" id="cookies">
               <h2>6. Cookies</h2>
-              <p>We use cookies and similar tracking technologies to enhance your experience on our website. These include:</p>
+              <p>When you first visit, we ask which optional cookies you&apos;re happy for us to use. You can change your answer at any time.</p>
               <ul>
-                <li><strong>Essential Cookies:</strong> Required for the website to function (e.g., authentication sessions).</li>
-                <li><strong>Analytics Cookies:</strong> Help us understand how visitors use our site.</li>
+                <li><strong>Essential:</strong> Keep the site secure and working, including staff sign-in sessions. These are always on.</li>
+                <li><strong>Preferences:</strong> Remember small choices, such as a ticket pop-up you&apos;ve closed. Without your consent, these are forgotten when you close your browser.</li>
+                <li><strong>Analytics:</strong> Would help us understand how visitors use the site. We don&apos;t run any analytics today; we will only start with your consent.</li>
               </ul>
-              <p>You can control cookie settings through your browser preferences.</p>
+              <p>We don&apos;t use advertising or cross-site tracking cookies. Your choice is stored in a cookie named <code>cp_consent</code> for 180 days.</p>
+              <p><CookieSettingsButton className="legal-cookie-button">Change cookie settings</CookieSettingsButton></p>
             </div>
 
             <div className="legal-section">

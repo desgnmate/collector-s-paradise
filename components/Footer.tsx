@@ -2,6 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { AdminSecretAccess } from './AdminSecretAccess';
+import CookieSettingsButton from './CookieSettingsButton';
 import polaroid1 from '@/public/images/footer-card-1.jpg';
 import polaroid2 from '@/public/images/footer-card-2.jpg';
 import polaroid3 from '@/public/images/footer-card-3.jpg';
@@ -110,7 +111,8 @@ export default function Footer() {
 
           <div className="footer-legal-text">
             <Link href="/privacy">PRIVACY</Link><br />
-            <Link href="/terms">TERMS &amp; CONDITIONS</Link>
+            <Link href="/terms">TERMS &amp; CONDITIONS</Link><br />
+            <CookieSettingsButton className="footer-cookie-button">COOKIE SETTINGS</CookieSettingsButton>
           </div>
         </div>
 

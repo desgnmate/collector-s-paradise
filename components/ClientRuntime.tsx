@@ -3,6 +3,7 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import { useScrollReveal } from '@/hooks/useScrollReveal';
+import CookieConsent from '@/components/CookieConsent';
 import type Lenis from 'lenis';
 
 declare global {
@@ -160,6 +161,7 @@ export default function ClientRuntime({ children }: ClientRuntimeProps) {
     <>
       {children}
       {!hideChatWidget && ChatWidgetComponent && <ChatWidgetComponent />}
+      {!isAdminRoute && <CookieConsent />}
     </>
   );
 }
