@@ -144,7 +144,7 @@ export default function TermsPage() {
               <div className="legal-contact-card">
                 <p><strong>Collector's Paradise</strong></p>
                 <p>Melbourne, Australia</p>
-                <p>Email: <a href="mailto:hello@collectorsparadise.au">hello@collectorsparadise.au</a></p>
+                <p>Email: <a href="mailto:collectorsinparadise@gmail.com">collectorsinparadise@gmail.com</a></p>
               </div>
             </div>
 

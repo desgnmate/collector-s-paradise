@@ -61,7 +61,7 @@ const FAQS: Faq[] = [
     answer:
       'Refund and transfer terms can vary by event. Check the terms shown during booking, or email us about a specific ticket.',
     action: {
-      href: 'mailto:hello@collectorsparadise.au?subject=Ticket%20refund%20enquiry',
+      href: 'mailto:collectorsinparadise@gmail.com?subject=Ticket%20refund%20enquiry',
       label: 'Ask about a ticket',
     },
     icon: CircleDollarSign,
@@ -94,7 +94,7 @@ const FAQS: Faq[] = [
     answer:
       'Collection publishing is available to approved vendors. Email support if you need help accessing or updating your vendor content.',
     action: {
-      href: 'mailto:hello@collectorsparadise.au?subject=Vendor%20collection%20support',
+      href: 'mailto:collectorsinparadise@gmail.com?subject=Vendor%20collection%20support',
       label: 'Email vendor support',
     },
     icon: Grid2X2,
